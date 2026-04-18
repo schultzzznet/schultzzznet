@@ -12,6 +12,11 @@
 
 ---
 
+> *The technology doesn't matter. What matters is what you can build with it that you couldn't build before.*
+> — paraphrasing [Marty Cagan / SVPG](https://www.svpg.com)
+
+---
+
 ## What's running right now
 
 A live, production-grade platform on real x86 hardware — in daily use, with months of uptime.
@@ -49,6 +54,11 @@ Two distinct AI deployment patterns, both live and in production use:
 These aren't substitutes for each other. They serve different threat models, different
 data-sensitivity requirements, and different latency budgets. Running both simultaneously
 is itself an architectural pattern.
+
+---
+
+> *The best engineers are not there just to code. They are there to solve problems.*
+> — Marty Cagan, [Empowered](https://www.svpg.com/books/empowered-ordinary-people-extraordinary-products/)
 
 ---
 
