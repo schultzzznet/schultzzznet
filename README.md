@@ -27,8 +27,8 @@ decision only holds on one, it's not good enough. Flutter iOS/Android mobile cli
 Keycloak for OAuth2/OIDC. HAProxy TLS edge. Patroni HA Postgres on Swarm. CloudNativePG on k3s.
 Prometheus → Loki → Grafana → Alertmanager. No single point of failure in any critical path.
 
-The bar is not "works on a Pi." The bar is: *would this fly in a cloud datacenter with paying
-users, SLAs, and a 3am incident?*
+This runs at production standard — real hardware, real HA, real operational pressure.
+The kind of system you'd hand off to a team and go on holiday.
 
 **Track 2 — AI-native engineering**
 
