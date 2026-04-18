@@ -1,39 +1,64 @@
-## Hi, I'm Christian Schultz
+# Christian Schultz
 
-Platform engineer. Full-stack. AI-native.
+**Platform engineer. Full-stack. AI-native.**
 
-I build production-grade platforms end to end — HA clusters, distributed databases, mobile
-clients, and CI/CD that would hold up under real operational pressure. The bar I work to:
-*would this fly in a cloud datacenter with paying users, SLAs, and a 3am incident?*
-
----
-
-### What I'm running right now
-
-A bare-metal homelab that's been in daily production use for months:
-
-- **Docker Swarm + k3s** — same apps on two orchestrators in parallel, a deliberate
-  architectural stress test
-- **Spring Boot 3 / Java 17 + PostGIS** — location and hazard warning backends with spatial queries
-- **Flutter** — iOS/Android mobile clients
-- **Keycloak + Traefik + HAProxy** — full OAuth2/OIDC stack, edge ingress, TLS termination
-- **Prometheus + Loki + Grafana + Alertmanager** — full observability, wired into everything
-
-On top of that — a **local AI ops layer**:
-
-- **Ollama + qwen2.5:14b** — runs on a Mac Mini M2 Pro, air-gapped, zero cloud dependency
-- A Python agent polling every 60 seconds across Prometheus, Loki, and Alertmanager
-- **Slack as the ops interface** — DM the bot to query live cluster state. Type `drain <node>`
-  and it proposes the command with a dry-run description and ✅ / ❌ approval buttons.
-  Click ✅ — it SSHes in and runs it. Anomaly detection, alert enrichment, bidirectional
-  conversation, supervised execution — all through a chat window, all guardrailed,
-  full data sovereignty.
-
-→ **[the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the full story
+[![Java 17](https://img.shields.io/badge/Java-17%20LTS-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Docker Swarm](https://img.shields.io/badge/Docker%20Swarm-live-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/engine/swarm/)
+[![k3s](https://img.shields.io/badge/k3s-live-326CE5?logo=kubernetes&logoColor=white)](https://k3s.io)
+[![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
+[![Prometheus](https://img.shields.io/badge/Prometheus-live-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 
 ---
 
-### Stack
+## What's running right now
 
-`Java` `Spring Boot` `Flutter` `Python` `Docker Swarm` `k3s` `Postgres / PostGIS`
-`Ansible` `Prometheus` `Grafana` `Loki` `Alertmanager` `Keycloak` `Traefik` `Ollama`
+A live, production-grade platform on real x86 hardware — in daily use, with months of uptime.
+Not a concept. Not a lab that gets spun up for demos.
+
+Two tracks running in parallel, both active:
+
+**Track 1 — Platform mastery**
+
+3-manager Docker Swarm + 3-server k3s with embedded etcd. The same Spring Boot + PostGIS apps
+run on both orchestrators simultaneously — a deliberate architectural stress test: if a design
+decision only holds on one, it's not good enough. Flutter iOS/Android mobile clients.
+Keycloak for OAuth2/OIDC. HAProxy TLS edge. Patroni HA Postgres on Swarm. CloudNativePG on k3s.
+Prometheus → Loki → Grafana → Alertmanager. No single point of failure in any critical path.
+
+The bar is not "works on a Pi." The bar is: *would this fly in a cloud datacenter with paying
+users, SLAs, and a 3am incident?*
+
+**Track 2 — AI-native engineering**
+
+Two distinct AI deployment patterns, both live and in production use:
+
+- **Development edge — Claude (cloud AI).** Architecture reasoning, code generation, security
+  review (OWASP Top 10, CVE triage) — across Spring Boot, Flutter, Ansible, SQL, and Dockerfile
+  simultaneously. One engineer. Team-speed output.
+
+- **Production edge — Ollama + qwen2.5:14b (local AI, air-gapped, zero cloud dependency).**
+  A Python agent polls every 60 seconds across Prometheus, Loki, and Alertmanager.
+  **Slack is the ops console.** DM the bot: *"what's the heap on warn-app?"* — it queries
+  Prometheus and replies with live data. Type `drain <node>` — it proposes the command with
+  a dry-run description and ✅ / ❌ approval buttons. Click ✅ and it SSHes into the cluster
+  and runs it. Anomaly detection, alert enrichment, bidirectional conversation, supervised
+  cluster execution — all guardrailed, no cloud dependency, full data sovereignty.
+
+These aren't substitutes for each other. They serve different threat models, different
+data-sensitivity requirements, and different latency budgets. Running both simultaneously
+is itself an architectural pattern.
+
+---
+
+**→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the full story,
+including the complete AI-native development and operations breakdown.
+
+---
+
+[![GitHub Stats](https://github-readme-stats.vercel.app/api?username=schultzzznet&show_icons=true&theme=dark&hide_border=true&count_private=true)](https://github.com/schultzzznet)
+
+---
+
+[github@schultzzz.net](mailto:github@schultzzz.net) · [schultzzz.net](https://www.schultzzz.net) · Denmark
