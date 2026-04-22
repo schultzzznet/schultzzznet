@@ -46,7 +46,7 @@ paying users, SLAs, and a 3am incident?*
 
 The cluster runs on 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
 Pi edge nodes, and an Apple Silicon AI host (Mac Mini M2 Pro). The dev machine is an Apple
-Silicon MacBook Pro. A word on that: M-series chips are genuinely extraordinary — unified
+Silicon Mac Studio. A word on that: M-series chips are genuinely extraordinary — unified
 memory architecture, performance per watt that embarrasses x86 at the same price point, and
 the ability to run serious local LLM inference without breaking a sweat or the power budget.
 Having Apple Silicon at both ends — dev and AI inference — is not accidental. It's the right
