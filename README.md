@@ -29,15 +29,16 @@ Two tracks running in parallel, both active:
 The question this track answers: *can you build the real thing, end to end, at production
 standard — and know it works because it's actually running?*
 
-That means: a deployed Flutter iOS and Android mobile app, talking to Spring Boot backends
-with PostGIS spatial queries, authenticated via Keycloak OAuth2/OIDC, sitting behind
-Traefik reverse proxy and HAProxy TLS edge ingress — with HA Postgres underneath, full
-observability (Prometheus, Loki, Grafana, Alertmanager), and the whole thing deployable
-to two orchestrators simultaneously: **Docker Swarm and Kubernetes (k3s)**. Both are live.
-Same apps, same data, same infrastructure patterns. Swarm because it's operationally
-simple and battle-tested. k3s because it's where professional cloud-native deployments
-land. Running both in parallel is the stress test: if a design decision only holds on one
-orchestrator, it's not good enough.
+**Yes. Here's the proof:**
+
+A deployed Flutter iOS and Android mobile app, talking to Spring Boot backends with PostGIS
+spatial queries, authenticated via Keycloak OAuth2/OIDC, sitting behind Traefik reverse proxy
+and HAProxy TLS edge ingress — with HA Postgres underneath, full observability (Prometheus,
+Loki, Grafana, Alertmanager), and the whole thing deployable to two orchestrators
+simultaneously: **Docker Swarm and Kubernetes (k3s)**. Both are live. Same apps, same data,
+same infrastructure patterns. Swarm because it's operationally simple and battle-tested.
+k3s because it's where professional cloud-native deployments land. Running both in parallel
+is the stress test: if a design decision only holds on one orchestrator, it's not good enough.
 
 Everything is scripted. Everything is Ansible-managed. Nothing requires a manual step.
 The bar is not "works on a laptop". The bar is: *would this fly in a cloud datacenter with
