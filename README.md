@@ -44,13 +44,20 @@ Everything is scripted. Everything is Ansible-managed. Nothing requires a manual
 The bar is not "works on a laptop". The bar is: *would this fly in a cloud datacenter with
 paying users, SLAs, and a 3am incident?*
 
-The hardware is 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
-Pi edge nodes, Apple Silicon AI host. This is a **practice and proof-of-concept
-environment, not optimised for raw performance** — it's optimised for learning. Deliberately
-heterogeneous commodity hardware, because that's what makes the HA and orchestration design
-meaningful: if quorum tolerance and zero-downtime deploys hold up across machines with
-different CPUs, RAM, disk speeds, and boot behaviours, they hold up anywhere. Cloud VMs are
-the easy case. This is the harder test — and the results transfer directly.
+The cluster runs on 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
+Pi edge nodes, and an Apple Silicon AI host (Mac Mini M2 Pro). The dev machine is an Apple
+Silicon MacBook Pro. A word on that: M-series chips are genuinely extraordinary — unified
+memory architecture, performance per watt that embarrasses x86 at the same price point, and
+the ability to run serious local LLM inference without breaking a sweat or the power budget.
+Having Apple Silicon at both ends — dev and AI inference — is not accidental. It's the right
+tool for both jobs.
+
+This is a **practice and proof-of-concept environment, not optimised for raw performance**
+— it's optimised for learning. Deliberately heterogeneous commodity hardware, because that's
+what makes the HA and orchestration design meaningful: if quorum tolerance and
+zero-downtime deploys hold up across machines with different CPUs, RAM, disk speeds, and
+boot behaviours, they hold up anywhere. Cloud VMs are the easy case. This is the harder
+test — and the results transfer directly.
 
 **Nothing here is proprietary.** No EKS. No managed Kubernetes. No vendor-specific APIs.
 Every component — k3s, Swarm, Traefik, Keycloak, Patroni, CloudNativePG, Prometheus, Loki
