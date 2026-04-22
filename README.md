@@ -19,37 +19,41 @@
 
 ## What's running right now
 
-A live, production-grade platform on real x86 hardware — in daily use, with months of uptime.
-Not a concept. Not a lab that gets spun up for demos.
+A live, production-grade platform on real x86 hardware — in daily use, with months of
+uptime. Not a concept. Not a lab that gets spun up for demos.
 
 Two tracks running in parallel, both active:
 
 **Track 1 — Platform mastery**
 
-3-manager Docker Swarm + 3-server k3s with embedded etcd. The same Spring Boot + PostGIS apps
-run on both orchestrators simultaneously — a deliberate architectural stress test: if a design
-decision only holds on one, it's not good enough. Flutter iOS/Android mobile clients.
-Keycloak for OAuth2/OIDC. HAProxy TLS edge. Patroni HA Postgres on Swarm. CloudNativePG on k3s.
+3-manager Docker Swarm + 3-server k3s with embedded etcd. The same Spring Boot +
+PostGIS apps run on both orchestrators simultaneously — a deliberate
+architectural stress test: if a design decision only holds on one, it's not good enough.
+Flutter iOS/Android mobile clients. Keycloak for OAuth2/OIDC. HAProxy TLS edge.
+Patroni HA Postgres on Swarm. CloudNativePG on k3s.
 Prometheus → Loki → Grafana → Alertmanager. No single point of failure in any critical path.
 
-This runs at production standard — real hardware, real HA, real operational pressure.
-The kind of system you'd hand off to a team and go on holiday.
+This runs at production standard — real hardware, real HA, real operational
+pressure. The kind of system you'd hand off to a team and go on holiday.
 
 **Track 2 — AI-native engineering**
 
 Two distinct AI deployment patterns, both live and in production use:
 
 - **Development edge — Claude (cloud AI).** Architecture reasoning, code generation, security
-  review (OWASP Top 10, CVE triage) — across Spring Boot, Flutter, Ansible, SQL, and Dockerfile
-  simultaneously. One engineer. Team-speed output.
+  review (OWASP Top 10, CVE triage) — across Spring Boot, Flutter, Ansible, SQL, and
+  Dockerfile simultaneously. One engineer. Team-speed output.
 
-- **Production edge — Ollama + qwen2.5:14b (local AI, air-gapped, zero cloud dependency).**
-  A Python agent polls every 60 seconds across Prometheus, Loki, and Alertmanager.
-  **Slack is the ops console.** DM the bot: *"what's the heap on warn-app?"* — it queries
-  Prometheus and replies with live data. Type `drain <node>` — it proposes the command with
-  a dry-run description and ✅ / ❌ approval buttons. Click ✅ and it SSHes into the cluster
-  and runs it. Anomaly detection, alert enrichment, bidirectional conversation, supervised
-  cluster execution — all guardrailed, no cloud dependency, full data sovereignty.
+- **Production edge — Ollama + qwen3.5:9b (local AI, air-gapped, zero cloud dependency).**
+  A Python agent polls every hour across Prometheus, Loki, and Alertmanager.
+  **Slack is the ops console.** DM the bot: *"what's the heap on warn-app?"* — it decides
+  which tools to call, queries Prometheus live, and replies. Type `drain <node>` — it
+  proposes the command with a dry-run description and ✅ / ❌ approval buttons. Click ✅
+  and it SSHes into the cluster and runs it. The agent uses the **ReAct tool-calling
+  pattern**: the model decides which data to fetch, calls the tools, reads the results, and
+  iterates until it can answer confidently. Not a keyword router — a genuine agentic loop,
+  running locally, zero cloud dependency, full data sovereignty. The pattern transfers
+  directly to any estate with an observable infrastructure.
 
 These aren't substitutes for each other. They serve different threat models, different
 data-sensitivity requirements, and different latency budgets. Running both simultaneously
@@ -62,8 +66,8 @@ is itself an architectural pattern.
 
 ---
 
-**→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the full story,
-including the complete AI-native development and operations breakdown.
+**→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the full
+story, including the complete AI-native development and operations breakdown.
 
 ---
 
