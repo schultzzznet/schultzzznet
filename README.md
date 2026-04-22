@@ -19,16 +19,21 @@
 
 ## What's running right now
 
-A live, production-grade platform on real x86 hardware — in daily use, with months of
+A live, production-grade platform on real hardware — in daily use, with months of
 uptime. Not a concept. Not a lab that gets spun up for demos.
 
 Two tracks running in parallel, both active:
 
 **Track 1 — Platform mastery**
 
-3-manager Docker Swarm + 3-server k3s with embedded etcd. The same Spring Boot +
-PostGIS apps run on both orchestrators simultaneously — a deliberate
-architectural stress test: if a design decision only holds on one, it's not good enough.
+11 machines. 8 full cluster nodes (repurposed x86 servers and Mac hardware — Dell i7s,
+MacBook Pros, iMacs): 3 running as Docker Swarm quorum managers, 3 as k3s
+control-plane+etcd servers, 2 as k3s workers. 2 Raspberry Pi edge nodes handling HAProxy
+TLS termination and Tailscale ingress. 1 Apple Silicon AI host (Mac Mini M2 Pro) running
+Ollama and the ops agent. The same Spring Boot + PostGIS apps run on both Swarm and k3s
+simultaneously — a deliberate architectural stress test: if a design decision only holds
+on one orchestrator, it's not good enough.
+
 Flutter iOS/Android mobile clients. Keycloak for OAuth2/OIDC. HAProxy TLS edge.
 Patroni HA Postgres on Swarm. CloudNativePG on k3s.
 Prometheus → Loki → Grafana → Alertmanager. No single point of failure in any critical path.
