@@ -44,11 +44,21 @@ The bar is not "works on a laptop". The bar is: *would this fly in a cloud datac
 paying users, SLAs, and a 3am incident?*
 
 The hardware is 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
-Pi edge nodes, Apple Silicon AI host. Deliberately heterogeneous commodity hardware,
-because that's what makes the HA and orchestration design meaningful: if quorum tolerance
-and zero-downtime deploys hold up across machines with different CPUs, RAM, disk speeds,
-and boot behaviours, they hold up anywhere. Cloud VMs are the easy case. This is the
-harder test.
+Pi edge nodes, Apple Silicon AI host. This is a **practice and proof-of-concept
+environment, not optimised for raw performance** — it's optimised for learning. Deliberately
+heterogeneous commodity hardware, because that's what makes the HA and orchestration design
+meaningful: if quorum tolerance and zero-downtime deploys hold up across machines with
+different CPUs, RAM, disk speeds, and boot behaviours, they hold up anywhere. Cloud VMs are
+the easy case. This is the harder test — and the results transfer directly.
+
+**Nothing here is proprietary.** No EKS. No managed Kubernetes. No vendor-specific APIs.
+Every component — k3s, Swarm, Traefik, Keycloak, Patroni, CloudNativePG, Prometheus, Loki
+— runs identically on bare metal, on cloud VMs, or in any environment that can run a
+container. The Ansible playbooks that provision this cluster provision a cloud deployment
+with the same commands. That's a deliberate architectural constraint: if the design requires
+a managed service to function, it isn't portable enough. Running this on commodity hardware
+*without* the managed-service safety net is how you prove it's genuinely cloud-agnostic —
+moving to cloud becomes a runtime decision, not an architectural rewrite.
 
 **Track 2 — AI-native engineering**
 
