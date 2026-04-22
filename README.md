@@ -24,28 +24,31 @@ uptime. Not a concept. Not a lab that gets spun up for demos.
 
 Two tracks running in parallel, both active:
 
-**Track 1 — Platform mastery**
+**Track 1 — Full-stack platform mastery**
 
-11 machines. Deliberately heterogeneous — Dell servers, decommissioned MacBook Pros,
-old iMacs, Raspberry Pis, Apple Silicon. Not identical cloud VMs. That's the point.
-If HA, quorum tolerance, and zero-downtime deploys hold up across hardware with different
-CPUs, RAM, disk speeds, and boot behaviours, they'll hold up anywhere. Cloud VMs are the
-easy case. This is the harder test.
+The question this track answers: *can you build the real thing, end to end, at production
+standard — and know it works because it's actually running?*
 
-8 full cluster nodes: 3 as Docker Swarm quorum managers, 3 as k3s control-plane+etcd
-servers, 2 as k3s workers. 2 Raspberry Pi edge nodes handling HAProxy TLS termination and
-Tailscale ingress — cheap, replaceable, exactly what you'd use at the edge in a real
-deployment. 1 Apple Silicon AI host (Mac Mini M2 Pro) running Ollama and the ops agent,
-air-gapped from the internet.
+That means: a deployed Flutter iOS and Android mobile app, talking to Spring Boot backends
+with PostGIS spatial queries, authenticated via Keycloak OAuth2/OIDC, sitting behind
+Traefik reverse proxy and HAProxy TLS edge ingress — with HA Postgres underneath, full
+observability (Prometheus, Loki, Grafana, Alertmanager), and the whole thing deployable
+to two orchestrators simultaneously: **Docker Swarm and Kubernetes (k3s)**. Both are live.
+Same apps, same data, same infrastructure patterns. Swarm because it's operationally
+simple and battle-tested. k3s because it's where professional cloud-native deployments
+land. Running both in parallel is the stress test: if a design decision only holds on one
+orchestrator, it's not good enough.
 
-The same Spring Boot + PostGIS apps run on both Swarm and k3s simultaneously — a
-deliberate architectural stress test: if a design decision only holds on one orchestrator,
-it's not good enough. Flutter iOS/Android mobile clients. Keycloak for OAuth2/OIDC.
-Patroni HA Postgres on Swarm. CloudNativePG on k3s. Prometheus → Loki → Grafana →
-Alertmanager. No single point of failure in any critical path.
+Everything is scripted. Everything is Ansible-managed. Nothing requires a manual step.
+The bar is not "works on a laptop". The bar is: *would this fly in a cloud datacenter with
+paying users, SLAs, and a 3am incident?*
 
-This runs at production standard — real operational pressure, real failure modes, real
-constraints. The kind of system you'd hand off to a team and go on holiday.
+The hardware is 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
+Pi edge nodes, Apple Silicon AI host. Deliberately heterogeneous commodity hardware,
+because that's what makes the HA and orchestration design meaningful: if quorum tolerance
+and zero-downtime deploys hold up across machines with different CPUs, RAM, disk speeds,
+and boot behaviours, they hold up anywhere. Cloud VMs are the easy case. This is the
+harder test.
 
 **Track 2 — AI-native engineering**
 
