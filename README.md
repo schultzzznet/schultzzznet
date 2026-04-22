@@ -26,20 +26,26 @@ Two tracks running in parallel, both active:
 
 **Track 1 — Platform mastery**
 
-11 machines. 8 full cluster nodes (repurposed x86 servers and Mac hardware — Dell i7s,
-MacBook Pros, iMacs): 3 running as Docker Swarm quorum managers, 3 as k3s
-control-plane+etcd servers, 2 as k3s workers. 2 Raspberry Pi edge nodes handling HAProxy
-TLS termination and Tailscale ingress. 1 Apple Silicon AI host (Mac Mini M2 Pro) running
-Ollama and the ops agent. The same Spring Boot + PostGIS apps run on both Swarm and k3s
-simultaneously — a deliberate architectural stress test: if a design decision only holds
-on one orchestrator, it's not good enough.
+11 machines. Deliberately heterogeneous — Dell servers, decommissioned MacBook Pros,
+old iMacs, Raspberry Pis, Apple Silicon. Not identical cloud VMs. That's the point.
+If HA, quorum tolerance, and zero-downtime deploys hold up across hardware with different
+CPUs, RAM, disk speeds, and boot behaviours, they'll hold up anywhere. Cloud VMs are the
+easy case. This is the harder test.
 
-Flutter iOS/Android mobile clients. Keycloak for OAuth2/OIDC. HAProxy TLS edge.
-Patroni HA Postgres on Swarm. CloudNativePG on k3s.
-Prometheus → Loki → Grafana → Alertmanager. No single point of failure in any critical path.
+8 full cluster nodes: 3 as Docker Swarm quorum managers, 3 as k3s control-plane+etcd
+servers, 2 as k3s workers. 2 Raspberry Pi edge nodes handling HAProxy TLS termination and
+Tailscale ingress — cheap, replaceable, exactly what you'd use at the edge in a real
+deployment. 1 Apple Silicon AI host (Mac Mini M2 Pro) running Ollama and the ops agent,
+air-gapped from the internet.
 
-This runs at production standard — real hardware, real HA, real operational
-pressure. The kind of system you'd hand off to a team and go on holiday.
+The same Spring Boot + PostGIS apps run on both Swarm and k3s simultaneously — a
+deliberate architectural stress test: if a design decision only holds on one orchestrator,
+it's not good enough. Flutter iOS/Android mobile clients. Keycloak for OAuth2/OIDC.
+Patroni HA Postgres on Swarm. CloudNativePG on k3s. Prometheus → Loki → Grafana →
+Alertmanager. No single point of failure in any critical path.
+
+This runs at production standard — real operational pressure, real failure modes, real
+constraints. The kind of system you'd hand off to a team and go on holiday.
 
 **Track 2 — AI-native engineering**
 
