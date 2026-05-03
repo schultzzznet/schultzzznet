@@ -44,6 +44,16 @@ Everything is scripted. Everything is Ansible-managed. Nothing requires a manual
 The bar is not "works on a laptop". The bar is: *would this fly in a cloud datacenter with
 paying users, SLAs, and a 3am incident?*
 
+More specifically: does it scale to M users — reliably and predictably, not just at demo
+scale? Does it hold up through a single-node failure or a crashed service — provably, because
+the quorum math is correct and failover has been observed, not assumed? Does it survive
+regular maintenance (rolling restarts, node drains) without user-visible downtime? Is there a
+rollout strategy — blue/green, canary, rollback in under 60 seconds — so a bad deploy is
+recovered in one command, not a post-mortem? Has someone deliberately broken it — partitioned
+a node mid-deploy, OOMkilled a replica, injected latency — and confirmed the system recovers
+without manual intervention? Do the tests run on every commit and actually catch the
+regressions that matter? Is the documentation written before anyone has to ask?
+
 The cluster runs on 11 machines — Dell servers, repurposed MacBook Pros and iMacs, Raspberry
 Pi edge nodes, and an Apple Silicon AI host (Mac Mini M Pro). The dev machine is an Apple
 Silicon Mac Studio M Max. A word on that: M-series chips are genuinely extraordinary —
