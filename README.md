@@ -87,6 +87,14 @@ Two distinct AI deployment patterns, both live and in production use:
   running locally, zero cloud dependency, full data sovereignty. The pattern transfers
   directly to any estate with an observable infrastructure.
 
+  Beyond anomaly detection, the agent runs **self-strengthening specialist agents** —
+  LogAgent, TelemetryAgent, and PRHealthAgent — that continuously assess observability
+  coverage in their domain and ask the LLM to generate concrete, copy-paste-ready
+  improvement proposals, posted to Slack with 24h deduplication. PRHealthAgent (newest)
+  monitors the GitHub PR queue: stale PRs, large-PR risk, CI regression, and DORA
+  lead-time signals. The AI ops layer now watches the development pipeline, not just the
+  running platform.
+
 These aren't substitutes for each other. They serve different threat models, different
 data-sensitivity requirements, and different latency budgets. Running both simultaneously
 is itself an architectural pattern.
