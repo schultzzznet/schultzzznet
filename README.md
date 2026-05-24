@@ -97,7 +97,9 @@ clock.
 in the image and is any of it known-bad?"*. They don't answer *"is this image actually the
 one our build produced?"* — so on top of them, every image is built with
 **[docker buildx](https://docs.docker.com/build/) `--provenance=mode=max --sbom=true`** to
-emit a **[SLSA v1.0](https://slsa.dev/spec/v1.0/)** build-provenance attestation, then
+emit a **[Supply-chain Levels for Software Artifacts (SLSA) v1.0](https://slsa.dev/spec/v1.0/)**
+build-provenance attestation — a signed, machine-readable record of *who built this, from
+which source, with which tools, in which environment* — then
 **[cosign](https://docs.sigstore.dev/cosign/overview/)**-signed against a project keypair
 whose public half is committed in the repo as the trust anchor. The `ship-apps` pipeline
 runs `verify-images` between build and rollout: a tampered or unsigned image fails the
