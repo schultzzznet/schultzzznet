@@ -10,6 +10,7 @@
 [![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
 [![Prometheus](https://img.shields.io/badge/Prometheus-live-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Dependency-Track](https://img.shields.io/badge/Dependency--Track-SBOM%20%2B%20VEX-005571)](https://dependencytrack.org)
+[![Sigstore cosign](https://img.shields.io/badge/Sigstore-cosign%20%2B%20SLSA-2E2E5F?logo=sigstore&logoColor=white)](https://www.sigstore.dev)
 
 ---
 
@@ -91,6 +92,21 @@ aren't exploitable in our context (e.g. OS-level openssl on a JVM image that nev
 libssl) are formally marked **NOT_AFFECTED** via the VEX workflow, with a Jira reference
 and a full audit trail. SBOM coverage isn't a tickbox at release time — it's a running
 clock.
+
+**Supply-chain integrity — the third loop.** SBOM/VEX/Dependency-Track answer *"what's
+in the image and is any of it known-bad?"*. They don't answer *"is this image actually the
+one our build produced?"* — so on top of them, every image is built with
+**[docker buildx](https://docs.docker.com/build/) `--provenance=mode=max --sbom=true`** to
+emit a **[SLSA v1.0](https://slsa.dev/spec/v1.0/)** build-provenance attestation, then
+**[cosign](https://docs.sigstore.dev/cosign/overview/)**-signed against a project keypair
+whose public half is committed in the repo as the trust anchor. The `ship-apps` pipeline
+runs `verify-images` between build and rollout: a tampered or unsigned image fails the
+ship, the deploy never happens. Self-rated **SLSA Build L2** today (provenance generated,
+distributed, and signed); the L3-shaped next moves are written down — Vault Transit for
+the signing key (rather than a file on disk), `slsa-github-generator` on a self-hosted
+runner for a hardened builder, and `sigstore-policy-controller` at the kube-apiserver to
+make the signature load-bearing at admission time. The current MVP is the floor, not the
+ceiling.
 
 **Track 2 — AI-native engineering**
 
