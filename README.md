@@ -9,6 +9,7 @@
 [![k3s](https://img.shields.io/badge/k3s-live-326CE5?logo=kubernetes&logoColor=white)](https://k3s.io)
 [![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
 [![Prometheus](https://img.shields.io/badge/Prometheus-live-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
+[![Dependency-Track](https://img.shields.io/badge/Dependency--Track-SBOM%20%2B%20VEX-005571)](https://dependencytrack.org)
 
 ---
 
@@ -77,6 +78,19 @@ with the same commands. That's a deliberate architectural constraint: if the des
 a managed service to function, it isn't portable enough. Running this on commodity hardware
 *without* the managed-service safety net is how you prove it's genuinely cloud-agnostic —
 moving to cloud becomes a runtime decision, not an architectural rewrite.
+
+**Supply-chain security — the second clock.** Every release ships through a CI/CD scan
+pipeline (syft → CycloneDX SBOM → trivy → Dependency-Track) that pins exactly what's
+running, down to OS package versions. On top of that, a k3s CronJob re-derives SBOMs from
+the live registry images every night and re-uploads — so silent base-image rebuilds get
+caught. And Dependency-Track itself runs continuous vulnerability re-analysis against the
+NVD / GitHub Advisories / OSV mirrors, meaning a project version that was clean at release
+can light up critical the next morning *without anyone redeploying a thing* — answerable
+from the per-project metrics time series ("was this version clean a week ago?"). CVEs that
+aren't exploitable in our context (e.g. OS-level openssl on a JVM image that never loads
+libssl) are formally marked **NOT_AFFECTED** via the VEX workflow, with a Jira reference
+and a full audit trail. SBOM coverage isn't a tickbox at release time — it's a running
+clock.
 
 **Track 2 — AI-native engineering**
 
