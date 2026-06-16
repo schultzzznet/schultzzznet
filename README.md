@@ -52,7 +52,7 @@ citizens alongside the platform itself.
 
 Two tracks, both live.
 
-### Track 1 — A platform built the way production is built
+### Track 1 — A Best-in-Class Platform, the Way Production Should Be Built
 
 Flutter iOS/Android → Spring Boot + PostGIS → Keycloak OAuth2/OIDC → Traefik → HAProxy TLS edge,
 over **HA Postgres (CloudNativePG)** and full observability (Prometheus, Loki, Grafana,
@@ -85,7 +85,7 @@ re-derives SBOMs from the live registry to catch silent base-image drift. Every 
 the signature and refuses a tampered image. Self-rated **SLSA Build L2**, with the L3 path written
 down.
 
-### Track 2 — A cluster with a brain
+### Track 2 — A Best-in-Class Cluster With a Real, Active, Working AI Brain
 
 The part I'm proudest of: **the AI runs *inside* the platform, not beside it** — and it works. A
 local LLM (Ollama + `qwen3:4b`, on-LAN, no cloud, no vendor dependency) is wired straight into the
