@@ -46,10 +46,13 @@ instructive.
 
 ## What I'm building
 
-A **professional training ground** — live, running, and in daily use. Not a concept. Not a demo
-lab. A self-hosted, production-grade platform on real hardware, built to professional standard,
-with months of uptime behind it. **High availability and horizontal scalability done the way
-they're meant to be done** — with best-in-class, widely-deployed designs that **actually work.**
+A **professional DevSecOps training ground** — live, running, and in daily use. Not a concept. Not
+a demo lab. A self-hosted, production-grade platform on real hardware, built to professional
+standard, with months of uptime behind it. **High availability and horizontal scalability done the
+way they're meant to be done** — with best-in-class, widely-deployed designs that **actually
+work.** And every change ships through a real **CI/CD pipeline** — GitHub Actions, automated tests
+on every commit and pull request, and green builds that auto-deploy to the cluster with zero manual
+steps.
 
 It started as an infrastructure and full-stack engineering project. It's become broader: a live
 proving ground for **AI-native development *and* AI-native operations** — both now first-class
