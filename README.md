@@ -32,8 +32,8 @@
 
 A self-hosted, production-grade platform on real hardware — a **DevSecOps proving ground** built
 to professional standard and running every day, with months of uptime behind it. Not a concept.
-Not a demo lab. High availability done the way it's meant to be done, with best-in-class,
-widely-deployed designs — **and they work.**
+Not a demo lab. High availability and horizontal scalability done the way they're meant to be
+done, with best-in-class, widely-deployed designs — **and they work.**
 
 Two tracks, both live.
 
@@ -55,6 +55,13 @@ a rewrite. No managed control plane, no proprietary APIs, no lock-in.
 control plane, automatic Postgres failover, replicated ingress and identity. The bar isn't "works
 on a laptop" — it's *survives a node loss, a rolling upgrade, and a 3am incident with real users.*
 
+**Scales horizontally, on demand — and the AI watches the traffic that should drive it.** The
+stateless app tier scales at will: `kubectl scale`, or just tell the bot *`scale warn-app to 4`*.
+The signal is already live — the AI tracks request rates in Prometheus, with a specialist agent
+flagging traffic spikes and near-zero drops hour-on-hour — so scaling follows real load, not
+guesswork. Today it's one click on an AI-surfaced signal; the closed, traffic-driven autoscaling
+loop is the short next step.
+
 **DevSecOps, three supply-chain loops.** Every release ships an SBOM (syft → CycloneDX) and a CVE
 scan (trivy) into **Dependency-Track**, which keeps re-analysing against fresh NVD/GHSA/OSV mirrors
 — a release that was clean can light up critical overnight with no redeploy. A nightly CronJob
@@ -73,13 +80,14 @@ reasons about itself, and helps run itself.
 - **It watches and reasons.** Ask it in Slack *"what's the heap on warn-app?"* — it decides which
   tools to call, queries Prometheus live, reads the result, and answers. A genuine **ReAct
   tool-calling loop**, running locally — not a keyword bot.
-- **It acts, under guardrails.** Type `drain <node>` — it posts the command with a dry-run and
-  ✅ / ❌ approval buttons; click ✅ and it SSHes in and runs it. Protected nodes, never-scale-to-zero,
-  rate limits, auto-expiring proposals.
+- **It acts, under guardrails.** Type `drain <node>` or `scale warn-app to 4` — it posts the
+  command with a dry-run and ✅ / ❌ approval buttons; click ✅ and it executes. Protected nodes,
+  never-scale-to-zero, rate limits, auto-expiring proposals.
 - **It improves the platform itself.** Self-strengthening specialist agents (Log / Telemetry /
   PR-health) continuously assess observability and pipeline coverage and post concrete,
   copy-paste-ready fixes to Slack. The cluster doesn't just run — it tells you how to make it
-  better. **One deliberate step away from self-healing, and closing the gap.**
+  better. **One deliberate step away from self-healing and traffic-driven autoscaling, and closing
+  the gap.**
 
 Two AI patterns by design: **Claude (cloud)** as a full-stack engineering peer in development,
 **Ollama (local)** as the always-on brain in production. Different threat models, different
