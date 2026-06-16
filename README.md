@@ -37,6 +37,11 @@
 > *The technology doesn't matter. What matters is what you can build with it that you couldn't build before.*
 > — paraphrasing [Marty Cagan / SVPG](https://www.svpg.com)
 
+We are at an inflection point. Not the "AI will change everything someday" kind — the kind where
+the capability is already here, already deployed, already running. The shift is not theoretical:
+two distinct edges of it run live in one platform simultaneously, and the gap between them is
+instructive.
+
 ---
 
 ## What I'm building
