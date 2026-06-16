@@ -2,24 +2,35 @@
 
 **Platform engineer. Full-stack. AI-native.**
 
-[![Java 17](https://img.shields.io/badge/Java-17%20LTS-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
+[![CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)](https://renovatebot.com)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
+<br>
+[![Java 17 LTS](https://img.shields.io/badge/Java-17%20LTS-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-HA-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![Keycloak](https://img.shields.io/badge/Keycloak-OIDC-4D4D4D?logo=keycloak&logoColor=white)](https://www.keycloak.org)
-
+<br>
 [![Kubernetes-native](https://img.shields.io/badge/Kubernetes-native-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![k3s](https://img.shields.io/badge/runs%20on-k3s-FFC61C?logo=k3s&logoColor=black)](https://k3s.io)
 [![Docker Swarm](https://img.shields.io/badge/Docker%20Swarm-compatible-9E9E9E?logo=docker&logoColor=white)](https://docs.docker.com/engine/swarm/)
+[![Helm](https://img.shields.io/badge/Helm-enabled-0F1689?logo=helm&logoColor=white)](https://helm.sh)
 [![Traefik](https://img.shields.io/badge/Traefik-ingress-24A1C1?logo=traefikproxy&logoColor=white)](https://traefik.io)
+[![Tailscale](https://img.shields.io/badge/Tailscale-Funnel-242424?logo=tailscale&logoColor=white)](https://tailscale.com/kb/1223/funnel)
 [![Ansible](https://img.shields.io/badge/Ansible-IaC-EE0000?logo=ansible&logoColor=white)](https://www.ansible.com)
-
-[![Prometheus](https://img.shields.io/badge/Prometheus-live-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
+<br>
+[![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
 [![Loki](https://img.shields.io/badge/Loki-logs-F9A03C?logo=grafana&logoColor=white)](https://grafana.com/oss/loki/)
+[![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
+<br>
+[![SBOM: CycloneDX 1.6](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)](https://cyclonedx.org)
+[![SBOM gen: Syft](https://img.shields.io/badge/SBOM%20gen-Syft-5C4EE5)](https://github.com/anchore/syft)
+[![CVE scan: Trivy](https://img.shields.io/badge/CVE%20scan-Trivy-1904DA?logo=aquasecurity&logoColor=white)](https://aquasecurity.github.io/trivy/)
 [![Dependency-Track](https://img.shields.io/badge/Dependency--Track-SBOM%20%2B%20VEX-005571)](https://dependencytrack.org)
 [![Sigstore cosign](https://img.shields.io/badge/Sigstore-cosign%20%2B%20SLSA-2E2E5F?logo=sigstore&logoColor=white)](https://www.sigstore.dev)
-[![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
 
 ---
 
