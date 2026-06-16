@@ -41,10 +41,14 @@
 
 ## What I'm building
 
-A self-hosted, production-grade platform on real hardware — a **DevSecOps proving ground** built
-to professional standard and running every day, with months of uptime behind it. Not a concept.
-Not a demo lab. High availability and horizontal scalability done the way they're meant to be
-done, with best-in-class, widely-deployed designs — **and they work.**
+A **professional training ground** — live, running, and in daily use. Not a concept. Not a demo
+lab. A self-hosted, production-grade platform on real hardware, built to professional standard,
+with months of uptime behind it. **High availability and horizontal scalability done the way
+they're meant to be done** — with best-in-class, widely-deployed designs that **actually work.**
+
+It started as an infrastructure and full-stack engineering project. It's become broader: a live
+proving ground for **AI-native development *and* AI-native operations** — both now first-class
+citizens alongside the platform itself.
 
 Two tracks, both live.
 
@@ -100,9 +104,16 @@ reasons about itself, and helps run itself.
   better. **One deliberate step away from self-healing and traffic-driven autoscaling, and closing
   the gap.**
 
-Two AI patterns by design: **Claude (cloud)** as a full-stack engineering peer in development,
-**Ollama (local)** as the always-on brain in production. Different threat models, different
-data-sensitivity, different latency budgets — running both at once *is* the architecture.
+Two AI patterns by design — different threat models, data-sensitivity, and latency budgets;
+running both at once *is* the architecture:
+
+- **Dev edge — Claude (cloud), in VS Code.** A full-stack engineering peer: architecture
+  reasoning, code generation, security review (OWASP Top 10, CVE triage) across Spring Boot,
+  Flutter, Ansible, SQL, and Dockerfile at once — wired through **Jira and GitHub MCP servers (run
+  via Docker Desktop's MCP gateway)** for governed, live access to the backlog and the repo. One
+  engineer at small-team cadence.
+- **Prod edge — Ollama (local).** The always-on, on-LAN brain described above — air-gapped from
+  any cloud LLM, zero marginal cost, full data sovereignty.
 
 > **Honest scope:** the apps (location sharing, hazard warnings, messaging) are deliberately
 > non-trivial *demos* — enough to exercise every layer. The platform and the AI-ops brain are the
