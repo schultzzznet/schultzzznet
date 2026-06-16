@@ -44,7 +44,7 @@ instructive.
 
 ---
 
-## What I'm building
+## What Am I Building, And Why
 
 A **professional DevSecOps training ground** — live, running, and in daily use. Not a concept. Not
 a demo lab. A self-hosted, production-grade platform on real hardware, built to professional
@@ -127,6 +127,18 @@ running both at once *is* the architecture:
 > non-trivial *demos* — enough to exercise every layer. The platform and the AI-ops brain are the
 > real deliverable; the killer app is TBD. Full architecture, ADRs, and an incident diary are in
 > the repo.
+
+---
+
+## Am I Done, And Why I Never Will Be
+
+No — and that's the point. A platform that's "done" is a platform that's stopped learning. This one
+is built to keep moving: the self-strengthening agents already file their own improvement
+proposals, the roadmap is written down rather than hand-waved (closed-loop autoscaling, self-healing
+on health-check failure, **SLSA Build L3**, RAG over the incident diary), and every incident becomes
+a diary entry — every diary entry, a new guardrail. The goal was never a finished artifact. It's a
+discipline that compounds: **ship → observe → learn → harden → repeat.** That loop doesn't have a
+last iteration, and I don't want it to.
 
 ---
 
