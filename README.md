@@ -34,7 +34,12 @@
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
 [![Loki](https://img.shields.io/badge/Loki-logs-F9A03C?logo=grafana&logoColor=white)](https://grafana.com/oss/loki/)
-[![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black)](https://ollama.com)
+<br>
+[![Claude](https://img.shields.io/badge/Claude-dev%20AI%20peer-D97757?logo=anthropic&logoColor=white)](https://www.anthropic.com/claude)
+[![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black?logo=ollama&logoColor=white)](https://ollama.com)
+[![GitHub](https://img.shields.io/badge/GitHub-VCS%20%2B%20Actions-181717?logo=github&logoColor=white)](https://github.com/schultzzznet)
+[![Jira](https://img.shields.io/badge/Jira-backlog-0052CC?logo=jira&logoColor=white)](https://www.atlassian.com/software/jira)
+[![Slack](https://img.shields.io/badge/Slack-ops%20console-4A154B?logo=slack&logoColor=white)](https://slack.com)
 <br>
 [![SBOM: CycloneDX 1.6](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)](https://cyclonedx.org)
 [![SBOM gen: Syft](https://img.shields.io/badge/SBOM%20gen-Syft-5C4EE5)](https://github.com/anchore/syft)
