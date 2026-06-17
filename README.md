@@ -6,6 +6,7 @@
 [![Warn CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml)
 [![Talk CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml)
 [![CD](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-deploy.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-deploy.yml)
+[![Nightly CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/nightly-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/nightly-ci.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)](https://renovatebot.com)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
@@ -23,6 +24,10 @@
 [![Traefik](https://img.shields.io/badge/Traefik-ingress-24A1C1?logo=traefikproxy&logoColor=white)](https://traefik.io)
 [![Tailscale](https://img.shields.io/badge/Tailscale-Funnel-242424?logo=tailscale&logoColor=white)](https://tailscale.com/kb/1223/funnel)
 [![Ansible](https://img.shields.io/badge/Ansible-IaC-EE0000?logo=ansible&logoColor=white)](https://www.ansible.com)
+[![containerd](https://img.shields.io/badge/containerd-runtime-575757?logo=containerd&logoColor=white)](https://containerd.io)
+[![etcd](https://img.shields.io/badge/etcd-HA%20store-419EDA?logo=etcd&logoColor=white)](https://etcd.io)
+[![CoreDNS](https://img.shields.io/badge/CoreDNS-service%20discovery-1D63C3?logo=coredns&logoColor=white)](https://coredns.io)
+[![Portainer](https://img.shields.io/badge/Portainer-CE-13BEF9?logo=portainer&logoColor=white)](https://www.portainer.io)
 <br>
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
