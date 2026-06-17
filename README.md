@@ -2,7 +2,10 @@
 
 **Platform engineer. Full-stack. AI-native.**
 
-[![CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions)
+[![Loc8 CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/loc8-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/loc8-app-ci.yml)
+[![Warn CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml)
+[![Talk CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml)
+[![CD](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-deploy.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-deploy.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)](https://renovatebot.com)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
