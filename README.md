@@ -61,6 +61,13 @@ instructive.
 
 ## What Am I Building, And Why Do I Do It
 
+> **High availability *designed in*** — no single points of failure, autoscaling on demand.
+> **AI *baked in*** — a local brain that **lives** in the cluster, **learns** from it, and
+> **leaves improvements** behind. The **north star**: a self-managing, single-fault-tolerant
+> cluster that *heals itself and proves it* — aimed at deliberately, not yet arrived, always
+> evolving, shipped agile, rung by rung. AI as a first-class citizen of the architecture, not
+> bolted on.
+
 A **professional DevSecOps training ground** — live, running, and in daily use. Not a concept. Not
 a demo lab. A self-hosted, production-grade platform on real hardware, built to professional
 standard, with months of uptime behind it. **High availability and horizontal scalability done the
