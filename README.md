@@ -148,12 +148,31 @@ running both at once *is* the architecture:
 ## Am I Done, And Why I Never Will Be
 
 No — and that's the point. A platform that's "done" is a platform that's stopped learning. This one
-is built to keep moving: the self-strengthening agents already file their own improvement
-proposals, the roadmap is written down rather than hand-waved (closed-loop autoscaling, self-healing
-on health-check failure, **SLSA Build L3**, RAG over the incident diary), and every incident becomes
-a diary entry — every diary entry, a new guardrail. The goal was never a finished artifact. It's a
-discipline that compounds: **ship → observe → learn → harden → repeat.** That loop doesn't have a
-last iteration, and I don't want it to.
+is built to keep moving: the self-strengthening agents already file their own improvement proposals,
+the roadmap is written down rather than hand-waved (closed-loop autoscaling on the traffic the AI
+already watches, **SLSA Build L3**, RAG over the incident diary), and every incident becomes a diary
+entry — every diary entry, a new guardrail.
+
+The headline next chapter is a *frozen design plus a tracked, costed backlog* for turning **"HA that
+works"** into **a cluster that heals itself and proves it**:
+
+- **Survive any *single* interruption** — a node, a pod, a disk, a switch — **with no single point
+  of failure and nothing central or non-distributed.** Quorum etcd on fast disks, zero-RPO database
+  replication, distributed storage, replicated everything, a floating ingress VIP — plus a
+  13-domain failure matrix that hunts the *non-obvious* SPOFs too (the write-freezing sync standby,
+  the hidden compactor singleton, the cold-start cycle). *(Multi-failure, site power, and ISP loss
+  are honestly out of scope — that's a second-site problem.)*
+- **Prove it continuously, not just claim it** — an always-on **chaos provocateur** living *inside*
+  the cluster, injecting exactly one fault at a time, 24/7, while an external referee asserts *no
+  user noticed*, across 31 scripted failure scenarios. A resilience regression gets caught in a
+  rehearsal, on my schedule — not at 3am during a real one.
+- **The AI grows from advisor to steward** — today the local brain *proposes* and a human approves;
+  the plan promotes it, behind the same guardrails, up an autonomy ladder toward *auto-heals every
+  single fault, continuously provocateur-proven* — running in a failure domain deliberately disjoint
+  from the cluster it heals. The AI isn't bolted on; it's a first-class citizen of the architecture.
+
+The goal was never a finished artifact. It's a discipline that compounds: **ship → observe → learn →
+harden → prove → repeat.** That loop doesn't have a last iteration, and I don't want it to.
 
 ---
 
