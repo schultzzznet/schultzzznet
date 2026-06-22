@@ -57,6 +57,11 @@ the capability is already here, already deployed, already running. The shift is 
 two distinct edges of it run live in one platform simultaneously, and the gap between them is
 instructive.
 
+This is the SVPG manifest in practice: technology is the enabler, never the point — the engineer
+(and now the AI, as a first-class peer) is here to *solve problems*. What's "just now possible" —
+a solo engineer building, and a local AI helping run and increasingly heal, a cluster that wasn't
+buildable by one person a few years ago — is the edge I stand on deliberately.
+
 ---
 
 ## What Am I Building, And Why Do I Do It
