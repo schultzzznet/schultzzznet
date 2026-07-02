@@ -13,6 +13,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-HA-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![CloudNativePG](https://img.shields.io/badge/CloudNativePG-operator-1A5276?logo=postgresql&logoColor=white)](https://cloudnative-pg.io)
 [![Keycloak](https://img.shields.io/badge/Keycloak-OIDC-4D4D4D?logo=keycloak&logoColor=white)](https://www.keycloak.org)
 <br>
 [![Kubernetes-native](https://img.shields.io/badge/Kubernetes-native-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io)
@@ -26,6 +27,7 @@
 [![etcd](https://img.shields.io/badge/etcd-HA%20store-419EDA?logo=etcd&logoColor=white)](https://etcd.io)
 [![CoreDNS](https://img.shields.io/badge/CoreDNS-service%20discovery-1D63C3?logo=coredns&logoColor=white)](https://coredns.io)
 [![Portainer](https://img.shields.io/badge/Portainer-CE-13BEF9?logo=portainer&logoColor=white)](https://www.portainer.io)
+[![MinIO](https://img.shields.io/badge/MinIO-object%20store-C72E49?logo=minio&logoColor=white)](https://min.io)
 <br>
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
@@ -86,8 +88,9 @@ Two tracks, both live.
 ### Track 1 — A Best-in-Class Platform, the Way Production Should Be Built
 
 Flutter iOS/Android → Spring Boot + PostGIS → Keycloak OAuth2/OIDC → Traefik → HAProxy TLS edge,
-over **HA Postgres (CloudNativePG)** and full observability (Prometheus, Loki, Grafana,
-Alertmanager). All Ansible-managed — zero manual steps, from a bare machine to a running service.
+over **HA Postgres (CloudNativePG)**, scheduled backups to object storage (**MinIO** + Barman Cloud
+Plugin), and full observability (Prometheus, Loki, Grafana, Alertmanager). All Ansible-managed —
+zero manual steps, from a bare machine to a running service.
 
 **Kubernetes-native, end to end.** Helm charts, operators, CRDs, admission control, plain
 `kubectl` manifests — it's all standard Kubernetes. I run it on **k3s** for operational
