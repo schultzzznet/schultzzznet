@@ -2,13 +2,9 @@
 
 **Platform engineer. Full-stack. AI-native.**
 
-[![Loc8 CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/loc8-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/loc8-app-ci.yml)
-[![Warn CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/warn-app-ci.yml)
-[![Talk CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/talk-app-ci.yml)
-[![Loc8 CD](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-loc8.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-loc8.yml)
-[![Warn CD](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-warn.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-warn.yml)
-[![Talk CD](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-talk.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/cd-talk.yml)
-[![Nightly CI](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/nightly-ci.yml/badge.svg)](https://github.com/schultzzznet/the-docker-swarm-ai/actions/workflows/nightly-ci.yml)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
+[![CD](https://img.shields.io/badge/CD-auto--deploy-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
+[![Nightly](https://img.shields.io/badge/Nightly-OWASP%20%2B%20mutation-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)](https://renovatebot.com)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
