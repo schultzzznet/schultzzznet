@@ -6,6 +6,8 @@
 [![CD](https://img.shields.io/badge/CD-auto--deploy-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
 [![Nightly](https://img.shields.io/badge/Nightly-OWASP%20%2B%20mutation-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![SonarQube](https://img.shields.io/badge/SonarQube-code%20quality-4E9BCD?logo=sonarqube&logoColor=white)](https://www.sonarsource.com/products/sonarqube/)
+[![Nexus](https://img.shields.io/badge/Nexus-artifact%20proxy-1B1C30?logo=sonatype&logoColor=white)](https://www.sonatype.com/products/sonatype-nexus-repository)
 [![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)](https://renovatebot.com)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
 <br>
@@ -76,14 +78,15 @@ a demo lab. A self-hosted, production-grade platform on real hardware, built to 
 standard, with months of uptime behind it. **High availability and horizontal scalability done the
 way they're meant to be done** — with best-in-class, widely-deployed designs that **actually
 work.** With an AI brain built into it — monitoring, scaling, and proposing its own fixes. And
-every change ships through a real **CI/CD pipeline** — GitHub Actions, automated tests on every
-commit and pull request, and green builds that auto-deploy to the cluster with zero manual steps.
+every change ships through a real **CI/CD pipeline** — GitHub Actions, automated tests (JUnit +
+Testcontainers) on every commit and pull request, and green builds that auto-deploy to the cluster
+with zero manual steps.
 
 It started as an infrastructure and full-stack engineering project. It's become broader: a live
 proving ground for **AI-native development *and* AI-native operations** — both now first-class
 citizens alongside the platform itself.
 
-Two tracks, both live.
+Three tracks: two live and load-bearing today, one taking shape on top.
 
 ### Track 1 — A Best-in-Class Platform, the Way Production Should Be Built
 
@@ -148,6 +151,22 @@ running both at once *is* the architecture:
   engineer at small-team cadence.
 - **Prod edge — Ollama (local).** The always-on, on-LAN brain described above — air-gapped from
   any cloud LLM, zero marginal cost, full data sovereignty.
+
+### Track 3 — Agentic Delivery: the Whole Loop, Not Just the Code
+
+The transferable insight isn't *"AI writes code"* — it's **workflow orchestration**: an agent at
+every step of the delivery cycle, each with a defined role, coordinated in Slack. The steps run
+today — a **planner** (Claude in VS Code) decomposing the work, **coder** agents writing idiomatic
+multi-layer code, a **releaser** (CI/CD + `ship-apps`) driving blue/green rollout, a **backlogger**
+(CI-digest) triaging failures into issues, and an **observer** (Ollama) correlating Prometheus,
+Loki, and Alertmanager — humans and agents sharing one channel.
+
+The unit of work isn't the commit; it's the **loop**: backlog → issue → PR review *(human +
+Claude)* → CI green → auto-deploy → health check → telemetry signal → Slack anomaly → backlog
+again. Each step is observable and hands live context to the next, so governance lives *inside* the
+workflow — bad architecture gets caught at CI time, not at 3am. The steps are real and in daily use;
+the orchestrator that closes them into one policy-gated loop is the honest next chapter — written
+down, costed, and grounded in what already runs.
 
 > **Honest scope:** the apps (location sharing, hazard warnings, messaging) are deliberately
 > non-trivial *demos* — enough to exercise every layer. The platform and the AI-ops brain are the
