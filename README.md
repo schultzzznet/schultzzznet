@@ -187,10 +187,57 @@ harden → prove → repeat.** That loop doesn't have a last iteration, and I do
 
 ---
 
+## Two Proving Grounds, One Discipline
+
+Everything above is one playground — the cluster. This is the other end of the spectrum, same
+instinct: **build the real thing, on real hardware, to actually learn it.** Not a tutorial followed
+to the end — a running system, fully scripted, documented, and held to the same supply-chain bar as
+the cluster. Different silicon, identical discipline.
+
+### theSchultzYocto — From Nothing to a Signed, OTA-Updatable Embedded Linux Image
+
+A custom, minimal, headless **Yocto Linux** distro (**scarthgap / 5.0 LTS**) for a spare **Raspberry
+Pi 3 B+**, built from its own layer — bare recipes to a booting `.wic` image *and* a **signed RAUC
+A/B update bundle** — in remarkably little wall-clock time.
+
+[![Yocto scarthgap](https://img.shields.io/badge/Yocto-scarthgap%205.0%20LTS-1D9E74)](https://www.yoctoproject.org)
+[![BitBake](https://img.shields.io/badge/BitBake-cross--compile-4E9A06)](https://docs.yoctoproject.org/bitbake/)
+[![Raspberry Pi 3B+](https://img.shields.io/badge/Raspberry%20Pi-3B%2B%20aarch64-C51A4A?logo=raspberrypi&logoColor=white)](https://www.raspberrypi.com)
+[![Embedded Linux](https://img.shields.io/badge/Embedded-Linux-FCC624?logo=linux&logoColor=black)](https://kernel.org)
+[![Fully scripted](https://img.shields.io/badge/Fully%20scripted-Bash-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+<br>
+[![RAUC](https://img.shields.io/badge/RAUC-signed%20A%2FB%20OTA-007EC6)](https://rauc.io)
+[![GPG-signed feed](https://img.shields.io/badge/Package%20feed-GPG%20signed-0093DD?logo=gnuprivacyguard&logoColor=white)](https://gnupg.org)
+[![cve-check](https://img.shields.io/badge/cve--check-NVD-990000)](https://docs.yoctoproject.org/dev/dev-manual/vulnerabilities.html)
+[![SBOM: CycloneDX 1.6](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)](https://cyclonedx.org)
+[![Dependency-Track](https://img.shields.io/badge/Dependency--Track-continuous-005571)](https://dependencytrack.org)
+[![Nexus](https://img.shields.io/badge/Nexus-sstate%20mirror-1B1C30?logo=sonatype&logoColor=white)](https://www.sonatype.com/products/nexus-repository)
+[![ESP32](https://img.shields.io/badge/ESP32-serial%20bridge-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com)
+
+- **Fully scripted, zero-ceremony.** One command on the Mac syncs the layer to an aarch64 build host
+  over git and launches a fully detached `bitbake` — it survives SSH drops, recovers from an unclean
+  build-host reboot, and is documented end to end (Yocto concepts, first build, build ops, serial
+  console).
+- **Security-aware by construction, not as an afterthought.** Signed RAUC bundles, **GPG-signed
+  package feeds**, build-time **`cve-check`** against NVD, and a **CycloneDX 1.6 SBOM** generated
+  from the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds —
+  so a shipped firmware image keeps getting re-scanned against fresh CVE data long after it left the
+  bench. A **Nexus** mirror keeps rebuilds fast; a repurposed **ESP32** serves the Pi's serial
+  console over WiFi.
+
+> **Honest scope:** the image builds, the RAUC bundle is signed and valid, and the SBOM pipeline is
+> verified end-to-end into Dependency-Track. What's left is the physical A/B partition bring-up on
+> the board itself — the kind of thing you can only finish with hardware on the bench. That's the
+> point: a learning ground with a live edge, not a finished artifact.
+
+---
+
 > *The best engineers are not there just to code. They are there to solve problems.*
 > — Marty Cagan, [Empowered](https://www.svpg.com/books/empowered-ordinary-people-extraordinary-products/)
 
-**→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — full architecture, AI-ops breakdown, ADRs, and an incident diary.
+**→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the cluster: full architecture, AI-ops breakdown, ADRs, and an incident diary.
+
+**→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer with signed RAUC/OTA, a fully scripted build, and end-to-end docs.
 
 ---
 
