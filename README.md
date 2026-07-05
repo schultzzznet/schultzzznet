@@ -216,8 +216,8 @@ the cluster. Different silicon, identical discipline.
 ### theSchultzYocto — From Nothing to a Signed, OTA-Updatable Embedded Linux Image
 
 A custom, minimal, headless **Yocto Linux** distro (**scarthgap / 5.0 LTS**) for a spare **Raspberry
-Pi 3 B+**, built from its own layer — bare recipes to a booting `.wic` image *and* a **signed RAUC
-A/B update bundle** — in remarkably little wall-clock time.
+Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **boots on the real board**
+(reachable over SSH) *and* a **signed RAUC A/B update bundle** — in remarkably little wall-clock time.
 
 [![Yocto scarthgap](https://img.shields.io/badge/Yocto-scarthgap%205.0%20LTS-1D9E74)](https://www.yoctoproject.org)
 [![BitBake](https://img.shields.io/badge/BitBake-cross--compile-4E9A06)](https://docs.yoctoproject.org/bitbake/)
@@ -239,15 +239,19 @@ A/B update bundle** — in remarkably little wall-clock time.
   console).
 - **Security-aware by construction, not as an afterthought.** Signed RAUC bundles, **GPG-signed
   package feeds**, build-time **`cve-check`** against NVD, and a **CycloneDX 1.6 SBOM** generated
-  from the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds —
-  so a shipped firmware image keeps getting re-scanned against fresh CVE data long after it left the
-  bench. A **Nexus** mirror keeps rebuilds fast; a repurposed **ESP32** serves the Pi's serial
-  console over WiFi.
+  from the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds.
+  A **`cve-check` → VEX** round-trip auto-dismisses the CVEs Yocto already patched (cutting ~100
+  findings down to the few dozen that are genuinely unpatched), and a **daily** rebuild + re-scan
+  keeps a shipped image honest long after it left the bench. A **Nexus** mirror keeps rebuilds fast;
+  a repurposed **ESP32** serves the Pi's serial console over WiFi.
 
-> **Honest scope:** the image builds, the RAUC bundle is signed and valid, and the SBOM pipeline is
-> verified end-to-end into Dependency-Track. What's left is the physical A/B partition bring-up on
-> the board itself — the kind of thing you can only finish with hardware on the bench. That's the
-> point: a learning ground with a live edge, not a finished artifact.
+> **Honest scope (updated 2026-07-05):** it now **boots on the real Pi 3 B+** — first login over a
+> WiFi serial console, then SSH over Ethernet. The SBOM → CVE → VEX pipeline is live in
+> Dependency-Track (~100 findings triaged down to the few dozen that are real, re-scanned daily). The
+> A/B RAUC image (U-Boot, dual-slot, systemd) is wired and building; the last mile is the on-board
+> `rauc install` + rollback demo over serial. One honest ceiling: true *hardware* secure boot isn't
+> possible on a Pi 3 (its ROM loads unsigned firmware) — signed, integrity-checked *updates*, yes; a
+> verified *boot chain*, not on this silicon. A learning ground with a live edge, not a finished artifact.
 
 ---
 
@@ -256,7 +260,7 @@ A/B update bundle** — in remarkably little wall-clock time.
 
 **→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the cluster: full architecture, AI-ops breakdown, ADRs, and an incident diary.
 
-**→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer with signed RAUC/OTA, a fully scripted build, and end-to-end docs.
+**→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer that **boots on a real Pi 3 B+**, with signed RAUC A/B OTA, a daily SBOM/CVE/VEX scan, and end-to-end docs.
 
 ---
 
