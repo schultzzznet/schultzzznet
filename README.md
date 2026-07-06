@@ -217,7 +217,8 @@ the cluster. Different silicon, identical discipline.
 
 A custom, minimal, headless **Yocto Linux** distro (**scarthgap / 5.0 LTS**) for a spare **Raspberry
 Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **boots on the real board**
-(reachable over SSH) *and* a **signed RAUC A/B update bundle** — in remarkably little wall-clock time.
+(reachable over SSH) *and* a **signed RAUC A/B bundle it installs over the air** — proven end to end
+on the hardware, in remarkably little wall-clock time.
 
 [![Yocto scarthgap](https://img.shields.io/badge/Yocto-scarthgap%205.0%20LTS-1D9E74)](https://www.yoctoproject.org)
 [![BitBake](https://img.shields.io/badge/BitBake-cross--compile-4E9A06)](https://docs.yoctoproject.org/bitbake/)
@@ -230,7 +231,7 @@ Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **bo
 [![cve-check](https://img.shields.io/badge/cve--check-NVD-990000)](https://docs.yoctoproject.org/dev/dev-manual/vulnerabilities.html)
 [![SBOM: CycloneDX 1.6](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)](https://cyclonedx.org)
 [![Dependency-Track](https://img.shields.io/badge/Dependency--Track-continuous-005571)](https://dependencytrack.org)
-[![Nexus](https://img.shields.io/badge/Nexus-sstate%20mirror-1B1C30?logo=sonatype&logoColor=white)](https://www.sonatype.com/products/nexus-repository)
+[![Nexus](https://img.shields.io/badge/Nexus-artifacts%20%2B%20mirror-1B1C30?logo=sonatype&logoColor=white)](https://www.sonatype.com/products/nexus-repository)
 [![ESP32](https://img.shields.io/badge/ESP32-serial%20bridge-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com)
 
 - **Fully scripted, zero-ceremony.** One command on the Mac syncs the layer to an aarch64 build host
@@ -242,16 +243,21 @@ Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **bo
   from the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds.
   A **`cve-check` → VEX** round-trip auto-dismisses the CVEs Yocto already patched (cutting ~100
   findings down to the few dozen that are genuinely unpatched), and a **daily** rebuild + re-scan
-  keeps a shipped image honest long after it left the bench. A **Nexus** mirror keeps rebuilds fast;
-  a repurposed **ESP32** serves the Pi's serial console over WiFi.
+  keeps a shipped image honest long after it left the bench. A **Nexus** instance is both the sstate
+  mirror *and* the release artifact store the Pi **range-streams its signed OTA bundle** from; a
+  repurposed **ESP32** serves the Pi's serial console over WiFi.
 
-> **Honest scope (updated 2026-07-05):** it now **boots on the real Pi 3 B+** — first login over a
-> WiFi serial console, then SSH over Ethernet. The SBOM → CVE → VEX pipeline is live in
-> Dependency-Track (~100 findings triaged down to the few dozen that are real, re-scanned daily). The
-> A/B RAUC image (U-Boot, dual-slot, systemd) is wired and building; the last mile is the on-board
-> `rauc install` + rollback demo over serial. One honest ceiling: true *hardware* secure boot isn't
-> possible on a Pi 3 (its ROM loads unsigned firmware) — signed, integrity-checked *updates*, yes; a
-> verified *boot chain*, not on this silicon. A learning ground with a live edge, not a finished artifact.
+> **Honest scope (updated 2026-07-06):** it **boots on the real Pi 3 B+** (first login over a WiFi
+> serial console, then SSH over Ethernet), and the A/B RAUC update is now **proven end to end on the
+> board** — a signed bundle written to the spare slot, a reboot switched to it, and a deliberate
+> rollback returned to the known-good slot (serial trace `A → B → A`). A dated release (**CalVer
+> `2026.07.1`**, git-tagged, with a `PROVENANCE.txt` pinning exact layer commits) was then delivered
+> **over the air** to the running Pi — `2026.07.0 → 2026.07.1`, zero downtime, the bundle
+> **range-streamed straight from Nexus** into the idle slot, with `/etc/os-release` self-reporting the
+> new version afterwards. The SBOM → CVE → VEX pipeline is live in Dependency-Track (~100 findings
+> triaged down to the few dozen that are real, re-scanned daily). One honest ceiling: true *hardware*
+> secure boot isn't possible on a Pi 3 (its ROM loads unsigned firmware) — signed, integrity-checked
+> *updates*, yes; a verified *boot chain*, not on this silicon. A learning ground with a live edge.
 
 ---
 
@@ -260,7 +266,7 @@ Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **bo
 
 **→ [the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai)** — the cluster: full architecture, AI-ops breakdown, ADRs, and an incident diary.
 
-**→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer that **boots on a real Pi 3 B+**, with signed RAUC A/B OTA, a daily SBOM/CVE/VEX scan, and end-to-end docs.
+**→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer that **boots on a real Pi 3 B+**, takes signed RAUC A/B updates **over the air** (proven with a live update + rollback), a daily SBOM/CVE/VEX scan, and end-to-end docs.
 
 ---
 
