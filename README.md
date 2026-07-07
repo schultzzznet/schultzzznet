@@ -54,17 +54,43 @@
 
 We are at an inflection point. Not the "AI will change everything someday" kind — the kind where
 the capability is already here, already deployed, already running. The shift is not theoretical:
-two distinct edges of it run live in one platform simultaneously, and the gap between them is
-instructive.
+it runs live and load-bearing in the two playgrounds below, and the gap between them is instructive.
 
 This is the SVPG manifest in practice: technology is the enabler, never the point — the engineer
 (and now the AI, as a first-class peer) is here to *solve problems*. What's "just now possible" —
-a solo engineer building, and a local AI helping run and increasingly heal, a cluster that wasn't
+a solo engineer building, and a local AI helping run and increasingly heal, systems that weren't
 buildable by one person a few years ago — is the edge I stand on deliberately.
 
 ---
 
-## What Am I Building, And Why Do I Do It
+## Two Playgrounds, One Discipline
+
+I prove the same three convictions twice — in two different fields, on two different kinds of
+silicon:
+
+- **Real learning.** Build the *real* thing, on real hardware, held to a professional bar — not a
+  tutorial followed to its end, not a demo spun up for a screenshot. A running system, fully
+  scripted and documented, with months of uptime and hard-won incident scars behind it.
+- **What's just now possible.** Stand deliberately on the AI inflection — not "AI someday" but AI
+  already deployed and load-bearing: a solo engineer building, and a local model helping run and
+  increasingly *heal*, what one person couldn't ship a few years ago.
+- **All-in on best-in-class.** Only premier, widely-deployed, production-grade elements and
+  architecture — the choices a serious team would defend in a design review. No toy substitutes,
+  no lock-in.
+
+Two playgrounds carry all three, end to end — and they even share a spine: the *same*
+**Dependency-Track** ingests the SBOMs from both.
+
+- **Playground One — the cluster** *([the-docker-swarm-ai](https://github.com/schultzzznet/the-docker-swarm-ai))*
+  — a Kubernetes-native DevSecOps platform with an AI ops brain living inside it.
+- **Playground Two — the embedded image** *([theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto))*
+  — a from-scratch, signed, OTA-updatable Yocto Linux distro that boots on a real Raspberry Pi.
+
+Different fields; the same three convictions, walked below in the same order.
+
+---
+
+## Playground One — The Cluster
 
 > **High availability *designed in*** — no single points of failure, autoscaling on demand.
 > **AI *baked in*** — a local brain that **lives** in the cluster, **learns** from it, and
@@ -75,20 +101,13 @@ buildable by one person a few years ago — is the edge I stand on deliberately.
 
 A **professional DevSecOps training ground** — live, running, and in daily use. Not a concept. Not
 a demo lab. A self-hosted, production-grade platform on real hardware, built to professional
-standard, with months of uptime behind it. **High availability and horizontal scalability done the
-way they're meant to be done** — with best-in-class, widely-deployed designs that **actually
-work.** With an AI brain built into it — monitoring, scaling, and proposing its own fixes. And
-every change ships through a real **CI/CD pipeline** — GitHub Actions, automated tests (JUnit +
-Testcontainers) on every commit and pull request, and green builds that auto-deploy to the cluster
-with zero manual steps.
+standard, with months of uptime behind it. It started as infrastructure and full-stack engineering;
+it's become a live proving ground for **AI-native development *and* AI-native operations** — both
+now first-class citizens alongside the platform itself. Every change ships through a real **CI/CD
+pipeline** — GitHub Actions, automated tests (JUnit + Testcontainers) on every commit and pull
+request, and green builds that auto-deploy to the cluster with zero manual steps.
 
-It started as an infrastructure and full-stack engineering project. It's become broader: a live
-proving ground for **AI-native development *and* AI-native operations** — both now first-class
-citizens alongside the platform itself.
-
-Three tracks: two live and load-bearing today, one taking shape on top.
-
-### Track 1 — A Best-in-Class Platform, the Way Production Should Be Built
+### All-in on best-in-class — the platform, the way production should be built
 
 Flutter iOS/Android → Spring Boot + PostGIS → Keycloak OAuth2/OIDC → Traefik → HAProxy TLS edge,
 over **HA Postgres (CloudNativePG)**, scheduled backups to object storage (**MinIO** + Barman Cloud
@@ -122,7 +141,7 @@ re-derives SBOMs from the live registry to catch silent base-image drift. Every 
 the signature and refuses a tampered image. Self-rated **SLSA Build L2**, with the L3 path written
 down.
 
-### Track 2 — A Best-in-Class Cluster With a Real, Active, Working AI Brain
+### What's just now possible — an AI brain baked in, not bolted on
 
 The part I'm proudest of: **the AI runs *inside* the platform, not beside it** — and it works. A
 local LLM (Ollama + `qwen3:4b`, on-LAN, no cloud, no vendor dependency) is wired straight into the
@@ -152,11 +171,11 @@ running both at once *is* the architecture:
 - **Prod edge — Ollama (local).** The always-on, on-LAN brain described above — air-gapped from
   any cloud LLM, zero marginal cost, full data sovereignty.
 
-### Track 3 — Agentic Delivery: the Whole Loop, Not Just the Code
-
-The transferable insight isn't *"AI writes code"* — it's **workflow orchestration**: an agent at
-every step of the delivery cycle, each with a defined role, coordinated in Slack. The steps run
-today — a **planner** (Claude in VS Code) decomposing the work, **coder** agents writing idiomatic
+The same AI-native instinct reaches past *operating* the platform to *delivering* it — **agentic
+delivery: the whole loop, not just the code.** The transferable insight isn't *"AI writes code"* —
+it's **workflow orchestration**: an agent at every step of the delivery cycle, each with a defined
+role, coordinated in Slack. The steps run today — a **planner** (Claude in VS Code) decomposing the
+work, **coder** agents writing idiomatic
 multi-layer code, a **releaser** (CI/CD + `ship-apps`) driving blue/green rollout, a **backlogger**
 (CI-digest) triaging failures into issues, and an **observer** (Ollama) correlating Prometheus,
 Loki, and Alertmanager — humans and agents sharing one channel.
@@ -168,20 +187,14 @@ workflow — bad architecture gets caught at CI time, not at 3am. The steps are 
 the orchestrator that closes them into one policy-gated loop is the honest next chapter — written
 down, costed, and grounded in what already runs.
 
-> **Honest scope:** the apps (location sharing, hazard warnings, messaging) are deliberately
-> non-trivial *demos* — enough to exercise every layer. The platform and the AI-ops brain are the
-> real deliverable; the killer app is TBD. Full architecture, ADRs, and an incident diary are in
-> the repo.
+### Real learning — a professional bar, and the next rung already scoped
 
----
-
-## Am I Done, And Why I Never Will Be
-
-No — and that's the point. A platform that's "done" is a platform that's stopped learning. This one
-is built to keep moving: the self-strengthening agents already file their own improvement proposals,
-the roadmap is written down rather than hand-waved (closed-loop autoscaling on the traffic the AI
-already watches, **SLSA Build L3**, RAG over the incident diary), and every incident becomes a diary
-entry — every diary entry, a new guardrail.
+The bar isn't "works on a laptop." It's *survives a node loss, a rolling upgrade, and a 3am
+incident with real users* — provable because the quorum math is correct and failover has been
+observed, not assumed. "Done" would just mean it stopped learning: the self-strengthening agents
+already file their own improvement proposals, the roadmap is written down rather than hand-waved
+(closed-loop autoscaling on the traffic the AI already watches, **SLSA Build L3**, RAG over the
+incident diary), and every incident becomes a diary entry — every diary entry, a new guardrail.
 
 The headline next chapter is a *frozen design plus a tracked, costed backlog* for turning **"HA that
 works"** into **a cluster that heals itself and proves it**:
@@ -201,24 +214,22 @@ works"** into **a cluster that heals itself and proves it**:
   single fault, continuously provocateur-proven* — running in a failure domain deliberately disjoint
   from the cluster it heals. The AI isn't bolted on; it's a first-class citizen of the architecture.
 
-The goal was never a finished artifact. It's a discipline that compounds: **ship → observe → learn →
-harden → prove → repeat.** That loop doesn't have a last iteration, and I don't want it to.
+> **Honest scope:** the apps (location sharing, hazard warnings, messaging) are deliberately
+> non-trivial *demos* — enough to exercise every layer. The platform and the AI-ops brain are the
+> real deliverable; the killer app is TBD. Full architecture, ADRs, and an incident diary are in
+> the repo.
 
 ---
 
-## Two Proving Grounds, One Discipline
+## Playground Two — The Embedded Image
 
-Everything above is one playground — the cluster. This is the other end of the spectrum, same
-instinct: **build the real thing, on real hardware, to actually learn it.** Not a tutorial followed
-to the end — a running system, fully scripted, documented, and held to the same supply-chain bar as
-the cluster. Different silicon, identical discipline.
-
-### theSchultzYocto — From Nothing to a Signed, OTA-Updatable Embedded Linux Image
-
-A custom, minimal, headless **Yocto Linux** distro (**scarthgap / 5.0 LTS**) for a spare **Raspberry
-Pi 3 B+**, built from its own layer — bare recipes to a `.wic` image that **boots on the real board**
-(reachable over SSH) *and* a **signed RAUC A/B bundle it installs over the air** — proven end to end
-on the hardware, in remarkably little wall-clock time.
+The other end of the spectrum, same instinct: **build the real thing, on real hardware, to actually
+learn it** — a running system, fully scripted, documented, and held to the *same* supply-chain bar
+as the cluster (it even feeds the same **Dependency-Track** the cluster does). Different silicon,
+identical discipline: from nothing to a signed, OTA-updatable **Yocto Linux** distro (**scarthgap /
+5.0 LTS**) for a spare **Raspberry Pi 3 B+**, built from its own layer — bare recipes to a `.wic`
+image that **boots on the real board** (reachable over SSH) *and* a **signed RAUC A/B bundle it
+installs over the air**, proven end to end on the hardware.
 
 [![Yocto scarthgap](https://img.shields.io/badge/Yocto-scarthgap%205.0%20LTS-1D9E74)](https://www.yoctoproject.org)
 [![BitBake](https://img.shields.io/badge/BitBake-cross--compile-4E9A06)](https://docs.yoctoproject.org/bitbake/)
@@ -234,18 +245,26 @@ on the hardware, in remarkably little wall-clock time.
 [![Nexus](https://img.shields.io/badge/Nexus-artifacts%20%2B%20mirror-1B1C30?logo=sonatype&logoColor=white)](https://www.sonatype.com/products/nexus-repository)
 [![ESP32](https://img.shields.io/badge/ESP32-serial%20bridge-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com)
 
-- **Fully scripted, zero-ceremony.** One command on the Mac syncs the layer to an aarch64 build host
-  over git and launches a fully detached `bitbake` — it survives SSH drops, recovers from an unclean
-  build-host reboot, and is documented end to end (Yocto concepts, first build, build ops, serial
-  console).
-- **Security-aware by construction, not as an afterthought.** Signed RAUC bundles, **GPG-signed
-  package feeds**, build-time **`cve-check`** against NVD, and a **CycloneDX 1.6 SBOM** generated
-  from the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds.
-  A **`cve-check` → VEX** round-trip auto-dismisses the CVEs Yocto already patched (cutting ~100
-  findings down to the few dozen that are genuinely unpatched), and a **daily** rebuild + re-scan
-  keeps a shipped image honest long after it left the bench. A **Nexus** instance is both the sstate
-  mirror *and* the release artifact store the Pi **range-streams its signed OTA bundle** from; a
-  repurposed **ESP32** serves the Pi's serial console over WiFi.
+### All-in on best-in-class — a from-scratch distro with a real supply chain
+
+**Security-aware by construction, not as an afterthought.** Signed RAUC bundles, **GPG-signed
+package feeds**, build-time **`cve-check`** against NVD, and a **CycloneDX 1.6 SBOM** generated from
+the image manifest and pushed to the *same* **Dependency-Track** instance the cluster feeds. A
+**`cve-check` → VEX** round-trip auto-dismisses the CVEs Yocto already patched (cutting ~100
+findings down to the few dozen genuinely unpatched), and a **daily** rebuild + re-scan keeps a
+shipped image honest long after it left the bench. Pinned to **scarthgap (5.0 LTS)** deliberately —
+the newest Yocto LTS the Raspberry Pi BSP actually supports, maintained to April 2028.
+
+### What's just now possible — signed OTA, from bare recipes to an over-the-air update
+
+**Fully scripted, zero-ceremony.** One command on the Mac syncs the layer to an aarch64 build host
+over git and launches a fully detached `bitbake` — it survives SSH drops, recovers from an unclean
+build-host reboot, and is documented end to end (Yocto concepts, first build, build ops, serial
+console). A **Nexus** instance is both the sstate mirror *and* the release artifact store the Pi
+**range-streams its signed OTA bundle** from; a repurposed **ESP32** serves the Pi's serial console
+over WiFi — the same supply-chain-to-deploy reflex as the cluster, on a $35 board.
+
+### Real learning — proven on the board, with an honest ceiling
 
 > **Honest scope (updated 2026-07-06):** it **boots on the real Pi 3 B+** (first login over a WiFi
 > serial console, then SSH over Ethernet), and the A/B RAUC update is now **proven end to end on the
@@ -258,6 +277,17 @@ on the hardware, in remarkably little wall-clock time.
 > triaged down to the few dozen that are real, re-scanned daily). One honest ceiling: true *hardware*
 > secure boot isn't possible on a Pi 3 (its ROM loads unsigned firmware) — signed, integrity-checked
 > *updates*, yes; a verified *boot chain*, not on this silicon. A learning ground with a live edge.
+
+---
+
+## Never Done, By Design
+
+Neither playground is a finished artifact — and that's the point. Both keep a deliberate live edge:
+the cluster climbing its autonomy ladder toward *heals itself and proves it*, the image closing the
+last gap between a signed bundle on the bench and a fleet in the field. The goal was never *done*;
+it's a discipline that compounds the same way on a datacenter rack and on a spare Raspberry Pi:
+**ship → observe → learn → harden → prove → repeat.** That loop has no last iteration, and I don't
+want it to.
 
 ---
 
