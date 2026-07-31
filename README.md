@@ -34,6 +34,8 @@
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
 [![Loki](https://img.shields.io/badge/Loki-logs-F9A03C?logo=grafana&logoColor=white)](https://grafana.com/oss/loki/)
+[![Uptime](https://img.shields.io/uptimerobot/ratio/7/m803631771-74e0c7540fd1b62ac240e54a?label=uptime&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
+[![Realm check](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=realm&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 <br>
 [![Claude](https://img.shields.io/badge/Claude-dev%20AI%20peer-D97757?logo=anthropic&logoColor=white)](https://www.anthropic.com/claude)
 [![Ollama](https://img.shields.io/badge/Ollama-local%20AI%20ops-black?logo=ollama&logoColor=white)](https://ollama.com)
