@@ -12,7 +12,7 @@
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/dependabot)
 <br>
 [![Java 17 LTS](https://img.shields.io/badge/Java-17%20LTS-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-HA-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![CloudNativePG](https://img.shields.io/badge/CloudNativePG-operator-1A5276?logo=postgresql&logoColor=white)](https://cloudnative-pg.io)
@@ -123,8 +123,11 @@ run on k3s.* And it stays portable below that line too — the apps and stacks w
 a rewrite. No managed control plane, no proprietary APIs, no lock-in.
 
 **High availability with no single point of failure — proven, not assumed.** Quorum-tolerant
-control plane, automatic Postgres failover, replicated ingress and identity. The bar isn't "works
-on a laptop" — it's *survives a node loss, a rolling upgrade, and a 3am incident with real users.*
+control plane, automatic Postgres failover, replicated ingress and identity, and **replica-3 Ceph
+block storage** (`ceph-block`, the sole StorageClass) — so any one node can die with **zero data
+loss (RPO 0, proven)**. The bar isn't "works on a laptop" — it's *survives a node loss, a rolling
+upgrade, and a 3am incident with real users*, now backed by **tested CNPG restores, backup/cert-failure
+alerting, and an off-site status-page probe**.
 
 **Scales horizontally, on demand — and the AI watches the traffic that should drive it.** The
 stateless app tier scales at will: `kubectl scale`, or just tell the bot *`scale warn-app to 4`*.
@@ -200,11 +203,12 @@ The headline next chapter is a *frozen design plus a tracked, costed backlog* fo
 works"** into **a cluster that heals itself and proves it**:
 
 - **Survive any *single* interruption** — a node, a pod, a disk, a switch — **with no single point
-  of failure and nothing central or non-distributed.** Quorum etcd on fast disks, zero-RPO database
-  replication, distributed storage, replicated everything, a floating ingress VIP — plus a
-  13-domain failure matrix that hunts the *non-obvious* SPOFs too (the write-freezing sync standby,
-  the hidden compactor singleton, the cold-start cycle). *(Multi-failure, site power, and ISP loss
-  are honestly out of scope — that's a second-site problem.)*
+  of failure and nothing central or non-distributed.** **Quorum etcd on fast disks and replica-3
+  distributed storage are already in place**; **synchronous zero-RPO Postgres** and a **floating
+  ingress VIP** are the last data- and network-layer rungs — plus a 13-domain failure matrix that
+  hunts the *non-obvious* SPOFs too (the write-freezing sync standby, the hidden compactor
+  singleton, the cold-start cycle). *(Multi-failure, site power, and ISP loss are honestly out of
+  scope — that's a second-site problem.)*
 - **Prove it continuously, not just claim it** — an always-on **chaos provocateur** living *inside*
   the cluster, injecting exactly one fault at a time, 24/7, while an external referee asserts *no
   user noticed*, across 31 scripted failure scenarios. A resilience regression gets caught in a
