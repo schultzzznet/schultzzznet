@@ -118,6 +118,17 @@ request, and green builds that auto-deploy to the cluster with zero manual steps
 > CRA/GDPR posture, licensing and IP, whether the AI *actually* works — and a blunt list of
 > what's still missing. Verified against the running cluster, not aspirational.
 
+**Live facts — snapshot 2026-08-10** *(a dated reading, not a live badge — every figure is one
+Prometheus query away, listed in the Recap so you can re-run them yourself)*
+
+| | | | |
+|---|---|---|---|
+| **9 / 9** nodes Ready | **167** pods running | **72 / 72** scrape targets healthy | **1** container restart in 24 h |
+| **60** CPU cores · **141 GB** RAM | **30** PVCs, every one replica-3 | **8** Postgres clusters, operator-managed | **3.47 / 5** CMMI maturity index |
+
+Hardware from **2011 to 2019** — laptops and desktops that were surplus, not bought for this.
+Nothing above is simulated.
+
 ### All-in on best-in-class — the platform, the way production should be built
 
 Flutter iOS/Android → Spring Boot + PostGIS → Keycloak OAuth2/OIDC → Traefik → HAProxy TLS edge,
