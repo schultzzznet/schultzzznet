@@ -122,7 +122,7 @@ request, and green builds that auto-deploy to the cluster with zero manual steps
 Prometheus query away, listed in the Recap so you can re-run them yourself)*
 
 | | | | |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **9 / 9** nodes Ready | **167** pods running | **72 / 72** scrape targets healthy | **1** container restart in 24 h |
 | **60** CPU cores · **141 GB** RAM | **30** PVCs, every one replica-3 | **8** Postgres clusters, operator-managed | **3.47 / 5** CMMI maturity index |
 
