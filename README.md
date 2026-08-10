@@ -109,6 +109,15 @@ now first-class citizens alongside the platform itself. Every change ships throu
 pipeline** — GitHub Actions, automated tests (JUnit + Testcontainers) on every commit and pull
 request, and green builds that auto-deploy to the cluster with zero manual steps.
 
+> 📖 **The receipts, in one document:**
+> **[Platform Recap — the complete architecture, scenario by scenario](https://github.com/schultzzznet/the-docker-swarm-ai/blob/master/docs/PLATFORM_RECAP.md)**
+> — how the whole system fits together, then *what actually happens* when a host dies, a node is
+> taken down on purpose, a database primary fails over, an app is onboarded from another repo, or
+> storage fills up. Every scenario names the exact tool, command and file. It also carries the
+> parts most write-ups leave out: live runtime numbers, CMMI-graded maturity, governance,
+> CRA/GDPR posture, licensing and IP, whether the AI *actually* works — and a blunt list of
+> what's still missing. Verified against the running cluster, not aspirational.
+
 ### All-in on best-in-class — the platform, the way production should be built
 
 Flutter iOS/Android → Spring Boot + PostGIS → Keycloak OAuth2/OIDC → Traefik → HAProxy TLS edge,
