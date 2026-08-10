@@ -125,9 +125,17 @@ Prometheus query away, listed in the Recap so you can re-run them yourself)*
 | --- | --- | --- | --- |
 | **9 / 9** nodes Ready | **167** pods running | **72 / 72** scrape targets healthy | **1** container restart in 24 h |
 | **60** CPU cores · **141 GB** RAM | **30** PVCs, every one replica-3 | **8** Postgres clusters, operator-managed | **3.47 / 5** CMMI maturity index |
+| **122** documented API operations | **132** contract-tested against their own spec | **496** conformance findings, first run | **8** genuine 500s among them |
 
 Hardware from **2011 to 2019** — laptops and desktops that were surplus, not bought for this.
 Nothing above is simulated.
+
+That last row is deliberately unflattering. The APIs publish OpenAPI 3.1, and as of 2026-08-10
+**Schemathesis** property-tests every running app against its own published spec — so the spec is
+an *oracle*, not decoration. It found 8 real server errors on the first full pass, each
+reproducible only as part of a *sequence* rather than a single call, which is precisely the class
+of defect hand-written controller tests never reach. Publishing the number before it's flattering
+is the point: a green badge you can't fail is decoration too.
 
 ### All-in on best-in-class — the platform, the way production should be built
 
