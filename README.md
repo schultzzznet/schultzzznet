@@ -34,6 +34,8 @@
 [![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)](https://grafana.com)
 [![Loki](https://img.shields.io/badge/Loki-logs-F9A03C?logo=grafana&logoColor=white)](https://grafana.com/oss/loki/)
+[![Alertmanager](https://img.shields.io/badge/Alertmanager-alert%20routing-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/docs/alerting/latest/alertmanager/)
+[![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=alerting&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Uptime](https://img.shields.io/uptimerobot/ratio/7/m803631771-74e0c7540fd1b62ac240e54a?label=uptime&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 [![Realm check](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=realm&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 <br>
