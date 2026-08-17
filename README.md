@@ -334,6 +334,15 @@ want it to.
 
 **→ [theSchultzYocto](https://github.com/schultzzznet/theSchultzYocto)** — the firmware: a custom Yocto layer that **boots on a real Pi 3 B+**, takes signed RAUC A/B updates **over the air** (proven with a live update + rollback), a daily SBOM/CVE/VEX scan, and end-to-end docs.
 
+**→ [theMowerRetrofit](https://github.com/schultzzznet/theMowerRetrofit)** — the product those two exist to serve: an RTK pattern-mowing brain retrofitted into old robotic mowers, standing on the Yocto image rather than reinventing device lifecycle.
+
+**→ [theDroneSwarm](https://github.com/schultzzznet/theDroneSwarm)** — the same pattern applied to drones; its `swad` app deploys **into** the cluster over that repo's published App-Platform contract.
+
+Four repos, one estate — not four hobbies. How the tiers stack, where the seams are, and what is
+live versus roadmap is mapped in
+[**ECOSYSTEM.md**](https://github.com/schultzzznet/the-docker-swarm-ai/blob/master/docs/ECOSYSTEM.md);
+they also share the topic [`schultzzznet-estate`](https://github.com/search?q=topic%3Aschultzzznet-estate).
+
 ---
 
 [![GitHub Stats](https://github-readme-stats.vercel.app/api?username=schultzzznet&show_icons=true&theme=dark&hide_border=true&count_private=true)](https://github.com/schultzzznet)
