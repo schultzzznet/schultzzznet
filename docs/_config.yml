@@ -1,0 +1,4 @@
+theme: jekyll-theme-cayman
+title: schultzzznet
+description: A nine-node bare-metal Kubernetes platform, five Spring Boot services, five Flutter clients — and the operational habits that keep them honest.
+show_downloads: false
