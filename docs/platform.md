@@ -127,6 +127,17 @@ clean report.
 
 ---
 
+## Read next
+
+- **[DevSecOps, end to end](devsecops.md)** — every gate from commit to running pod, what
+  each one actually proves, how scan scope and triage priority are *derived* rather than
+  maintained by hand, and the measurement traps that produced confident wrong numbers.
+- **[The embedded side](yocto.md)** — where that "generic identifiers match nothing" lesson
+  came from, and what it took to go from zero findings to a hundred real ones on the same
+  image.
+
+---
+
 <sub>Machines, addresses, hostnames and topology are deliberately absent. This page was
 written for publication, not scrubbed after the fact.</sub>
 

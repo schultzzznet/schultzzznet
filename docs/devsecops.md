@@ -1,0 +1,249 @@
+---
+title: DevSecOps — the whole chain, and what it actually proves
+---
+
+# DevSecOps, end to end
+
+Security controls are easy to install and hard to keep honest. This page walks the whole
+chain — commit to running pod to continuously re-evaluated inventory — and, at each stage,
+says what the control *actually proves* rather than what it is marketed to prove.
+
+Every number here is measured on the live system, not estimated.
+
+---
+
+## 1. The gates before a commit becomes an image
+
+| Gate | Runs on | Catches | Blocking |
+|---|---|---|---|
+| **CodeQL** | cloud | SAST across Java and JS | yes |
+| **Secret scanning** | cloud | credentials committed by accident | yes |
+| **Trivy + Syft** | cloud | image CVEs, and the SBOM itself | yes |
+| **DAST baseline** | cloud | live-app web findings | advisory |
+| **API contract tests** | cloud | schema drift against the published OpenAPI | yes |
+| **Exposure contract** | cloud | *what is reachable from the internet* — see §5 | yes |
+| **Rate-limit contract** | cloud | the auth endpoint's throttle still throttles | yes |
+| **Infra validation** | cloud | manifests, playbooks, shell, YAML | yes |
+
+The unglamorous ones — the exposure and rate-limit contracts — are the two that have
+actually caught regressions, because they assert a *property of the running system* rather
+than a property of the source.
+
+---
+
+## 2. Build, sign, and the step most people skip
+
+```mermaid
+flowchart LR
+  S["source"] --> B["build image<br/>immutable git-SHA tag"]
+  B --> P["provenance attestation"]
+  B --> M["SBOM attestation"]
+  P --> G["sign"]
+  M --> G
+  G --> V["VERIFY the signature"]
+  V --> R[("registry")]
+  R --> K["rollout"]
+```
+
+Two decisions carry most of the weight:
+
+**The tag is the git SHA, never a floating `latest`.** A floating tag lets a rollout pull a
+cached older layer and report success — so "what is running" stops being answerable at
+exactly the moment you need the answer.
+
+**The signature is verified, not merely produced.** Signing without a verification step is
+ceremony. The verify step is the control; the signing step is just its input.
+
+---
+
+## 3. What gets scanned — derived from the cluster, never typed
+
+This is the part that changed most recently, and it is the part worth presenting, because
+the bug it fixed is one almost every organisation has.
+
+The nightly SBOM job used to hold a **hand-typed list** of applications to scan. Two live
+applications, both running two replicas, were not on it. They had no SBOM and no
+vulnerability record, and nothing anywhere reported a problem — the job printed success
+every night for exactly the apps it had been told about.
+
+It was the third instance of one failure class on this platform:
+
+- an application sat in `ImagePullBackOff` for **12 days** because a build list never
+  named it
+- another was missing from **both** ship lists while running healthy
+- and then the scan list
+
+So the lists were deleted. Scope is now **derived at run time**:
+
+| Job | Scope | Source of truth |
+|---|---|---|
+| application scan | the apps we build | every Deployment in the application namespace |
+| platform scan | everything else | every image on every pod, init containers included |
+
+Deploying something enrols it. An empty derivation is a **hard failure**, not an empty
+loop — the old mode failed by being quietly smaller than anyone believed, which is the
+mode worth killing.
+
+The result of pointing that at reality for the first time:
+
+> **62 distinct images run on the cluster. 56 of them are third-party. None of them had an
+> SBOM.** The public identity provider — the single most exposed component in the estate —
+> had no vulnerability record at all. Nor did the databases, the object store, the metrics
+> and log stores, the storage layer, or the vulnerability tracker itself.
+
+Dependency bumping was already automated, so nothing was *stale*. But a bump only proves a
+newer version exists. It never says what is exploitable **now**. That was the gap.
+
+**And no exclusion list was introduced to replace it.** Scanning everything costs about ten
+minutes of machine time a night. A "don't scan these" list is the identical bug pointed the
+other way, and it drifts in the direction that flatters.
+
+---
+
+## 4. Prioritising without lying: two axes, both derived
+
+Scanning everything is cheap. *Triaging* everything is not. So every project in the
+vulnerability tracker is tagged from live cluster objects, on two axes — because either one
+alone ranks things wrongly:
+
+| Tag | Derived from |
+|---|---|
+| `exposure:public` | behind an ingress route on the public allowlist |
+| `exposure:lan` | behind any ingress, or a node-port / load-balancer service |
+| `exposure:internal` | cluster-internal service only |
+| `privileged` | a privileged container, or host network / PID / IPC |
+
+Current spread: **4 public, 19 LAN-only, 39 internal; 8 privileged.**
+
+Why both axes, in one example each:
+
+- **Reachability alone** would call a storage driver sidecar harmless — nothing can reach
+  it. It is privileged with host mounts, so a compromise is total.
+- **Privilege alone** would call the dashboard stack harmless — it is unprivileged. It
+  holds credentials for every data source behind a login.
+
+A tempting split was explicitly rejected: **"delivery tooling versus observability
+tooling."** That is an *availability* taxonomy — it answers which capability stops working
+when a component dies — and it does not transfer to security. The log store is
+"observability" and holds logs, which routinely contain tokens. The alert router makes
+outbound webhook calls. Meanwhile the storage sidecars are unreachable and all-powerful.
+
+> **Tags order triage. They never justify suppression.** `exposure:internal` means *less
+> reachable*, not *not affected* — everything internal becomes reachable the moment anything
+> external is.
+
+---
+
+## 5. Exposure is asserted, not assumed
+
+The public edge is **default-deny**: a short allowlist of application path prefixes, and
+everything else returns 404. Internal surfaces — health/metrics endpoints, API schema
+endpoints, the operator consoles, the whole monitoring stack — are unreachable from the
+internet by rule, not by obscurity.
+
+Two findings from doing this properly:
+
+**The allowlist alone was bypassable.** Prefix matching runs against the *raw* path, but the
+downstream router resolves `../` afterwards. So a request to an allowed prefix followed by
+traversal reached the monitoring stack — verified as a real bypass, returning live data. The
+fix is a URL-decoding traversal rejection ordered *before* the allowlist, which covers the
+encoded variants too. Order matters; a correct rule in the wrong position is not a control.
+
+**Two places now state what is public, so they are checked against each other.** The edge
+configuration *enforces* the allowlist; the scanner's classifier *labels* by it. A verifier
+fails the build if they disagree — otherwise projects would be tagged with an exposure they
+do not have, silently, in the reassuring direction.
+
+The authentication path additionally tracks the **failed** request rate rather than the
+total, so a credential-stuffing flood is cut off while legitimate token traffic is never
+throttled.
+
+---
+
+## 6. Measurement traps found by checking
+
+A presentation-worthy trio, because each one produces *confident, wrong* numbers:
+
+**96% of every SBOM was unmatchable filler.** The generator's file cataloger emitted a
+component per file — bare paths, no package identifier of any kind. A vulnerability tracker
+matches on package identifiers, so those rows could never produce a finding. One application
+carried **7,110 components, of which 6,847 were noise**. Turning the cataloger off took it to
+**264**, with the matchable set byte-identical. Verified on a minimal base image first: 92
+components to 15, same 14 packages.
+
+**A rejected upload still created the project.** The SBOM generator's default output format
+had moved to a specification version the tracker rejects. The upload returned an error —
+*and the project was created anyway, with its tags applied*. Checking "does the project
+exist?" would have said yes, forever, while nothing was ever ingested. The format is now
+pinned explicitly, with a comment saying why it cannot be simplified.
+
+**The inventory API caps result rows regardless of the requested page size.** An early
+conclusion here — "no test-scope dependencies are present" — was drawn from the first 100 of
+7,110 components. The conclusion happened to survive the full set, but the evidence had not
+earned it. The honest total lives in a response header.
+
+---
+
+## 7. Below the application: hosts, kernels, and what "patched" means
+
+OS patching is automatic and reboots are coordinated: one node at a time, drained first,
+held back while defined alert conditions are firing.
+
+The subtle part is measuring it. Host vulnerability counts are dominated by kernel
+packages, and one kernel source inflates into several binary packages. Worse, a patched
+machine keeps its previous kernel installed as a fallback — so the **raw count barely
+moves** after patching even though real exposure has gone to zero.
+
+So the exporter splits them:
+
+- **running** — against the kernel the machine is actually booted on. Must reach zero.
+- **superseded** — against a retained fallback kernel. Structural, never zero.
+- **non-kernel** — the genuine backlog worth working.
+
+Without that split, a real 300-to-0 improvement showed as "600 findings, unchanged."
+
+---
+
+## 8. Chaos, and a safety controller that has teeth
+
+Faults are injected on a schedule, against a real target chosen for being *genuinely*
+unreliable rather than synthetically degraded. A safety controller halts injection when the
+system is not in steady state, and escalates when an injected fault does not self-heal
+inside its recovery budget.
+
+The controller was itself the source of the best lesson on this platform: it had never been
+deployed to the machine whose only job was to hold it. Arming it would have been a no-op
+that reported success. **"Armed" and "has fired" are different claims** — the field that
+distinguishes them is *when did this last run*, and it was on no dashboard.
+
+---
+
+## 9. What this does not do
+
+Stated plainly, because a control you misunderstand is worse than one you lack:
+
+- **A scanner match is a hypothesis, not a vulnerability.** Reachability is not proven by
+  any of the above.
+- **Runtime behaviour is not monitored** for exploitation; this is build- and
+  inventory-time analysis plus network-level exposure control.
+- **The deploy path has a single point of failure** — one self-hosted runner, on the LAN
+  side of a carrier-grade NAT boundary, because nothing in the cloud can reach the cluster.
+- **Satellite repositories bypass the release policy gate**, by design of the small
+  contract. Their own CI is the only thing between a commit and a rollout.
+
+---
+
+<sub>Written for publication. Machines, addresses, hostnames and credential locations are
+absent by construction and enforced by a guard that fails the build.</sub>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+  document.querySelectorAll('pre > code.language-mermaid').forEach((el) => {
+    const div = document.createElement('div');
+    div.className = 'mermaid';
+    div.textContent = el.textContent;
+    el.parentElement.replaceWith(div);
+  });
+  mermaid.run();
+</script>
