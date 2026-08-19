@@ -9,10 +9,11 @@ title: AI in development — the other half of the story
 ![context](https://img.shields.io/badge/context-live%20backlog%20%2B%20repo%2C%20not%20just%20chat-326CE5)
 ![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured-orange)
 
-[The run-time half of this story](aiops.md) is a small local model with a narrow write path
-to a production cluster. This is the other half: the cloud model used to *build* the estate
-in the first place — which repository, which line, which architecture call. It gets exactly
-one exemption from the rules below: none.
+[The run-time half of this story](aiops.md) — the **production edge** — is a small local
+model with a narrow write path to a production cluster. This is the other half, the
+**development edge**: the cloud model used to *build* the estate in the first place — which
+repository, which line, which architecture call. It gets exactly one exemption from the
+rules below: none.
 
 ---
 

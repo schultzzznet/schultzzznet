@@ -39,6 +39,16 @@ flowchart LR
   GH -. "no inbound path (CGNAT)" .-> LAN
 ```
 
+**Design for Kubernetes, run on k3s.** Every manifest, Helm chart and operator here is plain,
+conformant Kubernetes — nothing in the workload layer is aware that the control plane
+underneath it happens to be a lightweight distribution rather than a managed cloud one. The
+same manifests would lift onto a managed Kubernetes service unchanged; k3s was chosen for
+operational simplicity and cost on nine machines in a house, not because anything here
+depends on it. Portability runs the other way too: the workloads were first proven on Docker
+Swarm, and the designs remain Swarm-compatible, so a shift back would be a configuration
+choice, not a rewrite. No managed control plane, no proprietary APIs, nothing that only runs
+here.
+
 There is an honest weakness here worth stating plainly: that self-hosted runner is a single
 machine. Every deploy — including the satellite repositories that call in — stops when it is
 off. It is the one part of the delivery path with no redundancy.

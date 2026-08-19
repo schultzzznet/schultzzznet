@@ -18,6 +18,10 @@ A custom Yocto layer that boots on a Raspberry Pi 3 B+, takes **signed A/B updat
 air** with a proven live rollback, and — the part worth the walkthrough — feeds a bill of
 materials into the same vulnerability tracking the cluster services use.
 
+The board itself costs about the same as a takeaway dinner. The supply-chain discipline
+around it does not know that: signed bundles, CPE-matched CVEs, VEX suppressions with a named
+reason, a daily re-scan — the same reflex as the cluster, on **$35 of hardware**.
+
 Getting that last part to work is where the interesting engineering is, because the obvious
 implementation produces a beautiful dashboard that reports nothing.
 

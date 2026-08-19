@@ -10,7 +10,9 @@ title: The estate
 *Those two are live.* The first is a dead-man's-switch: the cluster's alert pipeline proves
 itself end to end on a schedule, and the badge goes red if the heartbeat stops. The second is
 an off-site probe of the public entrance, run from outside the house entirely — so it still
-reports when the power or the internet is what failed.
+reports when the power or the internet is what failed. Between them they are the estate's
+**referees**: neither one lives inside the system it is grading, which is the entire point of
+a referee.
 
 **Structural facts, current as of 2026-08-19:**
 
@@ -68,10 +70,11 @@ now. Renaming a repository breaks every link that points at it, so the name stay
 This is not the whole portfolio, either. Two further product repositories — an autonomous
 mowing robot and a drone-swarm project — share the same registry, signing keys and
 vulnerability tracker, and one of them calls this platform's own deploy workflow the same
-way the satellite above does. They are out of scope for the deep dives on this site; what's
-worth taking from their existence is the shape, not the specifics: **the second and third
-products were mostly assembly, not invention**, because the seams — a heartbeat contract, an
-SBOM format, an identity token — were made explicit the first time.
+way the satellite above does. **Five repositories, not five hobbies.** They are out of scope
+for the deep dives on this site; what's worth taking from their existence is the shape, not
+the specifics: **the second and third products were mostly assembly, not invention**, because
+the seams — a heartbeat contract, an SBOM format, an identity token — were made explicit the
+first time.
 
 ---
 
@@ -95,9 +98,9 @@ SBOM format, an identity token — were made explicit the first time.
 - **A supply chain with teeth**: every image is signed, provenance-attested and scanned,
   and **62 distinct running images** — including all 56 third-party ones — have a bill of
   materials that is re-evaluated as new vulnerabilities are published.
-- **Deliberate chaos**: a scheduled fault injector with a safety controller that halts it
-  when the system is not in steady state, and escalates when a fault does not self-heal
-  inside its recovery budget.
+- **Deliberate chaos**: a scheduled fault injector — think of it as the resident
+  **provocateur** — with a safety controller that halts it when the system is not in steady
+  state, and escalates when a fault does not self-heal inside its recovery budget.
 - **An operations agent** that reads live cluster state, correlates it, and proposes
   remediations — permitted to apply only the *additive* ones on its own.
 - **35 automated assertions** that documentation, inventory and reality still agree, run on
@@ -288,6 +291,22 @@ open item for a hosted privacy policy — see [the honest gaps](reliability.md) 
 [the honest legal posture](compliance.md). Rigor did not automatically transfer to every
 domain at once. It had to be practised in each one, and it is stated plainly wherever it
 hasn't been yet.
+
+---
+
+## Never done, by design
+
+Nothing on this site describes a finished artifact, and that is deliberate rather than
+apologetic. Every page above ends the same way it started: a claim, checked, with the gaps
+named instead of rounded off. The discipline is the same loop on every page, at every scale,
+whether the subject is a nine-node cluster or a single Raspberry Pi:
+
+> **ship → observe → learn → harden → prove → repeat.**
+
+That loop has no last iteration, and this site does not claim one.
+
+> *The best engineers are not there just to code. They are there to solve problems.*
+> — Marty Cagan, [Empowered](https://www.svpg.com/books/empowered-ordinary-people-extraordinary-products/)
 
 ---
 
