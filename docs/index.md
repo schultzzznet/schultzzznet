@@ -12,15 +12,31 @@ itself end to end on a schedule, and the badge goes red if the heartbeat stops. 
 an off-site probe of the public entrance, run from outside the house entirely — so it still
 reports when the power or the internet is what failed.
 
-**Measured on the live system, 2026-08-19:**
+**Structural facts, current as of 2026-08-19:**
 
 ![nodes](https://img.shields.io/badge/bare--metal%20nodes-9-326CE5?logo=kubernetes&logoColor=white)
 ![control plane](https://img.shields.io/badge/control%20plane-3%20%C3%97%20etcd-419EDA?logo=etcd&logoColor=white)
-![storage](https://img.shields.io/badge/block%20storage-replica--3-EF5423?logo=ceph&logoColor=white)
-![postgres](https://img.shields.io/badge/Postgres%20clusters-7%20%C2%B7%20quorum%20sync-4169E1?logo=postgresql&logoColor=white)
+![storage](https://img.shields.io/badge/every%20volume-replica--3-EF5423?logo=ceph&logoColor=white)
+![postgres](https://img.shields.io/badge/Postgres%20clusters-8-4169E1?logo=postgresql&logoColor=white)
 ![sbom](https://img.shields.io/badge/images%20with%20an%20SBOM-62%20of%2062-blueviolet)
 ![signed](https://img.shields.io/badge/images-signed%20%2B%20verified-2E2E5F?logo=sigstore&logoColor=white)
+![ha](https://img.shields.io/badge/failure%20domains%20HA-4%20of%2013-orange)
 ![assertions](https://img.shields.io/badge/reality%20assertions-35%20passing-2EA44F)
+
+**A runtime snapshot, queried 2026-08-10** — a moment in time, not a claim of steady state.
+It is here because every figure is one query away from being re-checked, which is the only
+reason to publish a number at all:
+
+![nodes ready](https://img.shields.io/badge/nodes%20Ready-9%20of%209-2EA44F?logo=kubernetes&logoColor=white)
+![pods](https://img.shields.io/badge/running%20pods-167%20%C2%B7%2016%20namespaces-326CE5)
+![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-72%20of%2072-E6522C?logo=prometheus&logoColor=white)
+![series](https://img.shields.io/badge/active%20metric%20series-~300k-E6522C?logo=prometheus&logoColor=white)
+![restarts](https://img.shields.io/badge/container%20restarts%2024h-1-2EA44F)
+![capacity](https://img.shields.io/badge/fleet-60%20cores%20%C2%B7%20141%20GB-575757)
+![busy](https://img.shields.io/badge/CPU%20busy-13.4%25-2EA44F)
+
+One alert was firing at that moment: the watchdog that is *supposed* to fire, continuously,
+because its silence is what proves the alert pipeline has died.
 
 This is a home-built platform that is run like a production one: nine bare-metal
 Kubernetes nodes assembled from retired laptops and small-form-factor desktops, the
@@ -33,12 +49,18 @@ Three repositories, bound by hard dependencies rather than theme.
 |---|---|---|
 | **the-docker-swarm-ai** | The platform itself — k3s cluster, Spring Boot services, Flutter clients, the whole delivery chain | *is* the platform |
 | **theSchultzYocto** | A custom embedded Linux image: signed over-the-air A/B updates, proven rollback on real hardware | Ships bills of materials into the platform's vulnerability tracking; devices report to a fleet service running on it |
-| **post-app** | A **satellite** application — its own repository, its own CI, deployed onto the platform | Calls the platform's published deploy contract: a Dockerfile and a conformant manifest, nothing more |
+| **post-app** | A **satellite** — its own repository, its own CI, deployed onto the platform from outside it | Calls the platform's published deploy contract: a Dockerfile and a conformant manifest, nothing more |
 
 The third one is the interesting proof. **An application does not have to live in the
 platform's repository to run on it.** The satellite brings two files; the platform supplies
 the registry, signing chain, runtime, ingress, replicated storage, identity, metrics and
 logs. If that contract is real, it can be exercised from outside — so it is.
+
+It is also deliberately trivial: one endpoint, no database, no identity. The variable under
+test is the *contract*, and a bigger application would only make it harder to see which half
+broke. What it did surface is worth more than the deployment itself —
+[the contract's silences are permissions](platform.md), and this one took every single one
+of them.
 
 The platform's name is a fossil: it began on Docker Swarm and has run on k3s for a long time
 now. Renaming a repository breaks every link that points at it, so the name stayed.
@@ -55,8 +77,9 @@ now. Renaming a repository breaks every link that points at it, so the name stay
 - **Replicated block storage**, three-way, host-level failure domain, as the sole storage
   class. The single-node storage provisioner is switched off on purpose so that an
   unqualified volume claim *cannot* silently pin itself to one machine's disk.
-- **Seven Postgres clusters** under an operator, with quorum-based synchronous replication
-  and continuous archiving to object storage.
+- **Eight Postgres clusters** under an operator — three at three instances, five at two. The
+  application and identity databases run **synchronous** replication; every one of them
+  archives continuously to object storage.
 - **Five Spring Boot services** and **five Flutter clients**, plus identity, ingress,
   metrics, logs and dashboards. Two nodes are deliberately **tainted** — one has no wired
   network, one is a designated fault-injection target — so neither can quietly acquire
@@ -71,6 +94,11 @@ now. Renaming a repository breaks every link that points at it, so the name stay
   remediations — permitted to apply only the *additive* ones on its own.
 - **35 automated assertions** that documentation, inventory and reality still agree, run on
   demand and failing loudly when they diverge.
+
+And, because the number that is never on a landing page is the one worth trusting:
+**four of thirteen failure domains are genuinely single-fault tolerant.** The other nine are
+named, ranked and tracked in the open rather than rounded up —
+[the audit is here](reliability.md).
 
 Concrete numbers, machines, addresses and topology stay in the private repository. What is
 here is the shape of the thing and the reasoning behind it.
@@ -91,10 +119,16 @@ rather than reading:
   a second fault class had been added later.
 - A safety controller that was never actually deployed to the machine whose only job was
   to hold it. Enabling it would have been a no-op that reported success.
+- An automated reboot daemon that read the wrong path and therefore concluded, hourly on
+  every node for weeks, that no machine needed restarting. Patches were applied to disk and
+  never came into effect: **16,002 host findings, all of them already fixed upstream**, and
+  four different kernel versions running at once.
 - A documentation site workflow that ran **89 times and succeeded zero times** over three
   weeks, failing before its first step so there were no logs to look at. Nothing alerted.
 - A workstation link that dropped **1,614 times in a day**, invisible to `ifconfig`
   because it recovered between samples. Only the system log could see it.
+- A shared build cache that was populated, correct, and **bypassed on every single build**,
+  because a prerequisite service that gives cache entries a stable identity was missing.
 
 None of these errored. Each looked fine until something checked directly. So: run the
 thing, read the value back off the live object, and make a test fail before trusting that
@@ -179,11 +213,18 @@ datacentre, which is rather the point of building it on retired laptops.
 ## Read next
 
 - **[How the platform builds and ships things](platform.md)** — the delivery chain, why it
-  is split across two kinds of runner, and what an application has to bring to be deployable.
+  is split across two kinds of runner, what an application has to bring to be deployable —
+  and what the contract pointedly does *not* require.
 - **[DevSecOps, end to end](devsecops.md)** — every gate from commit to running pod, what
   each one actually proves, and the measurement traps that produced confident wrong numbers.
+- **[High availability, audited](reliability.md)** — four of thirteen failure domains, the
+  maintenance that removed the tools needed to perform it, and why the automated patching
+  loop is the best chaos experiment on the platform.
+- **[The operations agent](aiops.md)** — a local model with a write path to a production
+  cluster, and the single question that decides what it may do without asking.
 - **[The embedded side](yocto.md)** — a custom Linux image with signed over-the-air updates,
-  and the work required to make a vulnerability scanner tell the truth about it.
+  the work required to make a vulnerability scanner tell the truth about it, and three traps
+  that only real hardware finds.
 
 ---
 

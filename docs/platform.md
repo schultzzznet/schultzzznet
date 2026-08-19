@@ -61,6 +61,62 @@ convention.
 
 ---
 
+## The satellite: proving the contract from outside
+
+A contract that has only ever been exercised from inside the repository that defines it is
+not a contract, it is a coincidence. So one application lives in **its own repository, with
+its own CI**, and deploys onto the platform by calling the published workflow.
+
+It is deliberately tiny — a single endpoint that returns a line of text, no database, no
+identity integration. **That is the design.** The variable under test is the contract, not
+the application; anything more would only make it harder to tell which half broke. Its entire
+deploy definition is a call to the platform's reusable workflow naming the app and the path
+to its manifest.
+
+What it declares in that manifest is not tiny, though, and that is the interesting part:
+
+| Declared | Value |
+|---|---|
+| Replicas | 2 |
+| Topology spread | `maxSkew: 1` over hostname, **`DoNotSchedule`** — a hard constraint, so one node cannot hold both |
+| Disruption budget | at least one replica always available |
+| Resources | CPU, memory **and ephemeral storage**, requests and limits both |
+| Probes | liveness and readiness on separate schedules, with distinct initial delays |
+| Shutdown | a pre-stop delay so the load balancer drains first, then a framework-level graceful shutdown, inside a termination grace period long enough for both |
+| API access | service account token mounting **switched off** — it never talks to the cluster API |
+
+The shutdown chain is the detail most often missed. Removing a pod from a Service and killing
+it are asynchronous events, so a pod that exits *promptly* on the signal drops the in-flight
+requests still being routed to it. The delay is not politeness; it is the difference between
+a rolling update being invisible and being a small burst of errors every deploy.
+
+### What the contract does **not** require — and why that matters
+
+This is the honest finding, and it is a design lesson rather than a bug report.
+
+The satellite's manifest is fully conformant, and it declares **no pod-level security
+context**: no explicit non-root assertion, no read-only root filesystem, no
+`allowPrivilegeEscalation: false`, no dropped capabilities. It inherits a non-root user from
+its base image and is fine in practice — but nothing *checked*, because the contract never
+asked.
+
+There is a second asymmetry in the same direction. [The release policy gate](#the-gate-and-who-it-does-not-protect)
+does not apply to satellites; the reusable deploy workflow is a single job with no policy
+step. Everything the *platform* owns still applies — the image is built, scanned, signed and
+**verified**, the SBOM is generated and ingested — but everything the *repository* owns is
+whatever that repository chose. This one has no tests and no dependency automation of its
+own, so its own CI is not a brake at all.
+
+> **A platform contract silently defines the floor for everything built on it.** What it
+> omits is not neutral — it is a permission, and it will be taken.
+
+Both gaps are stated rather than papered over, because the fix is a genuine trade-off:
+tightening the contract raises the floor for every satellite and simultaneously raises the
+cost of being one. The current position is a deliberate choice for a small estate, and it
+would be the wrong one at ten teams.
+
+---
+
 ## What a deploy actually does
 
 ```mermaid
@@ -132,6 +188,11 @@ clean report.
 - **[DevSecOps, end to end](devsecops.md)** — every gate from commit to running pod, what
   each one actually proves, how scan scope and triage priority are *derived* rather than
   maintained by hand, and the measurement traps that produced confident wrong numbers.
+- **[High availability, audited](reliability.md)** — which failure domains actually survive
+  losing a machine, which deliberately do not, and the maintenance that removed the tools
+  needed to perform it.
+- **[The operations agent](aiops.md)** — what a local model is permitted to change on a
+  running cluster without asking.
 - **[The embedded side](yocto.md)** — where that "generic identifiers match nothing" lesson
   came from, and what it took to go from zero findings to a hundred real ones on the same
   image.
