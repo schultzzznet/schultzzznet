@@ -362,6 +362,9 @@ argument for keeping an inventory rather than only a scan result.
 - **[High availability, audited](reliability.md)** — the *configured, plausible and inert*
   failure class that shows up here as a silently bypassed build cache, and there as a reboot
   daemon that never rebooted.
+- **[Legal, licensing, and the regulatory posture](compliance.md)** — where a fleet of
+  connected embedded devices sits against a real cyber-resilience regulation, not just a
+  best-effort SBOM.
 
 ---
 

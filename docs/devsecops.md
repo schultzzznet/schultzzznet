@@ -222,6 +222,23 @@ keeps the licence). Guessing would have produced a plausible fix for the wrong c
 > nothing tells you when it passes.** A comment explaining why something is disabled is a
 > claim about a version that has since moved.
 
+That licence data feeds a real policy, and the policy's first honest version over-fired: it
+flagged copyleft components by the hundred, and every single hit turned out to be ordinary
+base-image operating-system tooling that carries no service obligation — not one was an
+application dependency. The policy was split in two: an informational count of copyleft
+anywhere in the inventory, and a **failing** check scoped to application dependencies only.
+The baseline dropped to zero false positives without weakening what the policy actually
+guards against. [The fuller licensing picture](compliance.md) — what running each licence
+family obligates versus what selling a service on top of it would — lives on its own page.
+
+A fifth trap, found while chasing why that same policy looked like it was doing nothing at
+first: **a 403 with an empty body is indistinguishable from zero violations.** The
+automation credential used to upload SBOMs had never been granted permission to read policy
+violations back, so every query for "did this fail the policy?" returned an empty,
+unauthorized response that looked exactly like a clean pass. The fix was a permission grant,
+not a policy change — but until it was found, a policy that had been firing correctly the
+whole time was invisible to the one system that was supposed to act on it.
+
 ---
 
 ## 7. Below the application: hosts, kernels, and what "patched" means
@@ -317,6 +334,16 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
   automated write path to a production cluster defensible.
 - **[The embedded side](yocto.md)** — the same supply chain pointed at a Linux image built
   from source.
+- **[Legal, licensing, and the regulatory posture](compliance.md)** — what the same supply
+  chain buys against a real regulation, and the two places a label was checked and found
+  wrong.
+- **[Testing, quality gates, and grading our own maturity](quality.md)** — the quality half
+  of this gate table, and an honest self-graded score.
+- **[Legal, licensing, and the regulatory posture](compliance.md)** — what the same supply
+  chain buys against a real regulation, and the two places a label was checked and found
+  wrong.
+- **[Testing, quality gates, and grading our own maturity](quality.md)** — the quality half
+  of this gate table, and an honest self-graded score.
 
 ---
 

@@ -65,6 +65,14 @@ of them.
 The platform's name is a fossil: it began on Docker Swarm and has run on k3s for a long time
 now. Renaming a repository breaks every link that points at it, so the name stayed.
 
+This is not the whole portfolio, either. Two further product repositories — an autonomous
+mowing robot and a drone-swarm project — share the same registry, signing keys and
+vulnerability tracker, and one of them calls this platform's own deploy workflow the same
+way the satellite above does. They are out of scope for the deep dives on this site; what's
+worth taking from their existence is the shape, not the specifics: **the second and third
+products were mostly assembly, not invention**, because the seams — a heartbeat contract, an
+SBOM format, an identity token — were made explicit the first time.
+
 ---
 
 ## What is actually running
@@ -118,6 +126,8 @@ because a session that re-derives context from scratch is a session that re-liti
 mistakes already paid for. **It gets no exemption:** an AI-assisted change goes through the
 identical pull-request gates as any other — [the same SAST, secret scan, tests and
 signing](devsecops.md) — and a human remains accountable for reviewing what it produced.
+[The fuller account is on its own page](ai-dev.md), including the time it confidently told a
+reviewer two things about this platform that were not true.
 
 **Run time — a separate, local, air-gapped model, with a narrow write path.** The cluster is
 watched continuously by an on-prem operations agent, deliberately not the cloud model, so the
@@ -248,6 +258,39 @@ datacentre, which is rather the point of building it on retired laptops.
 
 ---
 
+## Why go to this much trouble
+
+> Quality isn't a tax on speed. Past a very early point, it is the only source of speed.
+
+None of what follows is a projection — each happened on this fleet, and each is a thing that
+would have been a project, an outage, or simply impossible on a stack built the faster way:
+
+- Powered off two nodes on a whim to measure a change — the applications never went down.
+- Deleted two node objects outright and watched them auto-rejoin and re-label themselves on
+  power-on, because the cluster is a derivative of git, not a collection of hand-configured
+  machines.
+- Watched a database primary fail over **during** a planned drain, with no outage and no
+  manual step, because that behaviour was decided once and never revisited.
+- Wiped the entire cluster and rebuilt it from nothing — a wrong foundational decision is an
+  afternoon here, not a migration project.
+- Reversed a topology decision the same day it was proven wrong, because being wrong stopped
+  being expensive once rebuilding was cheap.
+
+The up-front cost was real, and it is not hidden here: replicating storage on hardware that
+didn't deserve it, giving up packing density for hard failure isolation, writing thirty-odd
+decision records, saying no to shortcuts that would plainly have worked in the short run.
+**That cost is what makes the list above take minutes instead of weekends.** Doing it right
+isn't the slow path. Past the first few weeks, it is the only path that stays fast.
+
+It is also not a universal solvent. The same project that runs replicated storage, drilled
+restores and a signed supply chain still has an open item for a proper secrets manager and an
+open item for a hosted privacy policy — see [the honest gaps](reliability.md) and
+[the honest legal posture](compliance.md). Rigor did not automatically transfer to every
+domain at once. It had to be practised in each one, and it is stated plainly wherever it
+hasn't been yet.
+
+---
+
 ## Read next
 
 - **[How the platform builds and ships things](platform.md)** — the delivery chain, why it
@@ -260,6 +303,12 @@ datacentre, which is rather the point of building it on retired laptops.
   loop is the best chaos experiment on the platform.
 - **[The operations agent](aiops.md)** — a local model with a write path to a production
   cluster, and the single question that decides what it may do without asking.
+- **[AI in development](ai-dev.md)** — the cloud half of the AI story: a reviewed engineering
+  peer with no gate exemption, and an honest account of what its effect has not been measured.
+- **[Testing, quality gates, and grading our own maturity](quality.md)** — what actually
+  blocks a merge, and a self-graded maturity score, weaknesses included.
+- **[Legal, licensing, and the regulatory posture](compliance.md)** — CRA, GDPR, app-store
+  privacy labels, and what an open-source licence actually obligates.
 - **[The embedded side](yocto.md)** — a custom Linux image with signed over-the-air updates,
   the work required to make a vulnerability scanner tell the truth about it, and three traps
   that only real hardware finds.

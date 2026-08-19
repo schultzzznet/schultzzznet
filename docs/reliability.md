@@ -97,6 +97,68 @@ replicated across exactly three hosts, so **planned maintenance currently consum
 storage redundancy** — with no fourth host, a drained node cannot be re-replicated onto
 anything. That is a capacity fact, and it dictates the sequence above.
 
+The reason is a distinction worth naming, because the two halves of the storage layer
+recover completely differently from the same event: the small quorum of **monitors** that
+votes on cluster state rebuilds itself on another host automatically, in minutes, the way
+etcd does. The **data replicas** cannot — placement rules require distinct hosts, and with
+exactly three hosts running any, there is nowhere for a third copy to go until the missing
+host returns or a fourth joins. For that whole window the storage layer keeps serving, but
+with zero fault tolerance left to spend. A second failure in that window is not degraded
+service; it is blocked writes. That is precisely why a maintenance runbook exists for this
+layer and nowhere else on the storage side.
+
+---
+
+## Scheduling by fact, not by hope
+
+Nine machines spanning a decade of hardware generations do not schedule safely under a
+single generic "a node is a node" model, so every node carries labels for measured disk
+speed, measured CPU class, and thermal headroom under sustained load — facts read off the
+hardware, not guesses about it. Workloads are steered toward suitable nodes with a *soft*
+preference, never a hard requirement: the ideal node being full or cordoned should degrade
+placement, not block it.
+
+Two of those labels are different in kind from the rest, and the difference matters: a
+small number of nodes are labelled by **role** — one is a deliberate fault-injection target,
+one is deliberately network-degraded — so that chaos tooling can be pinned to them
+specifically.
+
+**That distinction was learned the expensive way.** A cluster-management controller had
+been scheduled onto the fault-injection node alongside the fault-injection workload it was
+supposed to help guard — so powering that node off for a real test took the controller down
+with the very target it existed to supervise. The fix generalised into a standing rule
+rather than a one-off patch: **hard-pin only deliberate targets, never anything the cluster
+depends on to recover.** Control-plane and platform-operator components now float free by
+construction; only the chaos targets themselves ever pin to a specific machine.
+
+A second, quieter defect was found in the same audit: the labels lived in two places — a
+provisioning playbook and the inventory it was supposed to read from — and they had drifted
+apart on a third of the fleet. The fix was to delete one of the two sources rather than
+reconcile them: labels are now derived from the inventory alone, so adding a node needs no
+separate edit anywhere else. **Two sources of truth is a bug with a delay on it, not a
+redundancy.**
+
+---
+
+## Restore is drilled, not assumed
+
+A backup nobody has restored is a belief, not a control. So restoring one is a standing,
+non-destructive drill: any database can be restored from object storage into a scratch
+namespace, fingerprinted against the live one, and torn down again — on demand, not just at
+the moment it is needed for real.
+
+**Measured, not estimated:** continuous write-ahead log shipping keeps the recovery point
+within five minutes at all times, and a real timed restore came back in **about two
+minutes** — read the same way everything else on this page is read, off a clock, not off a
+plan.
+
+The same discipline scales up to the whole platform, not just one database: the entire
+cluster is reproducible from its own declarative state onto a **different set of physical
+machines**, data included — exercised, not merely claimed, by tearing the live cluster down
+entirely and rebuilding it from nothing on the same hardware. A wrong foundational decision
+caught this way costs an afternoon. Discovering it the other way, in production, costs a
+migration project.
+
 ---
 
 ## The monitoring stack was the single point that mattered most
@@ -254,6 +316,31 @@ kind of thing that only appears once the machinery genuinely runs:
   a check without retry and backoff turns correct behaviour into a false alarm. Drain-heavy
   maintenance requires client-side resilience, not just server-side elegance.
 
+### A worked example, once the fix was actually in place
+
+A later, ordinary kernel patch is the cleanest proof that the loop now does what it claims.
+Overnight, and without anyone scheduling it, the reboot daemon drained and restarted **five
+of the nine nodes — including one of the three that hold cluster quorum** — one at a time,
+automatically. Nobody watched it happen. It surfaced three real things, exactly the way an
+unannounced fault should:
+
+- A database replica failed to recover cleanly from its restart — the second time that
+  specific failure mode had appeared. Correctly caught, and still an open piece of work
+  rather than a closed one; this page does not get to claim a fix it hasn't shipped.
+- A monitor watching for a stuck platform-upgrade went blind for the same reason described
+  above — the same class of defect, recurring, which is its own lesson about how easy this
+  particular mistake is to reintroduce.
+- [The operations agent](aiops.md), armed and watching, saw a container caught in a restart
+  loop during the disruption **and refused to touch it** — because restarting a
+  crash-looping container erases the evidence needed to diagnose why it was crash-looping,
+  and that refusal is written into its rules on purpose. An unattended agent doing *nothing*
+  was the correct, load-bearing behaviour, not a gap.
+
+In the same short window, the separate, deliberately-scheduled fault injector hit its own
+safety rail and **self-paused on a recovery-budget breach**, exactly as designed. Two
+independent safety mechanisms exercised their fail-safes for real, within days of each
+other, without a human arming either one.
+
 ---
 
 ## The gap register, and why closing things you will never do matters
@@ -331,6 +418,9 @@ the other nine fixable.
   running cluster, and the split that makes that safe.
 - **[How the platform builds and ships things](platform.md)** — the delivery chain and the
   deploy contract.
+- **[Testing, quality gates, and grading our own maturity](quality.md)** — where the rollout
+  and rollback claims on this page are exercised, and where autoscaling still only reacts
+  rather than decides.
 
 ---
 
