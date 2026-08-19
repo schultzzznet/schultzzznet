@@ -40,6 +40,11 @@ The unglamorous ones — the exposure and rate-limit contracts — are the two t
 actually caught regressions, because they assert a *property of the running system* rather
 than a property of the source.
 
+None of these gates check who, or what, authored the commit. **A change proposed by
+[the cloud model used as a development peer](index.md) walks through the identical table** —
+same SAST, same secret scan, same signing — and a human reviewer is still accountable for
+what it produced. AI-assisted is not a bypass lane.
+
 ---
 
 ## 2. Build, sign, and the step most people skip

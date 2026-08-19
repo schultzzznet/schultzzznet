@@ -105,6 +105,44 @@ here is the shape of the thing and the reasoning behind it.
 
 ---
 
+## AI, twice
+
+Two separate AI deployments, at two different points in the lifecycle, held to the same bar
+as everything else here: **assert the property, do not trust the report.**
+
+**Development time — a cloud model, in the loop, always reviewed.** Every repository in the
+estate — including the words on this page — is built with a cloud LLM as a first-class
+engineering peer rather than autocomplete: architecture reasoning, code, and documentation.
+It works from a written working agreement and a persistent memory of decisions already made,
+because a session that re-derives context from scratch is a session that re-litigates
+mistakes already paid for. **It gets no exemption:** an AI-assisted change goes through the
+identical pull-request gates as any other — [the same SAST, secret scan, tests and
+signing](devsecops.md) — and a human remains accountable for reviewing what it produced.
+
+**Run time — a separate, local, air-gapped model, with a narrow write path.** The cluster is
+watched continuously by an on-prem operations agent, deliberately not the cloud model, so the
+thing watching production has no dependency on someone else's API being reachable. It holds a
+natural-language conversation over chat — but nothing it says is ever executed directly:
+[**the model proposes; a fixed, allowlisted guardrail layer disposes**](aiops.md). Every
+action is built from a small, closed vocabulary, shown as a dry run, and waits for a human's
+explicit approval before anything runs against the cluster.
+
+Which is the honest answer to the question this section exists to stop anyone rounding up:
+
+- **A bounded, budgeted chaos-recovery loop runs unattended** — and escalates loudly if a
+  fault does not self-heal inside its recovery budget.
+- **Additive remediations run unattended, within configured limits** — scale up, restart a
+  pod that has a survivor, clear a cache.
+- **Anything that removes, reduces capacity, or reschedules always waits for a human's
+  click.** No exceptions, regardless of how confident the model is.
+
+**This is not a self-healing cluster.** It is a cluster where one narrow, budgeted case
+heals itself and proves it, the additive case corrects itself within limits, and everything
+else becomes a proposal a human has to approve. That is a smaller claim than the industry's
+favourite phrase — and the one that is actually true today.
+
+---
+
 ## The habit the whole thing is built on
 
 > **Assert the property. Do not trust the report.**

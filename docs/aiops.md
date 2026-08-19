@@ -6,13 +6,18 @@ title: The operations agent — what a local model is allowed to do
 
 ![model](https://img.shields.io/badge/model-local%2C%20on--prem-black?logo=ollama&logoColor=white)
 ![placement](https://img.shields.io/badge/placement-outside%20the%20cluster%2C%20on%20purpose-326CE5?logo=kubernetes&logoColor=white)
-![split](https://img.shields.io/badge/actions-additive%20auto%20%C2%B7%20disruptive%20gated-2EA44F)
+![skills](https://img.shields.io/badge/skill%20vocabulary-6%20named%2C%20closed-2EA44F)
+![autoapply](https://img.shields.io/badge/unattended%20auto--apply-off%20by%20default-orange)
 ![failclosed](https://img.shields.io/badge/chaos%20safety-fail--closed-critical)
 ![discovery](https://img.shields.io/badge/fault%20schedules-discovered%2C%20never%20listed-24A1C1)
 
 There is a lot of "AI for ops" that is a chat window in front of a dashboard. This one has a
 write path to a production cluster, which makes the interesting question not *what can it
 do* but **what is it allowed to do without asking.**
+
+This is the run-time half of a two-part practice; [the dev-time half](index.md) — a cloud
+model as a reviewed engineering peer, not a party trusted with a cluster — is deliberately a
+different model, running in a different place, for a different reason.
 
 ---
 
@@ -62,26 +67,55 @@ is to turn those into a short list, not a longer dashboard.
 
 ---
 
-## The line that makes a write path safe
+## Two paths in, one guardrail authority
 
-Every proposed remediation lands on one side of a single question: **does this action only
-add state, and is it idempotent?**
+A cluster action reaches execution through exactly one of two entry points, and both are
+forced through the same builder before anything is allowed to run.
 
-| | Runs unattended | Waits for a human |
-|---|---|---|
-| **Principle** | strictly additive, idempotent, reversible by doing nothing | removes, reschedules, or reduces capacity |
-| **Examples** | raise a replica count within configured bounds · restart a pod that has a disruption budget guaranteeing a survivor · apply a corrective configuration value · clear a poisoned cache · post a notification | drain a node · scale below a floor · delete a volume claim · run an arbitrary cluster command |
-| **Failure mode if wrong** | a spurious extra replica, or a restart that was not needed | an outage |
+**A human asks for something in chat.** A deterministic parser handles ordinary phrasing;
+an LLM router only takes over when the parser misses and the text looks like it wants a
+mutation. Neither one ever produces a command. Both can only emit a skill name plus typed
+parameters, chosen from a **closed vocabulary of six**: scale, restart, drain, activate,
+rebalance, backup. **Every chat-triggered action — all six skills, no exceptions — is posted
+as a dry run and waits for an explicit human approval.** There is no unattended path from a
+conversation, however additive the request looks.
 
-Draining a node is instructive: it is frequently *safe* by the quorum arithmetic, and it is
-still on the gated side. Safety is not the criterion — **reversibility** is. Adding a replica
-that was not needed costs some memory. Draining a node that should not have been drained
-costs an incident.
+**A firing alert triggers a lookup — and the model is not in this loop at all.** A small,
+hand-written table maps a short list of specific alerts to one of the same six skills. The
+model is deliberately excluded here: an alert is untrusted input, and routing it through an
+LLM before acting on it would add exactly the prompt-injection surface the rest of this
+design exists to avoid — a lookup is deterministic, testable, and cannot be talked into
+anything. The table holds **four rules today, and sixteen further alert types are explicitly
+declared un-actionable, each with a written reason** — a level-based alert that would loop
+forever if acted on, a symptom whose "fix" would erase the evidence, a physical fault no
+command can touch. Absence is an oversight; a name on that second list is a decision.
 
-A third category exists and is not reachable by approval at all: whole-cluster operations sit
-behind a flag that defaults to off and is documented as *leave it there*. Some capabilities
-should require editing configuration and thinking about it, not clicking a button while
-distracted.
+Only **two of those four** rules are additive (an on-demand backup, which adds an object and
+touches nothing live) — and only those are *eligible* to run unattended, and only once a
+separate switch has been deliberately armed; it defaults off. The other two are restarts,
+which are correct but disruptive — a restart can erase the evidence of what crashed, or cycle
+replicas that were still serving — so they queue through the identical approval card as the
+chat path.
+
+> A silent self-heal is not one. Even the unattended path always announces what it did.
+
+Every guardrail — the skill vocabulary, a rule that no service can be scaled to zero, one
+permanently protected control-plane node, a rate limit between any two executions, and a
+timeout on an unapproved proposal — lives in that single shared builder, so neither entry
+point can route around it by construction. Even a worst case stays bounded: a hostile
+instruction smuggled into a log line the model is summarising can, at most, produce a
+structured request like *scale to zero* — the scale-to-zero guardrail refuses it, and a human
+would still have had to click approve regardless. Three independent stops between suggestion
+and effect.
+
+Draining a node is instructive on its own: it is frequently *safe* by the quorum arithmetic,
+and it is still always on the gated side. Safety is not the criterion — **reversibility** is.
+An unnecessary on-demand backup costs one wasted object. A node drained that should not have
+been costs an incident.
+
+A third category sits outside even this: whole-cluster operations live behind a flag that
+defaults to off and is documented as *leave it there*. Some capabilities should require
+editing configuration and thinking about it, not clicking a button while distracted.
 
 Every gated action shows the exact command, who asked for it, and a dry run of its effect
 before anyone can approve it. Every step is logged and attributed. An approval that does not
@@ -171,8 +205,10 @@ control is degraded regardless of how correct the logic behind it is.
 
 Three layers, deliberately:
 
-- **Unit tests** with no cluster access — prompt regression, command parsing, state
-  transitions.
+- **Unit tests** — over 300, offline, no cluster and no model reachable — prompt-router
+  regression, command parsing, and every guardrail asserted directly: the never-scale-to-zero
+  rule, the protected node, the rate limit, and both recognisers landing on the same action
+  for the same request.
 - **Integration tests that run against the real cluster** from the agent's actual host, over
   its real access path. A mock cannot tell you that the credential, the route and the
   permissions are all correct simultaneously.
