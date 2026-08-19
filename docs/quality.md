@@ -150,12 +150,33 @@ one gives depth, the other gives a comparable number:
 
 - **A narrative ladder**, five levels from ad hoc to elite, scored per domain with the
   evidence written out in prose.
-- **A weighted capability radar**, fifteen vectors anchored to a standard process-maturity
-  model, scored 0–5 and rendered as a chart against a stated target.
+- **A weighted capability radar** — a small, purpose-built tool, not a third-party product —
+  scored 0–5 against a stated target and rendered as a chart.
 
-**On the radar's own dated snapshot, the platform's weighted index sits at 3.47 of 5, against
-a target of 4.47 — 78% of the way there.** The point of publishing that number is the shape
-around it, not the average:
+### The radar is a tool, not a one-off spreadsheet
+
+The instrument that draws it is worth describing on its own, because it's the more
+interesting artifact of the two. It's a few hundred lines of **dependency-free Python** —
+nothing to install, it runs anywhere `python3` runs — that reads one assessment file (plain
+JSON: a list of weighted capability *vectors*, each with a current score, a target, and the
+evidence behind both) and renders it as an SVG radar, a Markdown scorecard, and — given two
+dated assessments — a diff showing what moved and what didn't.
+
+It borrows deliberately from the tools this space already has, rather than pretending to
+invent scoring-on-a-radar from nothing: labelled sector arcs from the tech-radar format
+popularised by Thoughtworks and Zalando, per-vector level anchors from CMMI, weighting and
+evidence from the cloud providers' Well-Architected reviews. What makes it worth keeping
+rather than reaching for a slide deck: **the output is generated from one file in git**, so a
+scorecard six months old and one from today are diffable text, not two screenshots someone
+has to eyeball.
+
+**The live output, not a mock-up:**
+
+![Capability and maturity radar — the-docker-swarm-ai, weighted index 3.47 of 5](assets/maturity-radar.svg)
+
+**On this dated snapshot, the platform's weighted index sits at 3.47 of 5, against a target of
+4.47 — 78% of the way there.** The point of publishing that number is the shape around it, not
+the average:
 
 | Strongest | Score | Weakest | Score |
 |---|---|---|---|
@@ -170,11 +191,21 @@ deliberately not trusted further than that yet. A self-assessment that didn't pu
 weakest-scored capability exactly where the rest of the site already says it belongs would be
 the one worth doubting.
 
-**The same instrument scores the wider portfolio, not just this repository**, and the
-platform is — honestly — the strongest-scoring member of its own family today. That is stated
+**The same tool scores the wider portfolio, not just this repository** — the same JSON
+schema pointed at a different subject, rolled up into one comparison:
+
+![Portfolio maturity across four assessed subjects, average 2.72 of 5](assets/maturity-portfolio.svg)
+
+The platform is — honestly — the strongest-scoring member of its own family today. That is stated
 plainly rather than left implied: the scoring is deliberately conservative, crediting only
 what is deployed and verified, never what is merely designed. Nothing on the whole radar sits
 at a perfect score, on purpose.
+
+The tool itself doesn't know or care what it's grading — the same schema has scored a
+nine-node Kubernetes platform, the application layer running on it, an embedded Linux image
+built from source, and an unrelated robotics safety system, each with its own vectors and its
+own weights. **A capability-maturity tool that only works on the thing it was written for
+isn't a tool, it's a spreadsheet with extra steps.**
 
 ---
 

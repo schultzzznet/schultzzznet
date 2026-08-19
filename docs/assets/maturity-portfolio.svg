@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 354" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect width="960" height="354" fill="white"/>
+<text x="30" y="42" font-size="24" font-weight="700" fill="#111827">Portfolio Maturity — 4 subjects</text>
+<text x="30" y="66" font-size="13" fill="#6b7280">weighted maturity index per subject · average <tspan font-weight="700" fill="#2563eb">2.72</tspan>/5 · bars RAG-coloured by band · dashed line = target</text>
+<line x1="300.0" y1="94" x2="300.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="300.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">0</text>
+<line x1="400.0" y1="94" x2="400.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="400.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">1</text>
+<line x1="500.0" y1="94" x2="500.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="500.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">2</text>
+<line x1="600.0" y1="94" x2="600.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="600.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">3</text>
+<line x1="700.0" y1="94" x2="700.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="700.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">4</text>
+<line x1="800.0" y1="94" x2="800.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
+<text x="800.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">5</text>
+<text x="30" y="127.0" font-size="15" font-weight="700" fill="#1f2937">the-docker-swarm-ai</text>
+<text x="30" y="143.0" font-size="10" fill="#9ca3af">15 vectors · top: AI-Ops &amp; Autonomy</text>
+<rect x="300" y="117.0" width="500" height="22" rx="4" fill="#eef2f7"/>
+<rect x="300" y="117.0" width="346.7" height="22" rx="4" fill="#84cc16"/>
+<line x1="746.7" y1="113.0" x2="746.7" y2="143.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="814" y="132.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#84cc16">3.47</tspan>/5 · 78%</text>
+<text x="30" y="183.0" font-size="15" font-weight="700" fill="#1f2937">apps · loc8 · warn · talk</text>
+<text x="30" y="199.0" font-size="10" fill="#9ca3af">16 vectors · top: Feedback &amp; Telemetry</text>
+<rect x="300" y="173.0" width="500" height="22" rx="4" fill="#eef2f7"/>
+<rect x="300" y="173.0" width="288.2" height="22" rx="4" fill="#84cc16"/>
+<line x1="717.6" y1="169.0" x2="717.6" y2="199.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="814" y="188.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#84cc16">2.88</tspan>/5 · 69%</text>
+<text x="30" y="239.0" font-size="15" font-weight="700" fill="#1f2937">theSchultzYocto (DRAFT)</text>
+<text x="30" y="255.0" font-size="10" fill="#9ca3af">10 vectors · top: Signing &amp; Boot</text>
+<rect x="300" y="229.0" width="500" height="22" rx="4" fill="#eef2f7"/>
+<rect x="300" y="229.0" width="256.2" height="22" rx="4" fill="#84cc16"/>
+<line x1="739.6" y1="225.0" x2="739.6" y2="255.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="814" y="244.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#84cc16">2.56</tspan>/5 · 58%</text>
+<text x="30" y="295.0" font-size="15" font-weight="700" fill="#1f2937">theMowerRetrofit (DRAFT)</text>
+<text x="30" y="311.0" font-size="10" fill="#9ca3af">10 vectors · top: Safety &amp; E-stop</text>
+<rect x="300" y="285.0" width="500" height="22" rx="4" fill="#eef2f7"/>
+<rect x="300" y="285.0" width="195.7" height="22" rx="4" fill="#f59e0b"/>
+<line x1="719.6" y1="281.0" x2="719.6" y2="311.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="814" y="300.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#f59e0b">1.96</tspan>/5 · 47%</text>
+</svg>

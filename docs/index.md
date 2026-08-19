@@ -325,7 +325,8 @@ That loop has no last iteration, and this site does not claim one.
 - **[AI in development](ai-dev.md)** — the cloud half of the AI story: a reviewed engineering
   peer with no gate exemption, and an honest account of what its effect has not been measured.
 - **[Testing, quality gates, and grading our own maturity](quality.md)** — what actually
-  blocks a merge, and a self-graded maturity score, weaknesses included.
+  blocks a merge, and a self-graded maturity score from a small purpose-built radar tool,
+  weaknesses included.
 - **[Legal, licensing, and the regulatory posture](compliance.md)** — CRA, GDPR, app-store
   privacy labels, and what an open-source licence actually obligates.
 - **[The embedded side](yocto.md)** — a custom Linux image with signed over-the-air updates,
