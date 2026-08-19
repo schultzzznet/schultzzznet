@@ -4,6 +4,24 @@ title: The estate
 
 # One system, three repositories
 
+[![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=alerting&logo=prometheus&logoColor=white)](https://healthchecks.io)
+[![Public endpoint](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
+
+*Those two are live.* The first is a dead-man's-switch: the cluster's alert pipeline proves
+itself end to end on a schedule, and the badge goes red if the heartbeat stops. The second is
+an off-site probe of the public entrance, run from outside the house entirely — so it still
+reports when the power or the internet is what failed.
+
+**Measured on the live system, 2026-08-19:**
+
+![nodes](https://img.shields.io/badge/bare--metal%20nodes-9-326CE5?logo=kubernetes&logoColor=white)
+![control plane](https://img.shields.io/badge/control%20plane-3%20%C3%97%20etcd-419EDA?logo=etcd&logoColor=white)
+![storage](https://img.shields.io/badge/block%20storage-replica--3-EF5423?logo=ceph&logoColor=white)
+![postgres](https://img.shields.io/badge/Postgres%20clusters-7%20%C2%B7%20quorum%20sync-4169E1?logo=postgresql&logoColor=white)
+![sbom](https://img.shields.io/badge/images%20with%20an%20SBOM-62%20of%2062-blueviolet)
+![signed](https://img.shields.io/badge/images-signed%20%2B%20verified-2E2E5F?logo=sigstore&logoColor=white)
+![assertions](https://img.shields.io/badge/reality%20assertions-35%20passing-2EA44F)
+
 This is a home-built platform that is run like a production one: nine bare-metal
 Kubernetes nodes assembled from retired laptops and small-form-factor desktops, the
 services that run on them, the embedded devices that talk to them, and the delivery
@@ -81,6 +99,80 @@ rather than reading:
 None of these errored. Each looked fine until something checked directly. So: run the
 thing, read the value back off the live object, and make a test fail before trusting that
 it passes. A green status line is a claim, not evidence.
+
+---
+
+## The stack
+
+Everything is standard, widely-deployed, open-source tooling. No proprietary lock-in and no
+vendor-specific magic — every choice maps cleanly onto what you would reach for in a cloud
+datacentre, which is rather the point of building it on retired laptops.
+
+**Platform & runtime**
+
+![k3s](https://img.shields.io/badge/runs%20on-k3s-FFC61C?logo=k3s&logoColor=black)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-native-326CE5?logo=kubernetes&logoColor=white)
+![containerd](https://img.shields.io/badge/containerd-runtime-575757?logo=containerd&logoColor=white)
+![etcd](https://img.shields.io/badge/etcd-HA%20store-419EDA?logo=etcd&logoColor=white)
+![CoreDNS](https://img.shields.io/badge/CoreDNS-service%20discovery-1D63C3?logo=coredns&logoColor=white)
+![Traefik](https://img.shields.io/badge/Traefik-ingress-24A1C1?logo=traefikproxy&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-charts-0F1689?logo=helm&logoColor=white)
+![Ansible](https://img.shields.io/badge/Ansible-all%20provisioning-EE0000?logo=ansible&logoColor=white)
+![Tailscale](https://img.shields.io/badge/Tailscale-public%20edge-242424?logo=tailscale&logoColor=white)
+
+**Data & identity**
+
+![Rook-Ceph](https://img.shields.io/badge/Rook--Ceph-replica--3%20RBD-EF5423?logo=ceph&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-HA-4169E1?logo=postgresql&logoColor=white)
+![CloudNativePG](https://img.shields.io/badge/CloudNativePG-operator-1A5276?logo=postgresql&logoColor=white)
+![MinIO](https://img.shields.io/badge/MinIO-object%20store-C72E49?logo=minio&logoColor=white)
+![Keycloak](https://img.shields.io/badge/Keycloak-OIDC-4D4D4D?logo=keycloak&logoColor=white)
+
+**Supply chain & security**
+
+![cosign](https://img.shields.io/badge/Sigstore-cosign%20%2B%20SLSA-2E2E5F?logo=sigstore&logoColor=white)
+![CycloneDX](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)
+![Syft](https://img.shields.io/badge/SBOM%20gen-Syft-5C4EE5)
+![Trivy](https://img.shields.io/badge/CVE%20scan-Trivy-1904DA?logo=aquasecurity&logoColor=white)
+![Dependency-Track](https://img.shields.io/badge/Dependency--Track-SBOM%20%2B%20VEX-005571)
+![DefectDojo](https://img.shields.io/badge/DefectDojo-finding%20mgmt-DC143C)
+![CodeQL](https://img.shields.io/badge/CodeQL-SAST-2088FF?logo=github&logoColor=white)
+![gitleaks](https://img.shields.io/badge/gitleaks-secret%20scan-1E90FF)
+![ZAP](https://img.shields.io/badge/OWASP%20ZAP-DAST-00549E?logo=owasp&logoColor=white)
+![Renovate](https://img.shields.io/badge/Renovate-enabled-brightgreen?logo=renovatebot&logoColor=white)
+![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)
+![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)
+![SonarQube](https://img.shields.io/badge/SonarQube-quality%20gate-4E9BCD?logo=sonarqube&logoColor=white)
+
+**Observability & resilience**
+
+![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800?logo=grafana&logoColor=white)
+![Loki](https://img.shields.io/badge/Loki-logs-F9A03C?logo=grafana&logoColor=white)
+![Alertmanager](https://img.shields.io/badge/Alertmanager-routing-E6522C?logo=prometheus&logoColor=white)
+![Chaos Mesh](https://img.shields.io/badge/Chaos%20Mesh-scheduled%20faults-FF6600)
+![kured](https://img.shields.io/badge/auto--patching-kured%20%2B%20SUC%2C%20no%20window-326CE5?logo=kubernetes&logoColor=white)
+![Portainer](https://img.shields.io/badge/Portainer-CE-13BEF9?logo=portainer&logoColor=white)
+
+**Applications & clients**
+
+![Java](https://img.shields.io/badge/Java-17%20LTS-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?logo=openapiinitiative&logoColor=white)
+![Schemathesis](https://img.shields.io/badge/Schemathesis-contract%20tested-8A2BE2)
+![k6](https://img.shields.io/badge/k6-load%20%2B%20soak-7D64FF?logo=k6&logoColor=white)
+
+**Embedded**
+
+![Yocto](https://img.shields.io/badge/Yocto-custom%20layer-0A64A4?logo=yoctoproject&logoColor=white)
+![RAUC](https://img.shields.io/badge/RAUC-signed%20A%2FB%20OTA-4B8BBE)
+![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-target%20hardware-A22846?logo=raspberrypi&logoColor=white)
+
+> The stack badges above are statements of fact about what is deployed, not build status.
+> **Workflow badges are deliberately absent**: the three project repositories are private, so
+> their status badges return 404 to anyone but me — a broken image is worse than no image, and
+> a badge nobody else can verify is decoration rather than evidence.
 
 ---
 

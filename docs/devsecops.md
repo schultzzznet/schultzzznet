@@ -4,6 +4,15 @@ title: DevSecOps — the whole chain, and what it actually proves
 
 # DevSecOps, end to end
 
+![sbom coverage](https://img.shields.io/badge/SBOM%20coverage-62%20of%2062%20running%20images-blueviolet)
+![signed](https://img.shields.io/badge/every%20image-signed%2C%20then%20VERIFIED-2E2E5F?logo=sigstore&logoColor=white)
+![provenance](https://img.shields.io/badge/attestations-provenance%20%2B%20SBOM-5C4EE5)
+![exposure](https://img.shields.io/badge/exposure%20tiers-4%20public%20%C2%B7%2019%20LAN%20%C2%B7%2039%20internal-326CE5)
+![privileged](https://img.shields.io/badge/privileged%20workloads-8%2C%20all%20tagged-orange)
+![noise](https://img.shields.io/badge/SBOM%20noise%20removed-96%25-2EA44F)
+![gates](https://img.shields.io/badge/PR%20gates-8-24A1C1?logo=github&logoColor=white)
+![edge](https://img.shields.io/badge/public%20edge-default--deny-critical)
+
 Security controls are easy to install and hard to keep honest. This page walks the whole
 chain — commit to running pod to continuously re-evaluated inventory — and, at each stage,
 says what the control *actually proves* rather than what it is marketed to prove.

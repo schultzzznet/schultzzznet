@@ -4,6 +4,14 @@ title: Embedded — a custom Linux image with a real supply chain
 
 # The embedded side: Yocto, OTA, and making a scanner tell the truth
 
+![Yocto](https://img.shields.io/badge/Yocto-custom%20layer-0A64A4?logo=yoctoproject&logoColor=white)
+![RAUC](https://img.shields.io/badge/RAUC-signed%20A%2FB%20update-4B8BBE)
+![rollback](https://img.shields.io/badge/live%20rollback-demonstrated%20on%20hardware-2EA44F)
+![sbom](https://img.shields.io/badge/SBOM-CycloneDX%201.6-blueviolet)
+![findings](https://img.shields.io/badge/CVE%20findings-0%20%E2%86%92%20100%20after%20CPEs-critical)
+![vex](https://img.shields.io/badge/VEX-traceable%20to%20a%20recipe-005571)
+![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-3%20B%2B-A22846?logo=raspberrypi&logoColor=white)
+
 A custom Yocto layer that boots on a Raspberry Pi 3 B+, takes **signed A/B updates over the
 air** with a proven live rollback, and — the part worth the walkthrough — feeds a bill of
 materials into the same vulnerability tracking the cluster services use.
