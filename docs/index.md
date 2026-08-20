@@ -45,6 +45,14 @@ Kubernetes nodes assembled from retired laptops and small-form-factor desktops, 
 services that run on them, the embedded devices that talk to them, and the delivery
 chain that ties the lot together.
 
+**Why build it this way instead of stopping at a tutorial:** a system nobody has to
+operate for real teaches a smaller, different skill than one that is actually running —
+with real if modest usage, real incidents, and a real pager. Every page on this site is the
+record of something that was *operated*, not something that was read about. The hard-won
+scars — a nine-day silent outage, a drain that removed its own control surface, a reboot
+daemon that quietly never rebooted anything — only exist because the thing they happened to
+was live.
+
 Three repositories, bound by hard dependencies rather than theme.
 
 | Repository | What it is | Bound to the platform by |
@@ -105,6 +113,14 @@ first time.
   remediations — permitted to apply only the *additive* ones on its own.
 - **35 automated assertions** that documentation, inventory and reality still agree, run on
   demand and failing loudly when they diverge.
+
+> **Why these particular apps:** location sharing, hazard warnings and messaging were picked
+> because together they force a complete **vertical slice** through every layer, more than
+> once — a mobile client, OAuth2/OIDC identity, a REST API backed by a geospatial extension,
+> replicated storage, ingress, and the full observability chain, end to end. **The apps are
+> the load the platform proves itself against. The platform is the actual point.** None of
+> the three is trying to be a product; each one exists to make sure every layer underneath it
+> has something real to carry.
 
 And, because the number that is never on a landing page is the one worth trusting:
 **four of thirteen failure domains are genuinely single-fault tolerant.** The other nine are
