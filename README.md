@@ -65,6 +65,8 @@ This is the SVPG manifest in practice: technology is the enabler, never the poin
 a solo engineer building, and a local AI helping run and increasingly heal, systems that weren't
 buildable by one person a few years ago — is the edge I stand on deliberately.
 
+More info here https://schultzzznet.github.io/schultzzznet/ 
+
 ---
 
 ## Two Playgrounds, One Discipline
