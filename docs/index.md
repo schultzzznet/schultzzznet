@@ -391,6 +391,39 @@ decision records, saying no to shortcuts that would plainly have worked in the s
 **That cost is what makes the list above take minutes instead of weekends.** Doing it right
 isn't the slow path. Past the first few weeks, it is the only path that stays fast.
 
+### The counterfactual: same hardware, done the fast way
+
+Every shortcut available here had a specific, foreseeable ending. This is not a hypothetical
+list — each one was genuinely on the table, and the reason for refusing it was written down at
+the time rather than reconstructed afterwards:
+
+| The shortcut | Where it ends |
+|---|---|
+| Single-node volumes, because it's only a homelab | Every reboot risks data. You can't drain, so you can't patch. A dead disk is a dead application. |
+| One database per app, no operator | Every upgrade is a maintenance window; failover is a human at 3am. |
+| Backups configured but never restored | You find out they don't work on the day you need them. |
+| No decision records | The same arguments recur forever, and you cannot tell a wrong decision from an unlucky one. |
+| No contracts, no drills | The public edge silently widens; "it rebuilds from git" stays a belief. |
+| Hand-configured nodes | Adding one is a day's work; the fleet diverges until nothing is reproducible. |
+
+**The compounding cost isn't the outages.** It is that all the time goes to firefighting. A
+stack in that state can't take a risk, can't try the new thing, can't be handed over, and
+can't be sold. Invention dies first, then the business case, then trust — and the last thing
+to go is your own respect for the thing you built.
+
+### The things assumed expensive that weren't
+
+Worth stating, because they are the reason "do it properly" was affordable at all:
+
+- **High availability cost nothing in hardware.** Loopback-file storage daemons delivered real
+  replication on a single-disk fleet; actual disks swap in later with no topology change.
+- **An elite supply chain was mostly wiring, not invention.** Every component is open source.
+  The work was connecting them once, correctly.
+- **A lightweight distribution gave the same API** and every transferable skill, for a
+  fraction of the operational surface.
+- **Writing it down was faster than re-deciding it.** The decision records cost hours;
+  re-litigating storage or the orchestrator would have cost weeks, repeatedly.
+
 It is also not a universal solvent. The same project that runs replicated storage, drilled
 restores and a signed supply chain still has an open item for a proper secrets manager and an
 open item for a hosted privacy policy — see [the honest gaps](reliability.md) and

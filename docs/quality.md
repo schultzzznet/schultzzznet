@@ -154,6 +154,45 @@ one gives depth, the other gives a comparable number:
 - **A weighted capability radar** — a small, purpose-built tool, not a third-party product —
   scored 0–5 against a stated target and rendered as a chart.
 
+### The scoreboard, in full
+
+Here is the narrative ladder's output — every domain, including the four that sit on the
+floor. `L3` is the bar a paid public product must clear; `L4` is elite and only worth reaching
+where the domain is core to the product's identity or risk. **The target column is
+deliberately not `L4` everywhere** — a stack can be elite at security and absent at analytics,
+and averaging that into a single headline number would hide precisely the thing the grade
+exists to surface.
+
+| # | Domain | Current | Target | Trend |
+|---|---|:---:|:---:|:---:|
+| 1 | Engineering foundations | **L2–L3** | L3 | → |
+| 2 | CI/CD & delivery | **L3** | L4 | → |
+| 3 | Reliability & SRE | **L3** | L4 | ↑↑ |
+| 4 | Observability & telemetry | **L2–L3** | L3 | ↑ |
+| 5 | **Security & supply chain** | **L4** | L4 | ✓ |
+| 6 | Data & privacy engineering | **L1** | L3 | ↑ |
+| 7 | Legal & regulatory | **L1** | L3 | ↑ |
+| 8 | Mobile & app-store ops | **L2** | L3 | ↑ |
+| 9 | **Product analytics & feedback** | **L0** | L3 | → |
+| 10 | **UX quality** (accessibility, i18n, performance) | **L0–L1** | L3 | → |
+| 11 | Governance & org-scale | **L2** | L2 | ✓ |
+| 12 | Business continuity / FinOps / vendor risk | **L1–L2** | L2 | ↑ |
+
+Read honestly, that table says: **the infrastructure and operations half crossed the baseline;
+the product-facing half has not.** Security is genuinely elite and deepening. Reliability
+moved a full level in one quarter as backups, restore drills and host patching landed.
+
+And then: **analytics is at zero.** Not "early" — zero. Nothing measures whether anyone uses
+these applications or what they do in them. UX quality is barely off the floor: no
+accessibility audit, no internationalisation, no performance budget. Legal sits at `L1`
+against a target of `L3` and is the reason a lawful public launch is blocked.
+
+Those four rows are the most useful thing on this page. A maturity model that grades you
+green everywhere is measuring the wrong things, or is being read by its author.
+
+> The grade is dated, re-scored quarterly, and old snapshots are never edited — a new file is
+> added instead. A score you can revise silently is not a measurement.
+
 ### The radar is a tool, not a one-off spreadsheet
 
 The instrument that draws it is worth describing on its own, because it's the more
