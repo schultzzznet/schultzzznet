@@ -14,6 +14,7 @@ title: DevSecOps — the whole chain, and what it actually proves
 ![hosts](https://img.shields.io/badge/host%20findings%20found%20unrebooted-16%2C002-critical)
 ![gates](https://img.shields.io/badge/PR%20gates-8-24A1C1?logo=github&logoColor=white)
 ![edge](https://img.shields.io/badge/public%20edge-default--deny-critical)
+![tracked](https://img.shields.io/badge/findings%20tracked%20as%20work-166-2E2E5F)
 
 Security controls are easy to install and hard to keep honest. This page walks the whole
 chain — commit to running pod to continuously re-evaluated inventory — and, at each stage,
@@ -286,7 +287,40 @@ forced.
 
 ---
 
-## 8. Chaos, and a safety controller that has teeth
+## 8. From finding to tracked work, without a human retyping either side
+
+Every prior section answers *is something wrong*. None of them answer the next question:
+does anything happen about it, or does it sit in a dashboard nobody opens?
+
+A scheduled agent — the same one described on [its own page](aiops.md) — polls both
+vulnerability trackers every 30 minutes and keeps a matching set of tickets open in the work
+tracker: a new Critical or High finding opens one, a finding that disappears (a dependency
+bump merged, an image rebuilt, the next scan confirms it is gone) closes it automatically.
+No one retypes a CVE ID into a ticket, and no one remembers to close one either.
+
+**The interesting decision was how the two systems talk, not that they do.** The
+straightforward design has the tracker push a webhook when a ticket closes — and the house
+is behind carrier-grade NAT with no inbound path from the internet, the same constraint that
+shapes [the delivery chain](platform.md). A push-based design would have been a dead end
+before it started. Polling *outward* from inside the house needs nothing open to the
+internet in either direction, which turned the constraint that blocks the obvious design into
+the reason the actual one is simpler.
+
+Scope was chosen deliberately, not exhaustively. The embedded image's firmware findings and
+the first-party applications' dependency findings are tracked — **166 open tickets** across
+both. The far larger pool of third-party platform-image findings is not: an automated
+dependency bumper is already the fixer there, and a human triaging a four-figure ticket count
+for CVEs they cannot act on faster than that bumper would be manufactured work, not caught
+work.
+
+> The first live run mis-set a filter and tracked *every* severity instead of two. Ninety-eight
+> low-and-medium tickets existed for about an hour before the fix landed and they were closed in
+> bulk. Caught by reading the actual count against the expected one, not by the run reporting
+> success — which it did, the whole time.
+
+---
+
+## 9. Chaos, and a safety controller that has teeth
 
 Faults are injected on a schedule, against a real target chosen for being *genuinely*
 unreliable rather than synthetically degraded. A safety controller halts injection when the
@@ -300,7 +334,7 @@ distinguishes them is *when did this last run*, and it was on no dashboard.
 
 ---
 
-## 9. What this does not do
+## 10. What this does not do
 
 Stated plainly, because a control you misunderstand is worse than one you lack:
 
@@ -322,6 +356,10 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
 - **Satellite repositories bypass the release policy gate**, by design of the small
   contract. Their own CI is the only thing between a commit and a rollout — and
   [the contract does not require them to have one](platform.md).
+- **Closing a tracked finding does not verify a fix.** It records that a human decided to
+  stop tracking it — a real remediation, or a judgement call. The tracker takes that
+  decision on trust; nothing re-scans to confirm the underlying issue is actually gone
+  before honouring it.
 
 ---
 
