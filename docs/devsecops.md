@@ -166,6 +166,32 @@ traversal reached the monitoring stack — verified as a real bypass, returning 
 fix is a URL-decoding traversal rejection ordered *before* the allowlist, which covers the
 encoded variants too. Order matters; a correct rule in the wrong position is not a control.
 
+```haproxy
+# The order of these two blocks IS the control. Reversed, the second one is decoration.
+
+# 1. Reject traversal FIRST. HAProxy matches the RAW path; the router downstream
+#    resolves `../` afterwards — so `/app/../prometheus` matches `path_beg /app`
+#    here and still reaches Prometheus. url_dec makes one rule cover `../`,
+#    `%2e%2e` and the `..%2f` encoded-slash trick.
+http-request deny deny_status 400 if { path,url_dec -m sub .. }
+
+# 2. Internal surfaces that sit UNDER an allowed prefix. url_dec again, so
+#    %-encoding cannot dodge the match. Still reachable LAN-direct.
+http-request deny deny_status 404 if { path,url_dec -m sub /actuator }
+http-request deny deny_status 404 if { path,url_dec -m sub /swagger-ui }
+http-request deny deny_status 404 if { path,url_dec -m sub /v3/api-docs }
+
+# 3. Only now, the default-deny allowlist.
+acl public_paths path_beg -i /keycloak /app-one /app-two /app-three
+http-request deny deny_status 404 if !public_paths
+```
+
+`/actuator` is worth singling out. `/actuator/health` is mild and `/actuator/info` is
+harmless, but `/actuator/prometheus` returns 622 lines whose `uri=` labels enumerate the
+entire API surface — every path parameter, every route — which is at least as disclosive as
+leaving the API schema endpoint open. The blanket deny is right and health/info are
+collateral.
+
 **Two places now state what is public, so they are checked against each other.** The edge
 configuration *enforces* the allowlist; the scanner's classifier *labels* by it. A verifier
 fails the build if they disagree — otherwise projects would be tagged with an exposure they
@@ -267,6 +293,42 @@ So the exporter splits them:
 
 Without that split, a real 300-to-0 improvement showed as "600 findings, unchanged."
 
+The split keys off `uname -r` **inside the scanning container** — containers share the host
+kernel, so this needs no extra mount and no extra privilege. And the regex is the whole
+trick, because the obvious version of it is wrong:
+
+```jq
+# WRONG — and it looks right:
+#   ^linux-[a-z-]*[0-9]+\.[0-9]+\.[0-9]+-[0-9]+
+#
+# Hardware-enablement kernels are named linux-hwe-6.14-headers-6.14.0-35.
+# `[a-z-]*` eats "hwe-", the pattern then demands a full version and hits
+# "6.14-headers" instead, and cannot backtrack past it. Those packages fall
+# through as NON-kernel and get filed against the booted kernel — so a
+# SUPERSEDED kernel's CVEs are reported as live exposure.
+
+def is_versioned_kernel:
+  .PkgName | test("^linux-.*[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+");
+
+def keep($booted): select((is_versioned_kernel | not) or (.PkgName | contains($booted)));
+def drop($booted): select(is_versioned_kernel and ((.PkgName | contains($booted)) | not));
+```
+
+That broken version shipped. It was caught because the deploy log printed `booted: 578`
+while every prior measurement said running exposure was zero — **the contradiction was the
+tell, not a test.** And because a split that silently loses findings would look exactly like
+progress, the job now refuses to file unless the two halves sum to the original:
+
+```sh
+if [ "$(( booted + fallback ))" -ne "$total" ]; then
+  echo "REFUSING: split does not sum — not filing a partial report" >&2
+  exit 1
+fi
+```
+
+> The full script, with a `--self-test` that demonstrates the regex bug rather than asserting
+> it, is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/trivy-kernel-ab-split.sh).
+
 ### And then: patched is not running
 
 The automation had two halves. The patching half worked. The rebooting half read the wrong
@@ -278,6 +340,48 @@ The result was a fleet where every fix was applied to disk and none of it was ru
 **16,002 host findings, every single one with a fix already available**, and four different
 kernel series live simultaneously across nine machines. No error, no alert, no dashboard
 anomaly — the patching automation was recorded as shipped.
+
+It is one line:
+
+```yaml
+# The distro writes /var/run/reboot-required on the HOST. The daemon runs in a
+# container, where the host's /var/run is mounted at /sentinel. Give it the HOST
+# path and it resolves INSIDE the container — an empty directory that will never
+# contain the file. The daemon then does exactly what it is told: checks, finds
+# nothing, logs "Reboot not required", hourly, on every node, for weeks.
+- --reboot-sentinel=/sentinel/reboot-required
+```
+
+The gate that stops it rebooting *into* an incident is worth showing too, because it was
+originally the wrong shape:
+
+```yaml
+# Was an IGNORE-list: "reboot unless one of these alerts is firing" — unbounded in
+# the dangerous direction, since every alert added later is implicit permission to
+# reboot. Inverted to a BLOCK-list: reboot only when none of these are firing, so a
+# new alert defaults to blocking rather than allowing.
+- --alert-firing-only
+- --alert-filter-match-only
+- --alert-filter-regexp=^(KubeAPIDown|KubeNodeNotReady|KubeNodeUnreachable|KubeletDown|CephHealthError)$
+
+# The arithmetic between these three is load-bearing: lock-ttl must exceed
+# drain-timeout + reboot time + lock-release-delay, or the lock expires mid-cycle
+# and a SECOND node starts draining while the first is still down.
+- --drain-timeout=15m
+- --lock-ttl=60m
+- --lock-release-delay=15m
+```
+
+And the check that would have caught the original bug in about ten seconds, had anyone
+thought to distrust the log line:
+
+```sh
+kubectl -n kube-system logs -l name=kured --tail=20   # the claim
+ssh <node> ls -l /var/run/reboot-required             # the fact
+ssh <node> 'uname -r; ls /boot/vmlinuz-*'             # running vs installed
+```
+
+> The full annotated config is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/kured-args.yaml).
 
 > A vulnerability is closed when the fixed code is **executing**, not when the package is
 > installed. Those are different measurements and only one of them is the control.

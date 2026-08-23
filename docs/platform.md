@@ -69,6 +69,51 @@ The application brings exactly two things:
 A signed image plus a conformant manifest is the entire handoff. Everything else is
 convention.
 
+In full, the caller's side of it:
+
+```yaml
+# .github/workflows/deploy.yml in the satellite repository — this is all of it
+jobs:
+  deploy:
+    uses: <platform-org>/<platform-repo>/.github/workflows/deploy-app.yml@master
+    with:
+      app_name: my-app
+      manifest: k8s/my-app.yml
+    secrets: inherit
+```
+
+And the part of the manifest the platform actually requires — a placeholder the deploy
+substitutes, plus the four things that make a rollout safe rather than merely successful:
+
+```yaml
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: my-app
+          # Substituted at deploy time with the immutable git-SHA tag.
+          # A floating tag would let a rollout pull a cached older layer and
+          # report success, which is precisely when you need it not to.
+          image: ${REGISTRY}/my-app:${IMAGE_TAG}
+          resources:                        # required — without limits one app can starve a node
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: "1",  memory: 512Mi }
+          readinessProbe:                   # required — otherwise "rolled out" means "container started"
+            httpGet: { path: /actuator/health, port: 8080 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget                   # required — or a node drain takes the whole app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: my-app }
+```
+
+**What the contract pointedly does *not* require** is the interesting half: no language, no
+framework, no test suite, no minimum coverage, no policy gate, no approval. Those silences
+are deliberate — and they are permissions, which is the subject of the next section.
+
 ---
 
 ## The satellite: proving the contract from outside

@@ -5,11 +5,16 @@
 # written from scratch rather than copied out of the private repo, precisely so
 # there is nothing to scrub — this script asserts that stays true.
 #
-# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ README.md)
+# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ examples/ README.md)
 set -euo pipefail
 
 TARGETS=("$@")
-[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs README.md)
+# examples/ was added 2026-08-23 and had to be enrolled here explicitly. That is
+# the same shape as a defect this project has hit twice elsewhere: adding a group
+# for one purpose does NOT enrol it in the others, and the gap is silent because
+# the check still passes — just over less than you think. When adding a directory
+# of publishable content, grep for every place the old list is named.
+[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs examples README.md)
 
 fail=0
 report() { # <label> <regex> <why>

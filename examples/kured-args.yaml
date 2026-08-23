@@ -1,0 +1,115 @@
+# kured, configured so that it (a) actually reboots and (b) refuses to reboot
+# into an incident. Every argument below is here because of something that
+# happened, and the arithmetic between them matters.
+#
+# ---------------------------------------------------------------------------
+# THE BUG THIS FILE IS MOSTLY ABOUT
+#
+# kured ran 9/9 healthy for weeks and rebooted nothing.
+#
+# The sentinel path is the file the daemon looks for to decide "this machine
+# needs a reboot". The distro writes /var/run/reboot-required on the HOST.
+# kured runs in a container, where the host's /var/run is mounted somewhere else
+# (/sentinel here). Point --reboot-sentinel at the host path and it resolves
+# INSIDE the container — an empty directory that will never contain the file.
+#
+# The daemon then does exactly what it is supposed to: it checks, finds nothing,
+# and logs "Reboot not required". Hourly. On every node. For weeks. There is no
+# error, no alert, no dashboard anomaly, and the automation is recorded as
+# shipped and green.
+#
+# The damage was measurable: every security patch applied to disk and none of it
+# running. 16,002 host findings, every one with a fix already available, and four
+# different kernel series live at once across nine machines.
+#
+# LESSON: a vulnerability is closed when the fixed code is EXECUTING, not when
+# the package is installed. Those are two different measurements and only one of
+# them is the control. Check the second one:
+#
+#   kubectl -n kube-system logs -l name=kured --tail=20   # claim
+#   ssh <node> ls -l /var/run/reboot-required             # ground truth
+#   ssh <node> 'uname -r; ls /boot/vmlinuz-*'             # running vs installed
+# ---------------------------------------------------------------------------
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kured
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      # A single `operator: Exists` tolerates every taint. This is a superset of
+      # whatever upstream ships, so it widens and never narrows.
+      #
+      # WHY: a taint means "do not run WORKLOADS here". It must never come to mean
+      # "do not PATCH this machine". Two deliberately-tainted nodes here silently
+      # dropped out of the reboot cycle, and separately wedged the k3s upgrade
+      # queue entirely, because the upgrade Job could not be scheduled onto the
+      # node it was meant to upgrade. Whenever you taint a node, go and check what
+      # selects it cluster-wide.
+      tolerations:
+        - operator: Exists
+
+      containers:
+        - name: kured
+          args:
+            - --period=1h
+            - --concurrency=1
+
+            # Path INSIDE the container. See the header — this single line is the
+            # difference between a patching loop and a very convincing log file.
+            - --reboot-sentinel=/sentinel/reboot-required
+
+            # Bound the drain. Database primaries here sit at
+            # disruptionsAllowed=0 and refuse eviction, so an unbounded drain
+            # holds the cluster-wide reboot lock until something steals it.
+            # Deliberately NO --force-reboot: a node it cannot drain is skipped
+            # and logged, never forced.
+            - --drain-timeout=15m
+
+            # THE ARITHMETIC MATTERS: lock-ttl must exceed
+            #   drain-timeout (15m) + reboot time + lock-release-delay (15m)
+            # or the lock expires mid-cycle and a SECOND node starts draining
+            # while the first is still down. It still frees a lock held by a node
+            # that never came back — just an hour later instead of never.
+            - --lock-ttl=60m
+            - --lock-release-delay=15m
+
+            # THE GATE: do not reboot into an incident.
+            #
+            # This was originally an ignore-list — "reboot unless one of these
+            # specific alerts is firing" — which is unbounded in the dangerous
+            # direction: every alert added later is implicitly permission to
+            # reboot. Inverted to a BLOCK-list: reboot ONLY when nothing in this
+            # named set is firing. New alerts default to blocking, not allowing.
+            - --prometheus-url=http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/prometheus
+            - --alert-firing-only
+            - --alert-filter-match-only
+            - --alert-filter-regexp=^(KubeAPIDown|KubeNodeNotReady|KubeNodeUnreachable|KubeletDown|CephHealthError)$
+
+            # Do not reboot a node that is currently running a cluster-upgrade Job.
+            - --blocking-pod-selector=upgrade.cattle.io/plan
+
+            # Stamp nodes during the cycle so the state is inspectable.
+            #
+            # CAVEAT, learned the hard way: this annotation is NOT cleared after a
+            # successful reboot. Two nodes carried week-old annotations and were
+            # read as "reboot pending", which produced a confident and completely
+            # wrong prediction about what was about to happen to the cluster.
+            # The annotation is a claim. /var/run/reboot-required on the host is
+            # the fact.
+            - --annotate-nodes
+
+# ---------------------------------------------------------------------------
+# TWO DELIBERATE NON-DECISIONS, since they look like omissions
+#
+# NO MAINTENANCE WINDOW. kured here used to reboot only between 02:00 and 04:00,
+# and the upgrade controller only on Sunday mornings. Both are gone. A window is
+# a proxy for "is it safe right now" — and a bad proxy, since "night" is someone
+# else's working afternoon and Sunday is a working day in much of the world.
+# The Prometheus gate above asks the real question directly, continuously.
+#
+# NO --force-reboot. If a node cannot be drained, that is information, not an
+# obstacle.
+# ---------------------------------------------------------------------------

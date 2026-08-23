@@ -1,0 +1,97 @@
+# Duty-cycle alerting: for signals that sawtooth across the threshold.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS EXISTS
+#
+# A node in this fleet spent 23.5% of every 24 hours above 90 °C and 10.3% above
+# 95 °C, touching 100 °C — and the two obvious alerts, NodeCoreTempHigh and
+# NodeCoreTempCritical, never fired once in a week.
+#
+# They were not broken. They were written the normal way:
+#
+#     expr: node_hwmon_temp_celsius > 90
+#     for:  10m
+#
+# `for:` requires the condition to hold CONTINUOUSLY. The temperature crossed
+# the line and fell back every couple of minutes, so the timer reset every time.
+# A duty cycle is invisible to a sustained-duration rule, and the more the signal
+# oscillates the blinder the rule gets.
+#
+# GENERAL LESSON: for ANY oscillating signal, measure the FRACTION OF TIME above
+# the line, not the time CONTINUOUSLY above it. This applies far beyond
+# temperature — error rates, queue depth, saturation, latency percentiles,
+# anything bursty.
+#
+# THE MECHANIC: `> bool 90` turns each sample into 1 or 0 instead of filtering
+# the series. avg_over_time() of that is, by definition, the duty cycle.
+#
+# ONE PROPERTY TO EXPECT, so a good fix does not look like a failure: after you
+# fix the underlying cause the alert KEEPS FIRING while the pre-fix samples roll
+# out of the window. Observed here: 18.3% -> 13.3% -> 10.0% -> resolved. That is
+# the rule working, not the fix failing.
+# ---------------------------------------------------------------------------
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: duty-cycle-examples
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: duty-cycle
+      rules:
+        # Fires when a node spent >10% of the last hour above 90 °C, however
+        # many separate excursions that took.
+        - alert: NodeCoreTempExcursions
+          expr: |
+            avg_over_time(
+              (max by (instance) (node_hwmon_temp_celsius{chip="platform_coretemp_0"}) > bool 90)[1h:1m]
+            ) > 0.10
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} spent {{ $value | humanizePercentage }} of the last hour above 90 °C"
+            description: >-
+              Repeated thermal excursions rather than one sustained peak, which is
+              exactly why a `for:`-based rule stays silent. At near-idle load this
+              is cooling or clock policy, not workload.
+
+              CHECK THE CPU GOVERNOR FIRST — it is free, instant and reversible,
+              unlike opening the machine:
+              `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+              should read `powersave` (intel_pstate) or `schedutil`
+              (intel_cpufreq), never `performance`, which pins every core near
+              max turbo even at idle.
+
+              On this fleet that was the entire cause on one node: 85 °C at 4332
+              MHz on 4% CPU. Switching to powersave took it to 51-54 °C at 800
+              MHz within fifteen seconds and dropped package power from 8.23 W to
+              3.35 W. Both machines had already been opened and cleaned by hand
+              the day before — dust was ruled out the expensive way, because the
+              alert text listed dust, airflow, fan bearings and thermal paste and
+              did not list the governor.
+
+        # The same shape, applied to something completely different — proof the
+        # pattern generalises. Fires when an endpoint was above its error budget
+        # for more than 5% of the last hour, in however many short bursts.
+        - alert: EndpointErrorDutyCycle
+          expr: |
+            avg_over_time(
+              (
+                sum by (service) (rate(http_requests_total{code=~"5.."}[5m]))
+                /
+                sum by (service) (rate(http_requests_total[5m]))
+                > bool 0.05
+              )[1h:1m]
+            ) > 0.05
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.service }} was over its 5% error budget for {{ $value | humanizePercentage }} of the last hour"
+            description: >-
+              Short repeated bursts rather than one sustained outage. A
+              `for: 10m` rule on the same expression would never fire.

@@ -343,6 +343,75 @@ other, without a human arming either one.
 
 ---
 
+## The alert that was correct, deployed, and could not fire
+
+One more in the same family, and the most instructive to read as code, because nothing about
+it looks wrong.
+
+A node ran **23.5% of every 24 hours above 90 °C**, 10.3% above 95 °C, touching the 100 °C
+throttle limit. Two alerts existed for exactly this. Neither fired, once, in a week.
+
+They were written the way everyone writes them:
+
+```yaml
+- alert: NodeCoreTempHigh
+  expr: node_hwmon_temp_celsius > 90
+  for: 10m
+```
+
+`for:` requires the condition to hold **continuously**. The temperature crossed the line and
+fell back every couple of minutes, so the ten-minute timer reset every time it dipped. The
+worse the oscillation, the blinder the rule — a rule that fails hardest precisely as the
+problem gets worse.
+
+The fix is to stop measuring *time continuously above* and start measuring **fraction of
+time above**:
+
+```yaml
+- alert: NodeCoreTempExcursions
+  expr: |
+    avg_over_time(
+      (max by (instance) (node_hwmon_temp_celsius{chip="platform_coretemp_0"}) > bool 90)[1h:1m]
+    ) > 0.10
+  for: 15m
+```
+
+`> bool 90` is the whole mechanic: it turns each sample into `1` or `0` rather than filtering
+the series, so `avg_over_time` of that *is* the duty cycle. Matched the real node at 28%
+immediately.
+
+**This generalises well beyond temperature** — error rates, queue depth, saturation, p99
+latency, anything bursty. If a signal sawtooths across its threshold, a `for:`-based rule is
+structurally incapable of seeing it.
+
+Two things worth knowing before you deploy one:
+
+- **After a genuine fix the alert keeps firing** while pre-fix samples roll out of the
+  window. Observed here: 18.3% → 13.3% → 10.0% → resolved. That is the rule working
+  correctly, and it looks exactly like the fix not working.
+- **Check the unfiltered cardinality of your metric first.** Unfiltered,
+  `node_network_speed_bytes` here is 186 series — mostly virtual interfaces — and two
+  leftover bridges report `-1`, which as a "degraded link" rule would have fired twelve times
+  forever. That near-miss was caught only because the "verification" query had already been
+  filtered, so it proved nothing. *Check the shape of a metric with the filters off before
+  trusting a rule built on it.*
+
+And the punchline, which is the actual reliability lesson rather than the PromQL one: the
+cause was not dust. The alert's own description text listed dust, airflow, fan bearings and
+thermal paste — so both machines were opened and physically cleaned first, and the
+temperature did not move. It was the **CPU frequency governor**, sitting at `performance`,
+pinning every core near max turbo at 4% CPU. Switching it took the node from 85 °C at 4332
+MHz to 51-54 °C at 800 MHz **within fifteen seconds**, and package power from 8.23 W to
+3.35 W.
+
+> An alert description that lists the wrong causes will send you to do the expensive ones
+> first. The description is part of the control, not documentation attached to it.
+
+> The runnable rule, with a second worked example applying the same shape to HTTP error
+> rates, is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/duty-cycle-alert.yaml).
+
+---
+
 ## The gap register, and why closing things you will never do matters
 
 Gaps are tracked in one register, ordered by **impact × leverage** rather than by technology

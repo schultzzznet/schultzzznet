@@ -45,6 +45,66 @@ Kubernetes nodes assembled from retired laptops and small-form-factor desktops, 
 services that run on them, the embedded devices that talk to them, and the delivery
 chain that ties the lot together.
 
+## The whole thing, on one screen
+
+```mermaid
+flowchart TB
+  subgraph DEV["Development — off-cluster"]
+    WS["workstation<br/>+ cloud LLM as reviewed peer"]
+    CI["cloud CI runners<br/>lint · SAST · tests · scan"]
+    RUN["self-hosted runner<br/>build · sign · verify · rollout"]
+  end
+
+  subgraph EDGE["Public edge — outside the cluster on purpose"]
+    FUN["relay + reverse proxy<br/>default-deny allowlist"]
+  end
+
+  subgraph K3S["Nine bare-metal nodes"]
+    CP["3 × control plane<br/>embedded etcd quorum"]
+    APPS["5 Spring Boot services<br/>5 Flutter clients"]
+    DATA["8 Postgres clusters<br/>replica-3 block storage<br/>object store"]
+    OBS["metrics · logs · dashboards<br/>alert routing"]
+    SEC["SBOM + CVE tracker<br/>findings aggregator"]
+    CHAOS["scheduled fault injector<br/>+ safety controller"]
+  end
+
+  subgraph OFF["Off-cluster, deliberately"]
+    AGENT["ops agent + local LLM<br/>proposes; guardrails dispose"]
+    REF["external referees<br/>heartbeat · blackbox probe"]
+  end
+
+  DEV_DEVICES["embedded devices<br/>signed A/B OTA"]
+
+  WS --> CI --> RUN --> K3S
+  FUN --> APPS
+  DEV_DEVICES -->|"heartbeat + SBOM"| K3S
+  APPS --> DATA
+  K3S --> OBS
+  OBS --> AGENT
+  SEC --> TRACK["work tracker<br/>auto-open · auto-close"]
+  AGENT --> TRACK
+  AGENT -.->|"narrow, allowlisted<br/>write path"| K3S
+  REF -.->|"grades from outside"| K3S
+
+  style OFF fill:#f5f5f5
+  style EDGE fill:#ffe9e9
+```
+
+The two dotted lines are the ones that matter. The agent's write path is deliberately narrow
+and allowlisted; the referees are deliberately outside everything they grade — *a monitor
+that dies with the thing it monitors is not a monitor.*
+
+## Where to start, depending on how much time you have
+
+| You have | Read |
+|---|---|
+| **5 minutes** | This page, then [the measurement traps](devsecops.md#6-measurement-traps-found-by-checking) — seven controls that were configured, green, and inert |
+| **20 minutes** | Add [reliability, audited](reliability.md) — the honest single-fault inventory and the patching loop that never rebooted anything |
+| **An hour** | Add [the delivery chain](platform.md) and [the operations agent](aiops.md) |
+| **You want code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples) — four extracted, runnable, commented artifacts |
+| **You're hiring** | [What I'd do differently](lessons.md) is probably the most informative page here |
+
+
 **Why build it this way instead of stopping at a tutorial:** a system nobody has to
 operate for real teaches a smaller, different skill than one that is actually running —
 with real if modest usage, real incidents, and a real pager. Every page on this site is the
@@ -52,6 +112,31 @@ record of something that was *operated*, not something that was read about. The 
 scars — a nine-day silent outage, a drain that removed its own control surface, a reboot
 daemon that quietly never rebooted anything — only exist because the thing they happened to
 was live.
+
+**And the honest version of that claim, since it is the one worth checking:** *the load is
+synthetic; the incidents are not.* There is no organic user base. The sustained traffic is a
+load generator hitting the public path from a single address, which is why it is described
+as a soak and never as adoption. What is genuinely real is everything the platform did in
+response to itself: power cuts, thermal throttling, disks reporting `FAILING_NOW`, a
+carrier-grade-NAT boundary, an ISP, a public entrance that has actually been down, and
+kernel upgrades rolling across nine machines unattended at four in the morning. **The
+failures were never the part that needed simulating.**
+
+## What it cost
+
+Nobody publishes these, which is exactly why they are here.
+
+| | |
+|---|---|
+| **Hardware** | Nine machines, all retired or second-hand — five laptops a decade old, two all-in-ones, two small desktops. Bought new, this cluster would be indefensible; the point is that it wasn't. |
+| **Power** | Measured per-package with the CPUs' own energy counters, not estimated from a spec sheet. Fixing the frequency governor on the two busiest nodes alone cut **13.1 W continuously — about 120 kWh/year.** One node's fan went from 3610 RPM to zero, and fleet time-above-90 °C from 18.3% to 0.0%. |
+| **Time** | Evenings and weekends, over months. The up-front cost was real and is not hidden: replicating storage on hardware that didn't deserve it, giving up packing density for hard failure isolation, thirty-odd decision records, saying no to shortcuts that would plainly have worked in the short term. |
+| **Cloud spend** | Effectively zero, and that is a constraint rather than a boast — it is *why* the delivery chain is split across two kinds of runner, and why an inbound webhook is not an option anywhere in the estate. |
+
+The thing that cost the most was not any of the above. It was **re-deriving context** —
+which is why the working agreement, the decision records and the rolling state note exist,
+and why an AI peer is given persistent memory rather than a fresh session each time.
+
 
 ## Five repositories, three examined in depth
 
@@ -351,6 +436,12 @@ That loop has no last iteration, and this site does not claim one.
 - **[The embedded side](yocto.md)** — a custom Linux image with signed over-the-air updates,
   the work required to make a vulnerability scanner tell the truth about it, and three traps
   that only real hardware finds.
+- **[What I'd do differently](lessons.md)** — the wrong orchestrator, two nodes too many,
+  three OSDs that look like resilience, six claims reversed on evidence, and the four things
+  worth keeping.
+- **[`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples)** — four
+  of these lessons extracted as runnable, commented artifacts. One ships with a self-test
+  that demonstrates its own bug.
 
 ---
 

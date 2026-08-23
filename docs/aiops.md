@@ -123,6 +123,65 @@ Every gated action shows the exact command, who asked for it, and a dry run of i
 before anyone can approve it. Every step is logged and attributed. An approval that does not
 show you what you are approving is a rubber stamp.
 
+### The refusal list is the load-bearing half
+
+The mapping from alert to action is a **plain dictionary, not a model decision** — the local
+model is weakest at exactly the structured extraction that routing requires, so routing never
+reaches it. What is more interesting is the second table, which is longer:
+
+```python
+# Eligible to run unattended: additive only. Creates an object, destroys nothing.
+# Cost of a wrong one is a wasted object.
+REMEDIATIONS = {
+    "BackupStale":      Rule(skill="backup",  auto=True),
+    "LastBackupFailed": Rule(skill="backup",  auto=True),
+    # Correct, but disruptive — a restart erases the evidence of what crashed.
+    "AppPodDown":          Rule(skill="restart", auto=False),
+    "AppDeploymentDegraded": Rule(skill="restart", auto=False),
+}
+
+# Refused outright, each with a reason. This table is longer than the one above
+# and that ratio is the point.
+NEVER_REMEDIATE = {
+    "ContainerOOMKilled":
+        "level-based stale gauge — the alert stays firing after recovery, so a "
+        "restart rule would loop forever against an already-healthy pod",
+    "ClusterLostRedundancy":
+        "the fix deletes a volume. At minute 2 a broken replica and a recovering "
+        "one look identical; only at minute 18 is the difference visible",
+    "AppJvmHeapHigh":
+        "restarting masks the leak and resets the only signal that would find it",
+    "NodeNetworkLinkFlapping":
+        "physical. On this fleet it was a loose back plate the RJ45 was screwed to",
+    # ... ten more
+}
+```
+
+And a test that pins the property rather than the contents, so the rule cannot be quietly
+widened later:
+
+```python
+def test_only_additive_skills_may_auto_apply():
+    for name, rule in REMEDIATIONS.items():
+        if rule.auto:
+            assert rule.skill == "backup", (
+                f"{name} is marked auto but {rule.skill!r} is not additive"
+            )
+```
+
+That test was **falsified before it was trusted** — flip a restart rule to `auto=True` and
+watch it fail — because a guard nobody has seen fail is not known to be a guard.
+
+**The refusal list proved itself in production, by doing nothing.** Across three days that
+included a genuinely crash-looping database, the agent proposed exactly zero actions. During
+that incident `ContainerRestartingFrequently` fired and was correctly refused. Had it been
+mapped to `restart`, the agent would have cycled a database pod mid-recovery and destroyed
+the log evidence — `invalid xl_info in checkpoint record` — that was actually used to
+diagnose it.
+
+> Zero false positives over a real incident is a better result than a clever remediation,
+> and it is the harder one to demonstrate, because success looks like an empty log.
+
 ---
 
 ## The chaos safety controller, and fail-closed as a default
