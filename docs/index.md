@@ -145,8 +145,9 @@ engineering peer rather than autocomplete: architecture reasoning, code, and doc
 It works from a written working agreement and a persistent memory of decisions already made,
 because a session that re-derives context from scratch is a session that re-litigates
 mistakes already paid for. **It gets no exemption:** an AI-assisted change goes through the
-identical pull-request gates as any other — [the same SAST, secret scan, tests and
-signing](devsecops.md) — and a human remains accountable for reviewing what it produced.
+identical pull-request gates as any other —
+[the same SAST, secret scan, tests and signing](devsecops.md) — and a human remains
+accountable for reviewing what it produced.
 [The fuller account is on its own page](ai-dev.md), including the time it confidently told a
 reviewer two things about this platform that were not true.
 

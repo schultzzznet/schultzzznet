@@ -10,8 +10,9 @@ title: Testing, quality gates, and grading our own maturity
 ![maturity](https://img.shields.io/badge/self--graded%20maturity-3.47%20%2F%205-orange)
 ![rollback](https://img.shields.io/badge/rollback%20target-under%2060s-2EA44F)
 
-A gate nobody can fail is decoration. This page is the other side of [the security gate
-table](devsecops.md): what actually stops a merge for a *quality* reason, what only advises,
+A gate nobody can fail is decoration. This page is the other side of
+[the security gate table](devsecops.md): what actually stops a merge for a *quality* reason,
+what only advises,
 and — because a platform that measures everything else and exempts itself would be worth
 less than one that doesn't — how it scores its own maturity, weaknesses included.
 

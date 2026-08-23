@@ -377,11 +377,6 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
   wrong.
 - **[Testing, quality gates, and grading our own maturity](quality.md)** — the quality half
   of this gate table, and an honest self-graded score.
-- **[Legal, licensing, and the regulatory posture](compliance.md)** — what the same supply
-  chain buys against a real regulation, and the two places a label was checked and found
-  wrong.
-- **[Testing, quality gates, and grading our own maturity](quality.md)** — the quality half
-  of this gate table, and an honest self-graded score.
 
 ---
 

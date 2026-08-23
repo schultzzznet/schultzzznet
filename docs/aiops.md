@@ -15,8 +15,9 @@ There is a lot of "AI for ops" that is a chat window in front of a dashboard. Th
 write path to a production cluster, which makes the interesting question not *what can it
 do* but **what is it allowed to do without asking.**
 
-This is the run-time half of a two-part practice — the **production edge**; [the dev-time
-half](ai-dev.md) — a cloud model as a reviewed engineering peer, not a party trusted with a
+This is the run-time half of a two-part practice — the **production edge**;
+[the dev-time half](ai-dev.md) — a cloud model as a reviewed engineering peer, not a party
+trusted with a
 cluster — is deliberately a different model, running in a different place, for a different
 reason.
 
