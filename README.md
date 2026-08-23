@@ -65,7 +65,24 @@ This is the SVPG manifest in practice: technology is the enabler, never the poin
 a solo engineer building, and a local AI helping run and increasingly heal, systems that weren't
 buildable by one person a few years ago — is the edge I stand on deliberately.
 
-More info here https://schultzzznet.github.io/schultzzznet/ 
+### 📖 The full write-up → **<https://schultzzznet.github.io/schultzzznet/>**
+
+Nine pages on how the platform is built, secured, operated and graded — including
+[what I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html) and
+[the measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
+that produced confident, wrong numbers.
+
+### 🔧 Want code rather than prose → [`examples/`](examples/)
+
+Four artifacts extracted from the running system, scrubbed and commented. Each exists because
+something looked correct and was not:
+
+| | |
+|---|---|
+| [`trivy-kernel-ab-split.sh`](examples/trivy-kernel-ab-split.sh) | Host CVE counts that can never reach zero, and the regex that quietly files a superseded kernel as live. Ships a `--self-test` that demonstrates the bug. |
+| [`duty-cycle-alert.yaml`](examples/duty-cycle-alert.yaml) | Why a `for:`-based alert cannot see a signal that sawtooths across its threshold — and the two-line fix. |
+| [`kured-args.yaml`](examples/kured-args.yaml) | A reboot daemon that logged "nothing to do" hourly for weeks while 16,002 patched-but-not-running findings piled up. |
+| [`systemd-oneshot-timer.md`](examples/systemd-oneshot-timer.md) | The `RemainAfterExit` trap that makes a timer fire exactly once per boot. |
 
 ---
 
