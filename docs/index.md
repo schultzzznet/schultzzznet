@@ -2,7 +2,7 @@
 title: The estate
 ---
 
-# One system, three repositories
+# Retired laptops running production-grade Kubernetes with HA storage, a signed supply chain, deliberate fault injection, inline AI from commit to cluster, and a discipline that treats a green status line as a question, not an answer.
 
 [![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=alerting&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
@@ -53,7 +53,9 @@ scars — a nine-day silent outage, a drain that removed its own control surface
 daemon that quietly never rebooted anything — only exist because the thing they happened to
 was live.
 
-Three repositories, bound by hard dependencies rather than theme.
+## Five repositories, three examined in depth
+
+Five repositories, bound by hard dependencies rather than theme — three get a deep dive on this site.
 
 | Repository | What it is | Bound to the platform by |
 |---|---|---|
