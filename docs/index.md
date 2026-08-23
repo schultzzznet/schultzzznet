@@ -102,6 +102,7 @@ that dies with the thing it monitors is not a monitor.*
 | **20 minutes** | Add [reliability, audited](reliability.md) — the honest single-fault inventory and the patching loop that never rebooted anything |
 | **An hour** | Add [the delivery chain](platform.md) and [the operations agent](aiops.md) |
 | **You want code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples) — four extracted, runnable, commented artifacts |
+| **You'd argue about tooling** | [Why these tools, and what got rejected](choices.md) — including a CNI caveat and an archived upstream |
 | **You're hiring** | [What I'd do differently](lessons.md) is probably the most informative page here |
 
 
@@ -439,6 +440,9 @@ That loop has no last iteration, and this site does not claim one.
 - **[What I'd do differently](lessons.md)** — the wrong orchestrator, two nodes too many,
   three OSDs that look like resilience, six claims reversed on evidence, and the four things
   worth keeping.
+- **[Why these tools, and what got rejected](choices.md)** — the alternatives that lost and
+  why, the standing constraint that rules some out permanently, and the reopen-trigger that
+  turns a rejection into a decision.
 - **[`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples)** — four
   of these lessons extracted as runnable, commented artifacts. One ships with a self-test
   that demonstrates its own bug.
