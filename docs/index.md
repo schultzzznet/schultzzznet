@@ -100,6 +100,7 @@ that dies with the thing it monitors is not a monitor.*
 |---|---|
 | **5 minutes** | This page, then [the measurement traps](devsecops.md#6-measurement-traps-found-by-checking) — seven controls that were configured, green, and inert |
 | **20 minutes** | Add [reliability, audited](reliability.md) — the honest single-fault inventory and the patching loop that never rebooted anything |
+| **You want one story** | [One incident, in full](incident.md) — a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
 | **An hour** | Add [the delivery chain](platform.md) and [the operations agent](aiops.md) |
 | **You want code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples) — four extracted, runnable, commented artifacts |
 | **You'd argue about tooling** | [Why these tools, and what got rejected](choices.md) — including a CNI caveat and an archived upstream |
@@ -443,6 +444,9 @@ That loop has no last iteration, and this site does not claim one.
 - **[Why these tools, and what got rejected](choices.md)** — the alternatives that lost and
   why, the standing constraint that rules some out permanently, and the reopen-trigger that
   turns a rejection into a decision.
+- **[One incident, in full](incident.md)** — a real SEV1 post-mortem, close to verbatim: nine
+  minutes without quorum, nothing detected it, a design that turned out never to have existed,
+  and two action items still open.
 - **[`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples)** — four
   of these lessons extracted as runnable, commented artifacts. One ships with a self-test
   that demonstrates its own bug.
