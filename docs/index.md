@@ -29,10 +29,17 @@ a referee.
 >
 > **The first badge is labelled *scheduled jobs*, not *alerting*, because that is what it
 > measures.** It is a project-wide badge: it reports the worst status of **every** check in
-> the account, not the alert heartbeat alone. It read `late` while the alert pipeline was
-> provably healthy — 290 heartbeat deliveries, zero failures — because a different, unrelated
-> check was overdue. A badge whose label is narrower than its scope will eventually be
-> believed.
+> the account, not the alert heartbeat alone. A badge whose label is narrower than its scope
+> will eventually be believed.
+>
+> **It also read `late` while the alert pipeline was provably healthy** — hundreds of
+> heartbeat deliveries, zero failures. The first explanation offered here was that some
+> other, unrelated check was overdue. That was wrong, and checking it properly produced a
+> better answer: the heartbeat check's **expected period was set to exactly the interval the
+> sender uses**, five minutes against five minutes, with no headroom at all. A ping arriving
+> a second or two late is therefore *by construction* late, and the badge flips amber on
+> ordinary jitter. Nothing was broken; the monitor was measuring with a ruler the same length
+> as the thing it measured.
 >
 > That one is worth sitting with, because it inverts the usual worry: **the monitoring was
 > the least reliable component in the story.** The thing being watched was fine; the thing
