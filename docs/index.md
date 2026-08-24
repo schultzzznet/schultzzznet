@@ -553,6 +553,44 @@ hasn't been yet.
 
 ---
 
+## So what happens to it now?
+
+There are two answers and they are both true, which is the part worth spelling out.
+
+**It could carry real load tomorrow — the platform half of it, at least.** That is not a
+boast, it is a description of what has already been measured on these pages: replicated
+block storage under every volume, three control-plane members, databases that fail over
+during a drain without a human, backups with a restored-from-scratch time that was timed
+rather than estimated, a supply chain where every image is signed and every running image is
+checked against the signing key, automated OS patching with coordinated reboots, and an
+incident practice with real postmortems behind it. The deploy contract already works from
+outside this repository — other projects deploy into this cluster today without knowing
+anything about its internals. That is the definition of a platform rather than a
+configuration.
+
+**It should not take real customers tomorrow, and this site has already said why.** Legal
+and regulatory sits at level one against a target of three, and that alone blocks a lawful
+public launch. Secrets at rest are honestly sub-baseline. The public entrance is a single
+small machine and a single relay — the one hop with no redundancy, and demonstrably where
+all the measured downtime comes from. Nothing measures whether anyone uses the applications,
+because product analytics is at zero. Any of those is a fair reason to say *not yet*; the
+combination is decisive. **Nothing here is one weekend from being a business, and claiming
+otherwise would undo the point of every honest number above.**
+
+**The resolution is not to pick one.** The platform is portable and the instance is not.
+What could graduate is the *pattern* — the contract, the pipeline, the storage and identity
+and observability decisions, the assertions, the gap register as a habit. What should stay
+exactly as it is, is **this** cluster, doing what nothing in production is ever allowed to
+do: get powered off on a whim, wiped and rebuilt to test a decision, deliberately broken on
+a schedule to find out whether the recovery story is true.
+
+That freedom is the actual asset, and it is the first thing real users take away. The moment
+something here matters to someone else, two nodes can no longer be switched off to see what
+happens — and the loop that produced every finding on this site quietly stops. So the honest
+plan is the boring one: **let the pattern travel, and keep the laboratory a laboratory.**
+
+---
+
 ## Never done, by design
 
 Nothing on this site describes a finished artifact, and that is deliberate rather than
