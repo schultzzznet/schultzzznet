@@ -555,11 +555,22 @@ hasn't been yet.
 
 ## So what happens to it now?
 
-There are two answers and they are both true, which is the part worth spelling out.
+Four questions get asked as if they were one, and separating them is most of the answer:
 
-**It could very nearly carry real load tomorrow — the platform half of it, at least.** The
-hedge is deliberate: the honest word is *almost*, not *yes*. What has already been measured
-on these pages is real — replicated block storage under every volume, three control-plane
+| | | |
+|---|---|---|
+| **Can it?** | capability | The only one that has to be *earned*. Everything else is opinion until this is settled. |
+| **Should it?** | judgement | Worth pondering, and answerable only once *can* is real. |
+| **Want to?** | intent | A choice, not a constraint — and the easiest one to mistake for a plan. |
+| **Done?** | past tense | Evidence. The rest of this site is the answer to this one. |
+
+The order matters, because **an unearned *can* makes the whole chain weightless.** *Should*,
+*want* and *done* asked about something that cannot actually run are not engineering, they
+are daydreaming with a roadmap attached. So:
+
+**Can it? — very nearly, and that word is doing honest work.** The hedge is deliberate: the
+answer is *almost*, not *yes*. What has already been measured on these pages is real —
+replicated block storage under every volume, three control-plane
 members, databases that fail over during a drain without a human, backups with a
 restored-from-scratch time that was timed rather than estimated, a supply chain where every
 image is signed and every *running* image is checked against the signing key, automated OS
@@ -569,7 +580,7 @@ this cluster today without knowing anything about its internals. That is the def
 platform rather than a configuration. What is still missing is not a mystery either: it is
 written down, prioritised, and mostly unglamorous.
 
-**It should not take real customers tomorrow, and this site has already said why.** Legal
+**Should it? — not yet, and the site's own numbers say why.** Legal
 and regulatory sits at level one against a target of three, and that alone blocks a lawful
 public launch. Secrets at rest are honestly sub-baseline. The public entrance is a single
 small machine and a single relay — the one hop with no redundancy, and demonstrably where
@@ -587,7 +598,8 @@ replication fixes that. It is a genuinely different problem from the engineering
 solved by more engineering, and pretending the gap is technical would be the most
 comfortable lie available on this page.
 
-**The resolution is not to pick one.** The platform is portable and the instance is not.
+**Want to? — no, and that is a choice rather than a consolation.** The platform is portable
+and the instance is not.
 What could graduate is the *pattern* — the contract, the pipeline, the storage and identity
 and observability decisions, the assertions, the gap register as a habit. What should stay
 exactly as it is, is **this** cluster, doing what nothing in production is ever allowed to
