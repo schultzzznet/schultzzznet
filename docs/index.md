@@ -64,9 +64,10 @@ three days; the cluster's oldest object is four weeks old. That is not a hole in
 it *is* the record. Nodes reboot because unattended patching reboots them, and the cluster is
 young because it was wiped and rebuilt on purpose, to prove that a wrong foundational decision
 costs an afternoon here rather than a migration project. **A machine with a year of uptime is
-a machine that hasn't been patched in a year.** What has run continuously is the service and
-the practice — not any individual part of it. Every component is meant to be disposable, and
-is regularly disposed of.
+a machine that hasn't been patched in a year.** What has run continuously is the *distributed*
+service and the practice around it — never any individual part of it. The core has been
+constant for eight months; the deployments of it have been many. Every component is meant to
+be disposable, and is regularly disposed of.
 
 This is a home-built platform that is run like a production one: nine bare-metal
 Kubernetes nodes assembled from retired laptops and small-form-factor desktops, the
