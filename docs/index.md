@@ -544,6 +544,33 @@ Worth stating, because they are the reason "do it properly" was affordable at al
 - **Writing it down was faster than re-deciding it.** The decision records cost hours;
   re-litigating storage or the orchestrator would have cost weeks, repeatedly.
 
+### The condition that made all of it possible: no pressure
+
+This is the part most engineering write-ups leave out, and leaving it out is what makes them
+annoying to read. **There was no commercial pressure here of any kind** — no runway, no
+board, no launch date, no customer waiting, no competitor shipping first, nobody's salary
+attached to the outcome. Every "we did it properly instead of quickly" decision on this site
+was made in the total absence of the one force that normally makes that choice impossible.
+
+The industry default is not stupidity, and it is worth saying so plainly. Under real
+financial and organisational pressure the order genuinely inverts: **find product-market fit
+first, ship whatever proves it, and pay for the engineering later — if there is a later.**
+Jump the fence, cut the corner, get it in front of someone. That is a rational response to a
+constraint this project simply does not have, because a company without a market dies of the
+market, not of its architecture. Anyone reading the counterfactual table above and thinking
+*"sure, but I have a deadline"* is not making excuses. They are describing the actual
+problem, and this site is not evidence against them.
+
+It does happen the other way round in industry — organisations that work from first
+principles and let the engineering set the pace do exist, and when it works it is
+formidable. It is also **rare**, and usually only where someone deliberately spent capital or
+authority to buy the same freedom that this project got for free by not mattering to anyone.
+
+So the honest reading of everything above is not *"this is how it should be done."* It is
+**"this is what it looks like when the usual forcing function is absent"** — which is also
+precisely why taking on real users would end it. Customers do not just add obligations; they
+import the pressure, and the pressure is what closes this door.
+
 It is also not a universal solvent. The same project that runs replicated storage, drilled
 restores and a signed supply chain still has an open item for a proper secrets manager and an
 open item for a hosted privacy policy — see [the honest gaps](reliability.md) and
