@@ -241,6 +241,32 @@ first time.
 - **35 automated assertions** that documentation, inventory and reality still agree, run on
   demand and failing loudly when they diverge.
 
+**Security here is structural, not a layer applied at the end.** Signing, bills of materials,
+vulnerability re-analysis, default-deny at the edge, automated patching and a disclosure
+channel are properties of the delivery chain itself rather than a review stage bolted on
+before release — an image is signed, provenance-attested and verified as a *build step*, so a
+verification failure fails the job before anything is applied to the cluster.
+
+**With one honest qualification, since it is exactly the kind of thing this site refuses to
+round up:** that enforcement lives in the pipeline, not at the cluster boundary. There is no
+admission controller verifying signatures at the moment a workload is created, so the
+guarantee is "the delivery path will not ship an unsigned image", not "the cluster will not
+run one". Anything applied by hand bypasses it. Admission-time policy is a known, named gap
+rather than a solved problem here.
+
+The EU's Cyber Resilience Act sets a baseline for products with digital elements — which a
+fleet of network-connected embedded devices and the services behind them squarely are.
+**Nobody built this to satisfy it, and roughly seventy percent of its technical substance was
+already in place before the regulation was opened**: the bill of materials, the
+vulnerability-handling process, coordinated disclosure, integrity and provenance, a
+security-update mechanism, secure defaults, an incident process. What is genuinely missing is
+a clause-by-clause conformity mapping — a *document*, not more engineering — and it is named
+as missing rather than quietly rounded up to "compliant". The full table, and the same
+treatment of GDPR and app-store obligations, is on
+**[the compliance page](compliance.md)**. Security is also the only one of twelve graded
+domains to reach the top level in [the self-assessment](quality.md) — which says as much
+about the eleven that did not as it does about this one.
+
 > **Why these particular apps:** location sharing, hazard warnings and messaging were picked
 > because together they force a complete **vertical slice** through every layer, more than
 > once — a mobile client, OAuth2/OIDC identity, a REST API backed by a geospatial extension,
