@@ -553,3 +553,15 @@ That loop has no last iteration, and this site does not claim one.
 <sub>Written for this public site rather than copied from the private repository, and checked
 on every commit by a guard that fails the build on hostnames, addresses and credential
 paths. Starting clean is cheaper than scrubbing.</sub>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+  document.querySelectorAll('pre > code.language-mermaid').forEach((el) => {
+    const div = document.createElement('div');
+    div.className = 'mermaid';
+    div.textContent = el.textContent;
+    el.parentElement.replaceWith(div);
+  });
+  mermaid.run();
+</script>

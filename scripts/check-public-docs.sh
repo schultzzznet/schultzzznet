@@ -53,6 +53,17 @@ report "CGNAT / WAN addresses" \
   '\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]+\.[0-9]+' \
   "Carrier-grade NAT range — identifies the live WAN allocation."
 
+# Jekyll has no native mermaid; each page bootstraps it itself, so a diagram on a
+# page without the script ships as raw source and nothing errors.
+# Process substitution, not a pipe: a pipe would run the loop in a subshell and lose fail=1.
+while IFS= read -r page; do
+  if ! grep -q 'mermaid.run' "$page"; then
+    echo "FAIL: unrendered mermaid diagram"
+    echo "  $page has a mermaid block but no renderer — it will display as raw source."
+    fail=1
+  fi
+done < <(grep -rl '```mermaid' "${TARGETS[@]}" --include='*.md' 2>/dev/null || true)
+
 if [ "$fail" -ne 0 ]; then
   echo "Public docs guard FAILED — the above would be published to a public site."
   exit 1
