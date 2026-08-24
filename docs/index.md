@@ -557,16 +557,17 @@ hasn't been yet.
 
 There are two answers and they are both true, which is the part worth spelling out.
 
-**It could carry real load tomorrow — the platform half of it, at least.** That is not a
-boast, it is a description of what has already been measured on these pages: replicated
-block storage under every volume, three control-plane members, databases that fail over
-during a drain without a human, backups with a restored-from-scratch time that was timed
-rather than estimated, a supply chain where every image is signed and every running image is
-checked against the signing key, automated OS patching with coordinated reboots, and an
-incident practice with real postmortems behind it. The deploy contract already works from
-outside this repository — other projects deploy into this cluster today without knowing
-anything about its internals. That is the definition of a platform rather than a
-configuration.
+**It could very nearly carry real load tomorrow — the platform half of it, at least.** The
+hedge is deliberate: the honest word is *almost*, not *yes*. What has already been measured
+on these pages is real — replicated block storage under every volume, three control-plane
+members, databases that fail over during a drain without a human, backups with a
+restored-from-scratch time that was timed rather than estimated, a supply chain where every
+image is signed and every *running* image is checked against the signing key, automated OS
+patching with coordinated reboots, and an incident practice with real postmortems behind it.
+The deploy contract already works from outside this repository — other projects deploy into
+this cluster today without knowing anything about its internals. That is the definition of a
+platform rather than a configuration. What is still missing is not a mystery either: it is
+written down, prioritised, and mostly unglamorous.
 
 **It should not take real customers tomorrow, and this site has already said why.** Legal
 and regulatory sits at level one against a target of three, and that alone blocks a lawful
@@ -576,6 +577,15 @@ all the measured downtime comes from. Nothing measures whether anyone uses the a
 because product analytics is at zero. Any of those is a fair reason to say *not yet*; the
 combination is decisive. **Nothing here is one weekend from being a business, and claiming
 otherwise would undo the point of every honest number above.**
+
+**And the plainest reason is the one least often admitted: there is no killer app.** The
+applications running here were chosen to be a demanding, realistic load — a mobile client,
+federated identity, a geospatial API, replicated storage, the full observability chain — and
+they do that job well. None of them is a product anyone is waiting for. A platform without
+something worth deploying on it is infrastructure looking for a reason, and no amount of
+replication fixes that. It is a genuinely different problem from the engineering, it is not
+solved by more engineering, and pretending the gap is technical would be the most
+comfortable lie available on this page.
 
 **The resolution is not to pick one.** The platform is portable and the instance is not.
 What could graduate is the *pattern* — the contract, the pipeline, the storage and identity
