@@ -441,6 +441,19 @@ Fewer than half of the closures were work. The rest was **admitting what was nev
 happen** — a backlog that only grows is not a plan, it is a wish list that quietly makes
 every real item look less urgent.
 
+**The register currently holds 64 items, 39 of them still open.** That number is published
+deliberately, and it is meant to be read as a *positive* figure rather than a confession. Thirty-nine known weaknesses in a system this size does not mean thirty-nine
+things are broken — it means thirty-nine things have been **found, written down, argued
+about and prioritised** instead of being discovered later by someone else, or never. A
+project with a short gap register has usually not looked; the register's length is a measure
+of attention, not of decay.
+
+That is also the honest description of the working method here: run it, inspect it, correct
+it, write down what was learned, run it again. Most entries in that register exist because
+something was *deliberately* poked until it admitted a weakness. **The mistakes are the
+input, not the accident** — which only works in an environment where being wrong is cheap
+and nobody is defending a reputation instead of a system.
+
 A representative sample of what the register has caught, all of them found by operating the
 system rather than by reading it:
 

@@ -52,6 +52,24 @@ a referee.
 > are measurements. The longer ones are arithmetic wearing a measurement's clothes, and
 > publishing them would be inventing a track record this platform has not earned.
 
+One thing that number *does* demonstrate, though, and it is not the obvious one. The measured
+figure is **99.62% over thirty days — about 164 minutes of downtime** — achieved across a
+period that included nodes being powered off on purpose, a scheduled fault injector removing
+things, and every machine in the fleet rebooting for patching. Nothing was held back to
+protect the number. **That availability is a property of the architecture, not of restraint:**
+the components being killed are replicated, so killing them is invisible to a probe of the
+public entrance. Deliberate destruction of a redundant thing does not register as downtime —
+which is precisely what redundancy is *for*, and the only way to know it works is to do it.
+
+And the residual is the interesting half. The outages behind those 164 minutes that have
+actually been diagnosed were failures of the **public edge** — a single small machine and a
+single relay, both outside the cluster — rather than of the nine-node cluster itself. **The
+downtime is concentrated in the one part of the path that is not redundant**, exactly where
+the single-point analysis predicted it would be. The chaos does not show up in the number;
+the unredundant hop does. A figure like this is therefore not evidence of caution, and it
+would be misread as such — it is evidence that the expensive architectural decisions are
+load-bearing, and a live indicator of where the next one is owed.
+
 **Structural facts, current as of 2026-08-19:**
 
 ![nodes](https://img.shields.io/badge/bare--metal%20nodes-9-326CE5?logo=kubernetes&logoColor=white)
