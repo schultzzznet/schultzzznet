@@ -15,22 +15,42 @@ report when the power or the internet is what failed. Between them they are the 
 **referees**: none of them lives inside the system it is grading, which is the entire point of
 a referee.
 
-> **Two corrections to that badge wall, because they are the kind that quietly mislead.**
-> The first badge is labelled *scheduled jobs*, not *alerting*, because it is a project-wide
-> badge: it reports the worst status of **every** check in the account, not the alert
-> heartbeat alone. It read `late` while the alert pipeline itself was provably healthy —
-> 290 heartbeat deliveries, zero failures — because a different, unrelated check was
-> overdue. A badge whose label is narrower than its scope will eventually be believed.
+> **Three notes on that badge wall, because badges are where honesty usually goes to die.**
 >
-> **And there is deliberately no six-month uptime figure here, even though the provider
-> will happily render one.** Asking for progressively longer windows returned 99.874% at
-> 90 days, 99.937% at 180 and 99.969% at 365 — which looks like a steadily better record
-> and is not. Multiply each back out and every one of those windows contains *the same
-> 2.72 hours* of downtime: the monitor has less history than the window, so the numerator
-> is fixed and only the denominator grows. The 7- and 30-day figures move independently of
-> each other, so those are measurements. The longer ones are arithmetic wearing a
-> measurement's clothes, and publishing them would be inventing a track record this
-> platform has not yet earned.
+> **Uptime is not a design goal of this site, and these numbers are deliberately depressed.**
+> Nodes get powered off mid-afternoon to see what happens. The cluster has been wiped and
+> rebuilt from nothing. A scheduled fault injector removes things on purpose, and patching
+> reboots every node on a rolling basis. All of that lands in the uptime figure. **This is a
+> learning platform operated to production standards, not a product carrying an availability
+> commitment** — availability is a design parameter in the architecture, but it has never
+> been the objective of the site itself. A perfect score here would mean the experiments had
+> stopped, which is the only result that would genuinely be bad news. The numbers are
+> published because they are interesting, not because they are a target.
+>
+> **The first badge is labelled *scheduled jobs*, not *alerting*, because that is what it
+> measures.** It is a project-wide badge: it reports the worst status of **every** check in
+> the account, not the alert heartbeat alone. It read `late` while the alert pipeline was
+> provably healthy — 290 heartbeat deliveries, zero failures — because a different, unrelated
+> check was overdue. A badge whose label is narrower than its scope will eventually be
+> believed.
+>
+> That one is worth sitting with, because it inverts the usual worry: **the monitoring was
+> the least reliable component in the story.** The thing being watched was fine; the thing
+> doing the watching was wrong. Which is the whole question — *what is the point of a monitor
+> that produces false positives?* A false negative manufactures confidence, and a false
+> positive gets the alarm muted, which manufactures the same blindness more slowly. It is
+> also why there is deliberately more than one referee up there, none of them inside the
+> system they grade: not because one would be unavailable, but because one can be **wrong**,
+> and a single monitor gives you no way to find out which.
+>
+> **And there is deliberately no six-month uptime figure, even though the provider will
+> happily render one.** Asking for progressively longer windows returned 99.874% at 90 days,
+> 99.937% at 180 and 99.969% at 365 — which reads as a steadily improving record and is not.
+> Multiply each back out and every one of those windows contains *the same 2.72 hours* of
+> downtime: the monitor has less history than the window, so the numerator is fixed and only
+> the denominator grows. The 7- and 30-day figures move independently of each other, so those
+> are measurements. The longer ones are arithmetic wearing a measurement's clothes, and
+> publishing them would be inventing a track record this platform has not earned.
 
 **Structural facts, current as of 2026-08-19:**
 
