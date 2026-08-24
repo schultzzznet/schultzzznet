@@ -124,6 +124,16 @@ carrier-grade-NAT boundary, an ISP, a public entrance that has actually been dow
 kernel upgrades rolling across nine machines unattended at four in the morning. **The
 failures were never the part that needed simulating.**
 
+And to state the larger thing plainly, because it is the part a reader might not expect: **every
+chain described on this site is running right now — all of it.** The cluster, the nightly SBOM
+and CVE jobs, the ops agent correlating live metrics and proposing remediations, the chaos
+provocateur injecting faults and the safety controller failing closed when it can't tell if the
+cluster is healthy, the Yocto device posting its heartbeat and getting its bill of materials
+re-evaluated against fresh vulnerability data overnight, the delivery pipeline signing and
+verifying every image on every commit. Not a demo, not a preserved state spun up for this page.
+Months of continuous operation — and if any of it has stopped, the referees at the top of this
+page are the first to know.
+
 ## What it cost
 
 Nobody publishes these, which is exactly why they are here.
