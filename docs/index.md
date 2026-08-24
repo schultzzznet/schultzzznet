@@ -40,6 +40,34 @@ reason to publish a number at all:
 One alert was firing at that moment: the watchdog that is *supposed* to fire, continuously,
 because its silence is what proves the alert pipeline has died.
 
+## None of this is a demo
+
+Everything on this site is running right now, and has been running continuously for **eight
+months** — across a full change of orchestrator and a deliberate from-scratch rebuild of the
+cluster. Nothing here is a preserved snapshot, a stack brought up to be screenshotted, or a
+diagram of something that was true once. Every chain described on these pages — commit to
+signed image to SBOM to CVE to ticket; alert to agent to notification; backup to off-site to
+restore drill; fault injection to blast radius to recovery — is wired end to end and fires on
+its own schedule, whether or not anyone is watching it.
+
+Verified at the time of writing by query, not from memory:
+
+| | |
+|---|---|
+| Project history | **1,346 commits** over **136 active days**, first commit 21 Dec 2025 |
+| Live workload | **179 pods** across **15 namespaces** on 9 nodes |
+| Scheduled chains | **7 of 7** fired within the last 24 hours, none suspended |
+| Most recent runs | off-site backup 02:30, SBOM scan 01:30, capacity check 04:50 — this morning |
+
+**And the uptime figures here are deliberately unimpressive.** The hosts have been up one to
+three days; the cluster's oldest object is four weeks old. That is not a hole in the record —
+it *is* the record. Nodes reboot because unattended patching reboots them, and the cluster is
+young because it was wiped and rebuilt on purpose, to prove that a wrong foundational decision
+costs an afternoon here rather than a migration project. **A machine with a year of uptime is
+a machine that hasn't been patched in a year.** What has run continuously is the service and
+the practice — not any individual part of it. Every component is meant to be disposable, and
+is regularly disposed of.
+
 This is a home-built platform that is run like a production one: nine bare-metal
 Kubernetes nodes assembled from retired laptops and small-form-factor desktops, the
 services that run on them, the embedded devices that talk to them, and the delivery
@@ -124,14 +152,13 @@ carrier-grade-NAT boundary, an ISP, a public entrance that has actually been dow
 kernel upgrades rolling across nine machines unattended at four in the morning. **The
 failures were never the part that needed simulating.**
 
-And to state the larger thing plainly, because it is the part a reader might not expect: **every
-chain described on this site is running right now — all of it.** The cluster, the nightly SBOM
+And to be concrete about what "all of it" means, because the phrase does a lot of work above:
+the cluster, the nightly SBOM
 and CVE jobs, the ops agent correlating live metrics and proposing remediations, the chaos
 provocateur injecting faults and the safety controller failing closed when it can't tell if the
 cluster is healthy, the Yocto device posting its heartbeat and getting its bill of materials
 re-evaluated against fresh vulnerability data overnight, the delivery pipeline signing and
-verifying every image on every commit. Not a demo, not a preserved state spun up for this page.
-Months of continuous operation — and if any of it has stopped, the referees at the top of this
+verifying every image on every commit. If any of it has stopped, the referees at the top of this
 page are the first to know.
 
 ## What it cost
