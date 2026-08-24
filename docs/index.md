@@ -4,15 +4,33 @@ title: The estate
 
 # Retired laptops running production-grade Kubernetes with HA storage, a signed supply chain, deliberate fault injection, inline AI from commit to cluster, and a discipline that treats a green status line as a question, not an answer.
 
-[![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=alerting&logo=prometheus&logoColor=white)](https://healthchecks.io)
-[![Public endpoint](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
+[![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
+[![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
+[![Public endpoint 30d](https://img.shields.io/uptimerobot/ratio/30/m803634462-26ba093afb66ea071e032353?label=30d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 
-*Those two are live.* The first is a dead-man's-switch: the cluster's alert pipeline proves
-itself end to end on a schedule, and the badge goes red if the heartbeat stops. The second is
-an off-site probe of the public entrance, run from outside the house entirely — so it still
-reports when the power or the internet is what failed. Between them they are the estate's
-**referees**: neither one lives inside the system it is grading, which is the entire point of
+*Those are live.* The first is a dead-man's-switch: the alert pipeline proves itself end to
+end on a schedule, and the badge stops being green if the heartbeat stops. The others are an
+off-site probe of the public entrance, run from outside the house entirely — so they still
+report when the power or the internet is what failed. Between them they are the estate's
+**referees**: none of them lives inside the system it is grading, which is the entire point of
 a referee.
+
+> **Two corrections to that badge wall, because they are the kind that quietly mislead.**
+> The first badge is labelled *scheduled jobs*, not *alerting*, because it is a project-wide
+> badge: it reports the worst status of **every** check in the account, not the alert
+> heartbeat alone. It read `late` while the alert pipeline itself was provably healthy —
+> 290 heartbeat deliveries, zero failures — because a different, unrelated check was
+> overdue. A badge whose label is narrower than its scope will eventually be believed.
+>
+> **And there is deliberately no six-month uptime figure here, even though the provider
+> will happily render one.** Asking for progressively longer windows returned 99.874% at
+> 90 days, 99.937% at 180 and 99.969% at 365 — which looks like a steadily better record
+> and is not. Multiply each back out and every one of those windows contains *the same
+> 2.72 hours* of downtime: the monitor has less history than the window, so the numerator
+> is fixed and only the denominator grows. The 7- and 30-day figures move independently of
+> each other, so those are measurements. The longer ones are arithmetic wearing a
+> measurement's clothes, and publishing them would be inventing a track record this
+> platform has not yet earned.
 
 **Structural facts, current as of 2026-08-19:**
 
@@ -23,7 +41,7 @@ a referee.
 ![sbom](https://img.shields.io/badge/images%20with%20an%20SBOM-62%20of%2062-blueviolet)
 ![signed](https://img.shields.io/badge/images-signed%20%2B%20verified-2E2E5F?logo=sigstore&logoColor=white)
 ![ha](https://img.shields.io/badge/failure%20domains%20HA-4%20of%2013-orange)
-![assertions](https://img.shields.io/badge/reality%20assertions-35%20passing-2EA44F)
+![assertions](https://img.shields.io/badge/reality%20assertions-36%20passing-2EA44F)
 
 **A runtime snapshot, queried 2026-08-10** — a moment in time, not a claim of steady state.
 It is here because every figure is one query away from being re-checked, which is the only
@@ -238,7 +256,7 @@ first time.
   state, and escalates when a fault does not self-heal inside its recovery budget.
 - **An operations agent** that reads live cluster state, correlates it, and proposes
   remediations — permitted to apply only the *additive* ones on its own.
-- **35 automated assertions** that documentation, inventory and reality still agree, run on
+- **36 automated assertions** that documentation, inventory and reality still agree, run on
   demand and failing loudly when they diverge.
 
 **Security here is structural, not a layer applied at the end.** Signing, bills of materials,

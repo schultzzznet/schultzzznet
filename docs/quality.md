@@ -144,6 +144,53 @@ a decision's clothes.
 
 ---
 
+## Thirty-six assertions that the documentation is not lying
+
+Documentation rots silently. Nothing errors when a diagram describes a topology that changed
+six weeks ago, and the person best placed to notice is the one who already believes the
+diagram. So a single command re-derives the claims from the live system and fails if any of
+them has stopped being true: inventory against the actual node list, pinned versions against
+what is running, the public-edge allowlist against the two independent places it is declared,
+every standing scheduled job against whether it exists *and is not suspended*.
+
+The most recent addition is the one worth describing, because building it taught more than
+running it. The delivery pipeline signs every image and verifies the signature before
+deploying. Nothing checked whether the images **actually running right now** are signed — a
+different claim, and the gap between them is where an unsigned image would live.
+
+Four things fell out of writing that check, and they generalise:
+
+**Verify the thing, not the label.** The obvious implementation verifies the image tag. It
+would have been useless: most services here run a mutable tag, so verifying it proves
+something about whatever that tag points to *now*, not about the bytes in the running
+container. The check resolves each container's actual digest — what the kubelet pulled — and
+verifies that.
+
+**A check that has never failed is not known to work.** This one was mutation-tested:
+deliberately pointed at the wrong signing key to confirm all images are reported unsigned,
+then pointed back to confirm they all verify. Both directions, or it is decoration.
+
+**An inert check is worse than an absent one.** If the signing tool or the public key is
+missing, the check *fails loudly* rather than skipping. A skipped check reports success, and
+a green line that means "I didn't look" is indistinguishable from one that means "I looked and
+it's fine" — which is the failure mode this whole practice exists to prevent.
+
+**The first result was wrong, and reporting it would have caused a fire drill.** The initial
+run said all seven images were unsigned. That was a tooling default — the verifier was
+demanding a public transparency-log entry, and signing here is offline and key-based, so no
+such entry exists or should. The signatures were valid the whole time. **Reading the actual
+error instead of the exit code was the difference between a correct finding and an alarming
+false one**, and it is the single habit that most often separates the two.
+
+Result today: every running first-party image verifies against the release key. The honest
+remainder is that this is *detection*, not *enforcement* — the cluster has no admission
+controller rejecting an unsigned image, so the guarantee is "the delivery path will not ship
+one", not "the cluster will not run one". That is tracked as a known gap rather than
+implied away, and detection came first deliberately: a fail-closed admission webhook that
+breaks means nothing deploys, including the fix for the webhook.
+
+---
+
 ## Grading our own maturity, weaknesses included
 
 Two independent scoring systems run against this platform and its siblings, on purpose —
