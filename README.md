@@ -2,6 +2,15 @@
 
 **Platform engineer. Full-stack. AI-native.**
 
+**Every technology badged below is actually running — a live estate, not a wish-list.** Nine
+bare-metal Kubernetes nodes built from retired laptops, real applications behind real identity,
+serving around the clock. The AI is on **both** ends: a frontier model helped *build* it, and a
+local model that never leaves the network helps *run* it. And the whole platform is open source,
+community edition or free tier — not one paid licence, in part or in full.
+
+Three of the badges are live measurements taken from **outside** the system they grade; the rest
+name what is in the stack.
+
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
 [![CD](https://img.shields.io/badge/CD-auto--deploy-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
 [![Nightly](https://img.shields.io/badge/Nightly-OWASP%20%2B%20mutation-2088FF?logo=githubactions&logoColor=white)](https://github.com/schultzzznet/the-docker-swarm-ai)
@@ -67,10 +76,11 @@ buildable by one person a few years ago — is the edge I stand on deliberately.
 
 ### 📖 The full write-up → **<https://schultzzznet.github.io/schultzzznet/>**
 
-Nine pages on how the platform is built, secured, operated and graded — including
-[what I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html) and
+Twelve pages on how the platform is built, secured, operated and graded — including
+[what I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html),
 [the measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
-that produced confident, wrong numbers.
+that produced confident, wrong numbers, and
+[why the stack is deliberately not settled](https://schultzzznet.github.io/schultzzznet/#a-testing-ground-that-is-also-load-bearing).
 
 ### 🔧 Want code rather than prose → [`examples/`](examples/)
 
