@@ -10,7 +10,7 @@ title: High availability — what has it, what does not, and how we know
 ![pods](https://img.shields.io/badge/running%20pods-167%20across%2016%20namespaces-326CE5)
 ![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-72%20of%2072-E6522C?logo=prometheus&logoColor=white)
 ![restarts](https://img.shields.io/badge/container%20restarts%2024h-1-2EA44F)
-![backlog](https://img.shields.io/badge/gap%20register-59%20%E2%86%92%2025%20open-24A1C1)
+![backlog](https://img.shields.io/badge/gap%20register-73%20%E2%86%92%2046%20open-24A1C1)
 
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
 true. This page is the audit: which failure domains actually survive losing one machine,
@@ -441,12 +441,22 @@ Fewer than half of the closures were work. The rest was **admitting what was nev
 happen** — a backlog that only grows is not a plan, it is a wish list that quietly makes
 every real item look less urgent.
 
-**The register currently holds 64 items, 39 of them still open.** That number is published
-deliberately, and it is meant to be read as a *positive* figure rather than a confession. Thirty-nine known weaknesses in a system this size does not mean thirty-nine
-things are broken — it means thirty-nine things have been **found, written down, argued
+**The register currently holds 73 items, 46 of them still open.** That number is published
+deliberately, and it is meant to be read as a *positive* figure rather than a confession. Forty-six known weaknesses in a system this size does not mean forty-six
+things are broken — it means forty-six things have been **found, written down, argued
 about and prioritised** instead of being discovered later by someone else, or never. A
 project with a short gap register has usually not looked; the register's length is a measure
 of attention, not of decay.
+
+**It grew by eight on 25 August 2026, and that is the mechanism working rather than failing.**
+Those eight came from writing down, for every tool in the stack, *which parts of it are
+deliberately not used* — a question nobody normally asks. The answers included: the only tier
+of the stack with no static security analysis at all is the mobile one; a scanner already
+deployed on every node has an entire category of its checks switched off; the aggregator
+collecting every security finding is being used as a bucket rather than a queue; and a
+hand-applied fix for a cluster-wide outage had been living outside version control for
+nineteen days with no check able to see it. **Asking a documentation question found more real
+gaps than the last several weeks of operating did.**
 
 That is also the honest description of the working method here: run it, inspect it, correct
 it, write down what was learned, run it again. Most entries in that register exist because
