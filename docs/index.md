@@ -4,6 +4,15 @@ title: The estate
 
 # Retired laptops running production-grade Kubernetes with HA storage, a signed supply chain, deliberate fault injection, inline AI from commit to cluster, and a discipline that treats a green status line as a question, not an answer.
 
+**None of this is a plan, a wish, or a diagram of an intention. All of it is running, right
+now.** Nine machines, live services with real users behind real identity, and every chain
+described on these pages firing on its own schedule whether or not anyone is watching it.
+That includes the AI, on both ends: a frontier model helped **build** it, and a local model
+that never leaves the network helps **run** it. The evidence is
+[further down](#none-of-this-is-a-demo) and it is all queried live rather than remembered.
+
+The three badges below are graded by referees that sit outside the system they are grading.
+
 [![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 [![Public endpoint 30d](https://img.shields.io/uptimerobot/ratio/30/m803634462-26ba093afb66ea071e032353?label=30d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
@@ -137,6 +146,30 @@ Kubernetes nodes assembled from retired laptops and small-form-factor desktops, 
 services that run on them, the embedded devices that talk to them, and the delivery
 chain that ties the lot together.
 
+## A testing ground that is also load-bearing
+
+Both halves of that are true at once, and holding them together is the whole exercise.
+
+The applications are real, serve real users and run around the clock. But this remains a
+place to **take chances** — on setups, on tools, on flows, on everything. These pages
+describe *a* way through. They do not claim it is *the* way. Every choice here is written
+down alongside the alternatives that were considered and passed over, and each rejection
+names the condition that would change the answer — because a rejection without a
+reopen-trigger is just an opinion.
+
+So the stack is not fixed. It can deviate, pivot, or rotate out entirely, and none of that
+counts as damage. **The damage would be getting stuck** — the point where the ugly face of
+production and stability takes over and the platform can no longer learn anything.
+
+That day may well come, and it would be good news, because it would mean something here
+found enough users to deserve it. Until then the options stay deliberately open.
+
+What keeps this from being mere restlessness is that switching is never casual. Every tool
+in the stack is documented not only in how it is used, but in **which of its parts are
+deliberately left unused** — so the cost of replacing it is a known quantity rather than a
+discovery made halfway through. We do not shift often. We do not shift never. We shift to
+grow.
+
 ## The whole thing, on one screen
 
 ```mermaid
@@ -232,9 +265,17 @@ Nobody publishes these, which is exactly why they are here.
 | | |
 |---|---|
 | **Hardware** | Nine machines, all retired or second-hand — five laptops a decade old, two all-in-ones, two small desktops. Bought new, this cluster would be indefensible; the point is that it wasn't. |
+| **Software licences** | **Zero.** Every tool running this platform is open source, a community edition, or a free tier — orchestration, storage, identity, the entire monitoring and security chain, the artifact proxy. Not one paid licence, in part or in full. That is a standing constraint, not an accident of budget, and it doubles as a filter: a tool that cannot be self-hosted for nothing does not get evaluated on features. |
 | **Power** | Measured per-package with the CPUs' own energy counters, not estimated from a spec sheet. Fixing the frequency governor on the two busiest nodes alone cut **13.1 W continuously — about 120 kWh/year.** One node's fan went from 3610 RPM to zero, and fleet time-above-90 °C from 18.3% to 0.0%. |
 | **Time** | Evenings and weekends, over months. The up-front cost was real and is not hidden: replicating storage on hardware that didn't deserve it, giving up packing density for hard failure isolation, thirty-odd decision records, saying no to shortcuts that would plainly have worked in the short term. |
 | **Cloud spend** | Effectively zero, and that is a constraint rather than a boast — it is *why* the delivery chain is split across two kinds of runner, and why an inbound webhook is not an option anywhere in the estate. |
+
+**The one thing that is not free is named, because an unqualified "it cost nothing" would be
+false.** The frontier AI used as a development peer is a paid subscription. It writes and
+reviews code and documentation; it has no access to the running system. The AI that *operates*
+the platform is a local model on hardware already counted above, and costs nothing to run. So:
+the platform is free, the help building it is not — and the two are deliberately kept on
+opposite sides of the network boundary. See [AI, twice](#ai-twice).
 
 The thing that cost the most was not any of the above. It was **re-deriving context** —
 which is why the working agreement, the decision records and the rolling state note exist,
