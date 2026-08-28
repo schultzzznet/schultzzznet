@@ -702,6 +702,11 @@ That loop has no last iteration, and this site does not claim one.
 > *The best engineers are not there just to code. They are there to solve problems.*
 > — Marty Cagan, [Empowered](https://www.svpg.com/books/empowered-ordinary-people-extraordinary-products/)
 
+> *The age of agents has brought us endless execution. Every idea, every hunch, every
+> experiment is now within immediate reach. Working with agents truly is magic — in the best
+> possible sense of the word. What a time to be alive. Nay, what a blessing.*
+> — DHH, [Endless execution](https://world.hey.com/dhh/endless-execution-4157e065) (August 2026)
+
 ---
 
 ## Read next

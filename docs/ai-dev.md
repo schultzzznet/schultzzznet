@@ -65,6 +65,10 @@ That single rule answers the two obvious worries at once:
 
 AI-assisted is welcomed explicitly. AI-*unaccountable* is the thing the rule exists to refuse.
 
+> *Pure vibe coding remains an aspirational dream for professional work for me, for now.
+> Supervised collaboration, though, is here today.*
+> — DHH, [Promoting AI agents](https://world.hey.com/dhh/promoting-ai-agents-3ee04945) (January 2026)
+
 ---
 
 ## What "does it actually work" looks like when you ask it honestly

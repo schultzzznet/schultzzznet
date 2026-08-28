@@ -203,6 +203,16 @@ would change it.** A stack you can only defend by listing what it contains is a 
 have not actually chosen — and the ones you passed on are more informative about your
 judgement than the ones you kept.
 
+DHH, right-sizing in the opposite direction on the same question:
+
+> *When we moved out of the cloud, I spent months getting Kamal off the ground, so we
+> didn’t have to get mired in the complexity of Kubernetes.*
+> — DHH, [A pond of interesting problems](https://world.hey.com/dhh/a-pond-of-interesting-problems-5f697567) (June 2026)
+
+This site went the other way — Kubernetes complexity was accepted, because the learning value
+at this scale is the entire reason the platform exists. Same principle; different evidence;
+different answer. That is what a reopen trigger is for.
+
 ---
 
 ## Read next
