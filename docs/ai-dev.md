@@ -69,6 +69,17 @@ AI-assisted is welcomed explicitly. AI-*unaccountable* is the thing the rule exi
 > Supervised collaboration, though, is here today.*
 > — DHH, [Promoting AI agents](https://world.hey.com/dhh/promoting-ai-agents-3ee04945) (January 2026)
 
+The reason that phrase needs emphasis: in an earlier sprint, DHH's own team went the other
+way — letting designers ship directly through agents without a programmer in the loop. The
+result was PRs that individually looked plausible but collectively *destroyed the
+architecture of the system*, and had to be unwound by hand. Supervised collaboration is not
+a conservative preference; it is the conclusion of a real experiment.
+
+> *We let them vibe. And we ended up with a lot of PRs that individually perhaps could have
+> been justified for a hot moment, but taken all together, destroyed the architecture of the
+> system. And we actually had to clean up manually, mop it up by hand.*
+> — DHH, [Lex Fridman Podcast #501](https://lexfridman.com/dhh-2/) (2026)
+
 ---
 
 ## What "does it actually work" looks like when you ask it honestly

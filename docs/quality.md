@@ -142,6 +142,16 @@ maintainer arriving, or configuration observed drifting in practice** — not "r
 someday." A decision without a stated trigger to revisit it is just procrastination wearing
 a decision's clothes.
 
+The same instinct drives one of the more useful habits in this codebase: resist the urge to
+over-specify before the thing exists.
+
+> *You don’t know what a program should do until you play with it. So in the agentic age,
+> you should resist the temptation to be overly specific upfront. Be as vague as you can to
+> manifest something, then interact with the something. The way you arrive at good software
+> is you write a little bit of software, and then you try to use it. It is in the process of
+> using software that you discover what you really want.*
+> — DHH, [Lex Fridman Podcast #501](https://lexfridman.com/dhh-2/) (2026)
+
 ---
 
 ## Thirty-six assertions that the documentation is not lying

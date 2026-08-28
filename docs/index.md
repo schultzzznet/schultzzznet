@@ -249,6 +249,10 @@ carrier-grade-NAT boundary, an ISP, a public entrance that has actually been dow
 kernel upgrades rolling across nine machines unattended at four in the morning. **The
 failures were never the part that needed simulating.**
 
+> *I didn’t become a programmer because of a deep love of if statements. I became a
+> programmer because I wanted programs. I wanted things to exist that did not exist.*
+> — DHH, [Lex Fridman Podcast #501](https://lexfridman.com/dhh-2/) (2026)
+
 And to be concrete about what "all of it" means, because the phrase does a lot of work above:
 the cluster, the nightly SBOM
 and CVE jobs, the ops agent correlating live metrics and proposing remediations, the chaos

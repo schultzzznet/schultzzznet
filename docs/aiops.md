@@ -74,6 +74,14 @@ is to turn those into a short list, not a longer dashboard.
 A cluster action reaches execution through exactly one of two entry points, and both are
 forced through the same builder before anything is allowed to run.
 
+> *I had to be in the driver’s seat. I had to tell it what I wanted, and I had to be the
+> reviewer, the auditor of what was coming out.*
+> — DHH on the first phase of agentic development, [Lex Fridman Podcast #501](https://lexfridman.com/dhh-2/) (2026)
+
+That sentence describes this ops agent's permanent design, not a transitional one. The
+guardrails are not a stepping stone toward a model that runs unsupervised; they are the
+point.
+
 **A human asks for something in chat.** A deterministic parser handles ordinary phrasing;
 an LLM router only takes over when the parser misses and the text looks like it wants a
 mutation. Neither one ever produces a command. Both can only emit a skill name plus typed
