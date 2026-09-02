@@ -1,6 +1,6 @@
 # Examples — four things worth stealing
 
-Extracted from a running nine-node bare-metal Kubernetes platform, scrubbed of
+Extracted from a running seven-node bare-metal Kubernetes platform, scrubbed of
 hostnames and addresses, and kept as close to the deployed version as scrubbing
 allows. Each one exists because something looked correct and was not.
 

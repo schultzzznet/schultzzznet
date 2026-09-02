@@ -60,11 +60,11 @@ retrofitted with a capacity justification afterwards.
 and storage decision to be explicit rather than accidental. That was real value and it is
 not hindsight-obvious.
 
-**What it actually cost:** two of the nine are a net drain. One is effectively a 2011 laptop
+**What it actually cost:** two of the nine were a net drain. One was effectively a 2011 laptop
 running at 800 MHz whose only defensible role became "deliberately unreliable chaos target"
 — a role a software fault injector can simulate perfectly well without occupying a physical
 machine, a power socket, a switch port and a slot in every fleet-wide playbook run. Every
-`ansible` run waits for it. Every upgrade cycle includes it. Every audit lists it.
+`ansible` run waited for it. Every upgrade cycle included it. Every audit listed it.
 
 **What I'd do:** stop at seven, and treat "I already own it" as the weakest possible
 argument for putting something in a production topology. The retirement plan for those two
@@ -73,6 +73,38 @@ was overdue.
 
 > A node you keep because it exists is not free. It costs a slot in every loop that iterates
 > over the fleet, forever.
+
+### Update: this one got acted on — the cluster is now seven
+
+**Both machines are out.** The paragraphs above were written while they were still running,
+and are left exactly as they were so the prediction can be checked against the outcome
+rather than quietly reconciled with it.
+
+- **2026-08-26** — the chaos-target node left. Its "deliberately unreliable" role was
+  replaced *in software* by a scheduled network-loss experiment, which is the specific claim
+  the lesson made and the reason the hardware role could retire cleanly. The machine was not
+  scrapped: it is now a Linux CI runner, a job it is perfectly adequate at.
+- **2026-08-29** — the second node left. The single application replica it hosted was absorbed
+  by its sibling with **zero downtime**; it held no etcd seat and no storage daemon, so there
+  was no quorum or data migration to do. That was checked before the drain, not assumed.
+
+**The honest accounting, though, because "the lesson worked" is too clean a story:** only
+*one* of the two left for the reason argued above. The other left because the hardware was
+wanted for an unrelated project. The right thing happened to both, but the reasoning above
+is responsible for one of them, and claiming the pair would be taking credit for a
+coincidence.
+
+**The part that is genuinely useful is the bit the original got wrong.** The retirement plan
+was described as "waiting on a replacement machine". No replacement ever arrived. Both nodes
+left anyway, the cluster went from nine to seven with nothing added, and nothing needed
+replacing — the capacity justification had been retrofitted, exactly as the first paragraph
+suspected, so removing the machines removed a cost rather than a capability. **The blocker
+was fictional, and it survived months of being written down as real.**
+
+> **The transferable version:** a documented blocker is not a verified one. "Waiting on X"
+> written in a plan is a claim like any other, and it should be checked the same way — by
+> asking what actually breaks if you proceed without X. Here the answer was *nothing*, and
+> the question had never been put.
 
 ---
 

@@ -6,10 +6,10 @@ title: High availability — what has it, what does not, and how we know
 
 ![domains](https://img.shields.io/badge/failure%20domains-4%20of%2013%20genuinely%20HA-326CE5?logo=kubernetes&logoColor=white)
 ![gaps](https://img.shields.io/badge/tracked%20gaps-9%20open%2C%20none%20hidden-orange)
-![nodes](https://img.shields.io/badge/nodes%20Ready-9%20of%209-2EA44F)
-![pods](https://img.shields.io/badge/running%20pods-167%20across%2016%20namespaces-326CE5)
-![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-72%20of%2072-E6522C?logo=prometheus&logoColor=white)
-![restarts](https://img.shields.io/badge/container%20restarts%2024h-1-2EA44F)
+![nodes](https://img.shields.io/badge/nodes%20Ready-7%20of%207-2EA44F)
+![pods](https://img.shields.io/badge/running%20pods-168%20across%2019%20namespaces-326CE5)
+![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-81%20of%2081-E6522C?logo=prometheus&logoColor=white)
+![restarts](https://img.shields.io/badge/container%20restarts%2024h-104-575757)
 ![backlog](https://img.shields.io/badge/gap%20register-75%20%E2%86%92%2053%20open-24A1C1)
 
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
@@ -18,8 +18,11 @@ which ones do not, which ones are *deliberately* not replicated, and what happen
 untested assumptions were finally exercised in anger.
 
 Every status below was read off the live cluster with a query, not off an architecture
-diagram. The runtime figures in the badges are a dated snapshot (2026-08-10); the structural
-ones are current.
+diagram. The runtime figures in the badges are a dated snapshot (2026-09-02); the structural
+ones are current. **The restart count is high because the whole estate was deliberately
+powered down the day before** — 104 containers coming back up is what a planned full-cluster
+stop looks like from inside the metrics, not an instability signal. Two restarts in the
+three hours before the snapshot.
 
 ---
 
@@ -44,7 +47,7 @@ DNS, the public edge, the physical layer (one switch, one power feed), and the o
 agent itself.
 
 The physical layer is an explicit *accept*, written down as such. One switch and one power
-feed are genuinely hard problems at nine machines in a house, and pretending otherwise would
+feed are genuinely hard problems at seven machines in a house, and pretending otherwise would
 be the worst kind of documentation.
 
 ---
@@ -111,7 +114,7 @@ layer and nowhere else on the storage side.
 
 ## Scheduling by fact, not by hope
 
-Nine machines spanning a decade of hardware generations do not schedule safely under a
+Seven machines spanning a decade of hardware generations do not schedule safely under a
 single generic "a node is a node" model, so every node carries labels for measured disk
 speed, measured CPU class, and thermal headroom under sustained load — facts read off the
 hardware, not guesses about it. Workloads are steered toward suitable nodes with a *soft*

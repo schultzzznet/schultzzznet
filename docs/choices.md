@@ -127,7 +127,7 @@ a permanently-running component observing a metric that does not exist. **VPA** 
 HPA on the same metric unless carefully partitioned; resource requests are hand-tuned instead.
 
 Note also what is *absent*: there is no cluster-autoscaler analogue, because the fleet is
-nine fixed machines. Scale-out only. A platform that cannot add nodes should say so rather
+seven fixed machines. Scale-out only. A platform that cannot add nodes should say so rather
 than imply elasticity it does not have.
 
 ---
