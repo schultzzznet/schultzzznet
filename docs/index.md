@@ -5,7 +5,7 @@ title: The estate
 # Retired laptops running production-grade Kubernetes with HA storage, a signed supply chain, deliberate fault injection, inline AI from commit to cluster, and a discipline that treats a green status line as a question, not an answer.
 
 **None of this is a plan, a wish, or a diagram of an intention. All of it is running, right
-now.** Seven machines, live services with real users behind real identity, and every chain
+now.** Six machines, live services with real users behind real identity, and every chain
 described on these pages firing on its own schedule whether or not anyone is watching it.
 That includes the AI, on both ends: a frontier model helped **build** it, and a local model
 that never leaves the network helps **run** it. The evidence is
@@ -79,7 +79,7 @@ which is precisely what redundancy is *for*, and the only way to know it works i
 
 And the residual is the interesting half. The outages behind those 164 minutes that have
 actually been diagnosed were failures of the **public edge** — a single small machine and a
-single relay, both outside the cluster — rather than of the seven-node cluster itself. **The
+single relay, both outside the cluster — rather than of the six-node cluster itself. **The
 downtime is concentrated in the one part of the path that is not redundant**, exactly where
 the single-point analysis predicted it would be. The chaos does not show up in the number;
 the unredundant hop does. A figure like this is therefore not evidence of caution, and it
@@ -97,33 +97,34 @@ load-bearing, and a live indicator of where the next one is owed.
 ![ha](https://img.shields.io/badge/failure%20domains%20HA-4%20of%2013-orange)
 ![assertions](https://img.shields.io/badge/reality%20assertions-46%20passing-2EA44F)
 
-**A runtime snapshot, queried 2026-09-02** — a moment in time, not a claim of steady state.
+**A runtime snapshot, queried 2026-09-04** — a moment in time, not a claim of steady state.
 It is here because every figure is one query away from being re-checked, which is the only
 reason to publish a number at all:
 
-![nodes ready](https://img.shields.io/badge/nodes%20Ready-7%20of%207-2EA44F?logo=kubernetes&logoColor=white)
-![pods](https://img.shields.io/badge/running%20pods-168%20%C2%B7%2019%20namespaces-326CE5)
-![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-81%20of%2081-E6522C?logo=prometheus&logoColor=white)
-![series](https://img.shields.io/badge/active%20metric%20series-~288k-E6522C?logo=prometheus&logoColor=white)
-![restarts](https://img.shields.io/badge/container%20restarts%2024h-104-575757)
-![capacity](https://img.shields.io/badge/fleet-52%20cores%20%C2%B7%20108%20GB-575757)
-![busy](https://img.shields.io/badge/CPU%20busy-10.8%25-2EA44F)
+![nodes ready](https://img.shields.io/badge/nodes%20Ready-6%20of%206-2EA44F?logo=kubernetes&logoColor=white)
+![pods](https://img.shields.io/badge/running%20pods-159%20%C2%B7%2018%20namespaces-326CE5)
+![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-67%20of%2070-E6522C?logo=prometheus&logoColor=white)
+![series](https://img.shields.io/badge/active%20metric%20series-~343k-E6522C?logo=prometheus&logoColor=white)
+![restarts](https://img.shields.io/badge/container%20restarts-13-575757)
+![capacity](https://img.shields.io/badge/fleet-48%20cores%20%C2%B7%2093%20GB-575757)
+![busy](https://img.shields.io/badge/CPU%20busy-8.7%25-2EA44F)
 
-**That restart count is the interesting one, and it is left in deliberately.** A previous
-snapshot here read `1`. This one reads 104 because the entire estate was powered down the
-day before — every node, on purpose, so the room could be cleaned — and 104 containers came
-back up. In the three hours before this snapshot there were **two**. The number is not a
-regression and it is not steady state; it is what a planned full-cluster restart looks like
-from inside the metrics, and rounding it back down to a prettier figure would have been the
-only dishonest option available.
+**The scrape figure is the interesting one, and it is left in deliberately.** Sixty-seven of
+seventy is not a rounding error — the three that are down are the etcd metrics endpoints, and
+that is why two etcd alerts are firing below. etcd itself is *fine*: the API server's own
+`/healthz/etcd` returns `ok`. What broke is the ability to **see** etcd, because this morning's
+rebuild did not restore the drop-in that exposes those metrics, and the scrape list still names
+a node that stopped being an etcd member two days ago. A previous snapshot here read `81 of 81`.
+Rounding this back up to a prettier figure would have been the only dishonest option available.
 
-Three alerts were firing at that moment. One is the watchdog that is *supposed* to fire,
-continuously, because its silence is what proves the alert pipeline has died. The other two
-are real and unresolved: the off-site backup job failed during that same power-down window
-and has not yet had a clean run to clear itself. The primary backup path — continuous
-archiving to object storage — was unaffected. **They are listed here rather than waited out,
-because a snapshot that only gets published when it is all green is a marketing asset, not a
-measurement.**
+Eight alerts were firing at that moment. One is the watchdog that is *supposed* to fire,
+continuously, because its silence is what proves the alert pipeline has died. Two are the etcd
+pair described above — firing on **absent data rather than on a sick database**, which is the
+more dangerous failure of the two, because an alert that fires for the wrong reason can no
+longer tell you anything when the right reason arrives. The remaining four are absent-metric
+guards for components that have not reported since the rebuild. **They are listed here rather
+than waited out, because a snapshot that only gets published when it is all green is a
+marketing asset, not a measurement.**
 
 ## None of this is a demo
 
@@ -139,13 +140,14 @@ Verified at the time of writing by query, not from memory:
 
 | | |
 |---|---|
-| Project history | **1,498 commits** over **146 active days**, first commit 21 Dec 2025 |
-| Live workload | **168 pods** across **19 namespaces** on 7 nodes |
-| Scheduled chains | **7 of 7** fired within the last 24 hours, none suspended — but **6 of the 7 succeeded**: the off-site backup failed, which is the alert named above |
-| Most recent runs | off-site backup 02:30 *(failed; last clean run 01 Sep 02:31)*, SBOM scan 01:30, capacity check 05:00 — this morning |
+| Project history | **1,520 commits** over **148 active days**, first commit 21 Dec 2025 |
+| Live workload | **159 pods** across **18 namespaces** on 6 nodes |
+| Scheduled chains | **7 defined, none suspended.** Two have fired: the five-minute capacity check and the thirty-minute upgrade-plan check. The other five are daily jobs due between 02:00 and 04:30 — and the cluster was rebuilt at 06:45 *this morning*, so their first run is tomorrow. Reporting them as "fired" today would be a lie the dashboard would happily tell. |
+| Most recent runs | capacity check **16:50**, upgrade-plan check **16:30**, an on-demand SBOM scan **09:11** — all today |
 
-**And the uptime figures here are deliberately unimpressive.** The hosts have been up one to
-three days; the cluster's oldest object is four weeks old. That is not a hole in the record —
+**And the uptime figures here are deliberately unimpressive.** Every host has been up **ten
+hours**, and the cluster's oldest object is **ten hours old** — it was torn down and rebuilt
+from scratch this morning. That is not a hole in the record —
 it *is* the record. Nodes reboot because unattended patching reboots them, and the cluster is
 young because it was wiped and rebuilt on purpose, to prove that a wrong foundational decision
 costs an afternoon here rather than a migration project. **A machine with a year of uptime is
@@ -154,7 +156,7 @@ service and the practice around it — never any individual part of it. The core
 constant for eight months; the deployments of it have been many. Every component is meant to
 be disposable, and is regularly disposed of.
 
-This is a home-built platform that is run like a production one: seven bare-metal
+This is a home-built platform that is run like a production one: six bare-metal
 Kubernetes nodes assembled from retired laptops and small-form-factor desktops, the
 services that run on them, the embedded devices that talk to them, and the delivery
 chain that ties the lot together.
@@ -197,7 +199,7 @@ flowchart TB
     FUN["relay + reverse proxy<br/>default-deny allowlist"]
   end
 
-  subgraph K3S["Seven bare-metal nodes"]
+  subgraph K3S["Six bare-metal nodes"]
     CP["3 × control plane<br/>embedded etcd quorum"]
     APPS["5 Spring Boot services<br/>5 Flutter clients"]
     DATA["8 Postgres clusters<br/>replica-3 block storage<br/>object store"]
@@ -281,7 +283,7 @@ Nobody publishes these, which is exactly why they are here.
 
 | | |
 |---|---|
-| **Hardware** | Seven machines, all retired or second-hand — three laptops a decade old, two all-in-ones, two small desktops. It was nine; two were deliberately retired from the cluster, for [reasons written down before they left](lessons.md#2-nine-nodes-was-two-too-many). Bought new, this cluster would be indefensible; the point is that it wasn't. |
+| **Hardware** | Six machines, all retired or second-hand — three laptops a decade old, three small desktops. It was nine: two were deliberately retired for [reasons written down before they left](lessons.md#2-nine-nodes-was-two-too-many), both all-in-ones have since followed them out, and one more small desktop joined. Bought new, this cluster would be indefensible; the point is that it wasn't. |
 | **Software licences** | **Zero.** Every tool running this platform is open source, a community edition, or a free tier — orchestration, storage, identity, the entire monitoring and security chain, the artifact proxy. Not one paid licence, in part or in full. That is a standing constraint, not an accident of budget, and it doubles as a filter: a tool that cannot be self-hosted for nothing does not get evaluated on features. |
 | **Power** | Measured per-package with the CPUs' own energy counters, not estimated from a spec sheet. Fixing the frequency governor on the two busiest nodes alone cut **13.1 W continuously — about 120 kWh/year.** One node's fan went from 3610 RPM to zero, and fleet time-above-90 °C from 18.3% to 0.0%. |
 | **Time** | Evenings and weekends, over months. The up-front cost was real and is not hidden: replicating storage on hardware that didn't deserve it, giving up packing density for hard failure isolation, thirty-odd decision records, saying no to shortcuts that would plainly have worked in the short term. |
@@ -336,7 +338,7 @@ first time.
 
 ## What is actually running
 
-- **Seven nodes**, three of them control-plane with embedded etcd, on hardware spanning
+- **Six nodes**, three of them control-plane with embedded etcd, on hardware spanning
   2011 laptops to modern small desktops. The heterogeneity is deliberate — it forces the
   scheduling and storage decisions to be explicit rather than accidental. Nodes carry
   labels for CPU class, disk class, sustained-load tolerance and **disk health**, and
@@ -712,7 +714,7 @@ plan is the boring one: **let the pattern travel, and keep the laboratory a labo
 Nothing on this site describes a finished artifact, and that is deliberate rather than
 apologetic. Every page above ends the same way it started: a claim, checked, with the gaps
 named instead of rounded off. The discipline is the same loop on every page, at every scale,
-whether the subject is a seven-node cluster or a single Raspberry Pi:
+whether the subject is a six-node cluster or a single Raspberry Pi:
 
 > **ship → observe → learn → harden → prove → repeat.**
 

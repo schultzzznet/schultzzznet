@@ -74,7 +74,7 @@ was overdue.
 > A node you keep because it exists is not free. It costs a slot in every loop that iterates
 > over the fleet, forever.
 
-### Update: this one got acted on — the cluster is now seven
+### Update: this one got acted on — the cluster is now six
 
 **Both machines are out.** The paragraphs above were written while they were still running,
 and are left exactly as they were so the prediction can be checked against the outcome
@@ -100,6 +100,15 @@ left anyway, the cluster went from nine to seven with nothing added, and nothing
 replacing — the capacity justification had been retrofitted, exactly as the first paragraph
 suspected, so removing the machines removed a cost rather than a capability. **The blocker
 was fictional, and it survived months of being written down as real.**
+
+**Second update, 2026-09-04 — the number moved again, past where the lesson said to stop.**
+The advice above was "stop at seven". The fleet did not: a faster machine joined as a third
+control-plane member, and both all-in-ones were then retired behind it, leaving **six**. So it
+landed one below the recommendation, by a route the lesson never considered — *replacing*
+capacity rather than only removing it. Worth saying plainly, because the tidy version of this
+story would be "the lesson said seven and we got seven". The count was never the point. "I
+already own it" being the weakest possible reason to keep a machine is the point, and that
+held all four times.
 
 > **The transferable version:** a documented blocker is not a verified one. "Waiting on X"
 > written in a plan is a claim like any other, and it should be checked the same way — by

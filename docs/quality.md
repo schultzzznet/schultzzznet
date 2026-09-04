@@ -299,7 +299,7 @@ what is deployed and verified, never what is merely designed. Nothing on the who
 at a perfect score, on purpose.
 
 The tool itself doesn't know or care what it's grading — the same schema has scored a
-seven-node Kubernetes platform, the application layer running on it, an embedded Linux image
+six-node Kubernetes platform, the application layer running on it, an embedded Linux image
 built from source, and an unrelated robotics safety system, each with its own vectors and its
 own weights. **A capability-maturity tool that only works on the thing it was written for
 isn't a tool, it's a spreadsheet with extra steps.**

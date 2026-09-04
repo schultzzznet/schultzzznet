@@ -6,11 +6,11 @@ title: High availability — what has it, what does not, and how we know
 
 ![domains](https://img.shields.io/badge/failure%20domains-4%20of%2013%20genuinely%20HA-326CE5?logo=kubernetes&logoColor=white)
 ![gaps](https://img.shields.io/badge/tracked%20gaps-9%20open%2C%20none%20hidden-orange)
-![nodes](https://img.shields.io/badge/nodes%20Ready-7%20of%207-2EA44F)
-![pods](https://img.shields.io/badge/running%20pods-168%20across%2019%20namespaces-326CE5)
-![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-81%20of%2081-E6522C?logo=prometheus&logoColor=white)
-![restarts](https://img.shields.io/badge/container%20restarts%2024h-104-575757)
-![backlog](https://img.shields.io/badge/gap%20register-75%20%E2%86%92%2053%20open-24A1C1)
+![nodes](https://img.shields.io/badge/nodes%20Ready-6%20of%206-2EA44F)
+![pods](https://img.shields.io/badge/running%20pods-159%20across%2018%20namespaces-326CE5)
+![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-67%20of%2070-E6522C?logo=prometheus&logoColor=white)
+![restarts](https://img.shields.io/badge/container%20restarts-13-575757)
+![backlog](https://img.shields.io/badge/gap%20register-70%20%E2%86%92%2051%20open-24A1C1)
 
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
 true. This page is the audit: which failure domains actually survive losing one machine,
@@ -47,7 +47,7 @@ DNS, the public edge, the physical layer (one switch, one power feed), and the o
 agent itself.
 
 The physical layer is an explicit *accept*, written down as such. One switch and one power
-feed are genuinely hard problems at seven machines in a house, and pretending otherwise would
+feed are genuinely hard problems at six machines in a house, and pretending otherwise would
 be the worst kind of documentation.
 
 ---
@@ -114,7 +114,7 @@ layer and nowhere else on the storage side.
 
 ## Scheduling by fact, not by hope
 
-Seven machines spanning a decade of hardware generations do not schedule safely under a
+Six machines spanning a decade of hardware generations do not schedule safely under a
 single generic "a node is a node" model, so every node carries labels for measured disk
 speed, measured CPU class, and thermal headroom under sustained load — facts read off the
 hardware, not guesses about it. Workloads are steered toward suitable nodes with a *soft*
@@ -444,9 +444,9 @@ Fewer than half of the closures were work. The rest was **admitting what was nev
 happen** — a backlog that only grows is not a plan, it is a wish list that quietly makes
 every real item look less urgent.
 
-**The register currently holds 75 items, 53 of them still open.** That number is published
-deliberately, and it is meant to be read as a *positive* figure rather than a confession. Fifty-three known weaknesses in a system this size does not mean fifty-three
-things are broken — it means fifty-three things have been **found, written down, argued
+**The register currently holds 70 items, 51 of them still open.** That number is published
+deliberately, and it is meant to be read as a *positive* figure rather than a confession. Fifty-one known weaknesses in a system this size does not mean fifty-one
+things are broken — it means fifty-one things have been **found, written down, argued
 about and prioritised** instead of being discovered later by someone else, or never. A
 project with a short gap register has usually not looked; the register's length is a measure
 of attention, not of decay.
