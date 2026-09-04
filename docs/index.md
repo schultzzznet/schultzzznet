@@ -145,9 +145,9 @@ Verified at the time of writing by query, not from memory:
 | Scheduled chains | **7 defined, none suspended.** Two have fired: the five-minute capacity check and the thirty-minute upgrade-plan check. The other five are daily jobs due between 02:00 and 04:30 — and the cluster was rebuilt at 06:45 *this morning*, so their first run is tomorrow. Reporting them as "fired" today would be a lie the dashboard would happily tell. |
 | Most recent runs | capacity check **16:50**, upgrade-plan check **16:30**, an on-demand SBOM scan **09:11** — all today |
 
-**And the uptime figures here are deliberately unimpressive.** Every host has been up **ten
-hours**, and the cluster's oldest object is **ten hours old** — it was torn down and rebuilt
-from scratch this morning. That is not a hole in the record —
+**And the uptime figures here are deliberately unimpressive.** *This* cluster is hours old.
+The one before it ran for weeks and was then torn down on purpose. That is not a hole in the
+record —
 it *is* the record. Nodes reboot because unattended patching reboots them, and the cluster is
 young because it was wiped and rebuilt on purpose, to prove that a wrong foundational decision
 costs an afternoon here rather than a migration project. **A machine with a year of uptime is
