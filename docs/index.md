@@ -86,45 +86,63 @@ the unredundant hop does. A figure like this is therefore not evidence of cautio
 would be misread as such — it is evidence that the expensive architectural decisions are
 load-bearing, and a live indicator of where the next one is owed.
 
-**Structural facts, current as of 2026-09-02:**
+**Structural facts, current as of 2026-09-17:**
 
-![nodes](https://img.shields.io/badge/bare--metal%20nodes-7-326CE5?logo=kubernetes&logoColor=white)
+![nodes](https://img.shields.io/badge/bare--metal%20nodes-6-326CE5?logo=kubernetes&logoColor=white)
 ![control plane](https://img.shields.io/badge/control%20plane-3%20%C3%97%20etcd-419EDA?logo=etcd&logoColor=white)
 ![storage](https://img.shields.io/badge/every%20volume-replica--3-EF5423?logo=ceph&logoColor=white)
-![postgres](https://img.shields.io/badge/Postgres%20clusters-8-4169E1?logo=postgresql&logoColor=white)
+![postgres](https://img.shields.io/badge/Postgres%20clusters-13-4169E1?logo=postgresql&logoColor=white)
+![pg version](https://img.shields.io/badge/PostgreSQL-18%20%C2%B7%20migrated%20with%20no%20downtime-4169E1?logo=postgresql&logoColor=white)
 ![sbom](https://img.shields.io/badge/images%20with%20an%20SBOM-62%20of%2062-blueviolet)
 ![signed](https://img.shields.io/badge/images-signed%20%2B%20verified-2E2E5F?logo=sigstore&logoColor=white)
-![ha](https://img.shields.io/badge/failure%20domains%20HA-4%20of%2013-orange)
-![assertions](https://img.shields.io/badge/reality%20assertions-46%20passing-2EA44F)
+![ha](https://img.shields.io/badge/failure%20domains%20HA-7%20of%2013-yellow)
+![assertions](https://img.shields.io/badge/reality%20assertions-45%20passing-2EA44F)
 
-**A runtime snapshot, queried 2026-09-04** — a moment in time, not a claim of steady state.
+**A runtime snapshot, queried 2026-09-17** — a moment in time, not a claim of steady state.
 It is here because every figure is one query away from being re-checked, which is the only
 reason to publish a number at all:
 
 ![nodes ready](https://img.shields.io/badge/nodes%20Ready-6%20of%206-2EA44F?logo=kubernetes&logoColor=white)
-![pods](https://img.shields.io/badge/running%20pods-159%20%C2%B7%2018%20namespaces-326CE5)
-![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-67%20of%2070-E6522C?logo=prometheus&logoColor=white)
-![series](https://img.shields.io/badge/active%20metric%20series-~343k-E6522C?logo=prometheus&logoColor=white)
-![restarts](https://img.shields.io/badge/container%20restarts-13-575757)
+![pods](https://img.shields.io/badge/running%20pods-188%20%C2%B7%2016%20namespaces-326CE5)
+![scrape](https://img.shields.io/badge/scrape%20targets%20healthy-103%20of%20103-2EA44F?logo=prometheus&logoColor=white)
+![series](https://img.shields.io/badge/active%20metric%20series-~379k-E6522C?logo=prometheus&logoColor=white)
+![restarts](https://img.shields.io/badge/container%20restarts-3-575757)
 ![capacity](https://img.shields.io/badge/fleet-48%20cores%20%C2%B7%2093%20GB-575757)
-![busy](https://img.shields.io/badge/CPU%20busy-8.7%25-2EA44F)
+![busy](https://img.shields.io/badge/CPU%20busy-14.4%25-2EA44F)
 
-**The scrape figure is the interesting one, and it is left in deliberately.** Sixty-seven of
-seventy is not a rounding error — the three that are down are the etcd metrics endpoints, and
-that is why two etcd alerts are firing below. etcd itself is *fine*: the API server's own
-`/healthz/etcd` returns `ok`. What broke is the ability to **see** etcd, because this morning's
-rebuild did not restore the drop-in that exposes those metrics, and the scrape list still names
-a node that stopped being an etcd member two days ago. A previous snapshot here read `81 of 81`.
-Rounding this back up to a prettier figure would have been the only dishonest option available.
+**The scrape figure used to be the interesting one, and the reason it is no longer is worth
+keeping.** A previous snapshot here published **67 of 70** and explained why: the three that
+were down were the etcd metrics endpoints, because a rebuild had not restored the drop-in that
+exposes them and the scrape list still named a node that had stopped being an etcd member two
+days earlier. etcd itself was fine throughout — what had broken was the ability to *see* it.
+That is now **103 of 103**, and the count rose rather than merely recovering, because the
+missing endpoints came back *and* more has been brought under monitoring since.
 
-Eight alerts were firing at that moment. One is the watchdog that is *supposed* to fire,
-continuously, because its silence is what proves the alert pipeline has died. Two are the etcd
-pair described above — firing on **absent data rather than on a sick database**, which is the
-more dangerous failure of the two, because an alert that fires for the wrong reason can no
-longer tell you anything when the right reason arrives. The remaining four are absent-metric
-guards for components that have not reported since the rebuild. **They are listed here rather
-than waited out, because a snapshot that only gets published when it is all green is a
-marketing asset, not a measurement.**
+The number was published while it was ugly, and the fix is the reason it is not ugly now.
+Rounding it up at the time would have removed the only pressure that closed it.
+
+**Two Postgres figures changed together, and the second is the point.** The cluster count went
+from 8 to 13 not because five databases were added, but because all five application databases
+were **migrated from PostgreSQL 16 to 18 with no maintenance window**, and their predecessors
+are still running as the rollback path until the soak ends. The migration ran a parallel cluster,
+kept it in sync with logical replication, and cut over by *pausing* the connection pooler — so
+clients blocked for a few seconds instead of erroring. Measured per database: 87 to 142 seconds,
+zero errors. That temporary doubling is the honest cost of not needing a restore to undo it.
+
+**Four alerts were firing at that moment, and they are listed rather than waited out**, because
+a snapshot that only gets published when it is all green is a marketing asset, not a measurement.
+
+One is the watchdog that is *supposed* to fire, continuously, because its silence is what proves
+the alert pipeline has died. The other three are warnings, each pointing at something real: WAL
+archiving lagging behind on one database, the backup plugin sharing a node with a primary it is
+supposed to be able to rescue, and a node spending too much of the hour above 90 °C. None is an
+outage. All three are the kind of finding that only exists because something is watching for it.
+
+The earlier version of this snapshot listed **eight** alerts, two of which were the etcd pair
+described above — alerts firing on **absent data rather than on a sick database**. That is the
+more dangerous of the two failures, because an alert that fires for the wrong reason can no
+longer tell you anything when the right reason arrives. Those are gone, having been fixed rather
+than silenced.
 
 ## None of this is a demo
 
@@ -140,8 +158,8 @@ Verified at the time of writing by query, not from memory:
 
 | | |
 |---|---|
-| Project history | **1,520 commits** over **148 active days**, first commit 21 Dec 2025 |
-| Live workload | **159 pods** across **18 namespaces** on 6 nodes |
+| Project history | **1,666 commits** over **161 active days**, first commit 21 Dec 2025 |
+| Live workload | **188 pods** across **16 namespaces** on 6 nodes |
 | Scheduled chains | **7 defined, none suspended.** Two have fired: the five-minute capacity check and the thirty-minute upgrade-plan check. The other five are daily jobs due between 02:00 and 04:30 — and the cluster was rebuilt at 06:45 *this morning*, so their first run is tomorrow. Reporting them as "fired" today would be a lie the dashboard would happily tell. |
 | Most recent runs | capacity check **16:50**, upgrade-plan check **16:30**, an on-demand SBOM scan **09:11** — all today |
 
@@ -202,7 +220,7 @@ flowchart TB
   subgraph K3S["Six bare-metal nodes"]
     CP["3 × control plane<br/>embedded etcd quorum"]
     APPS["5 Spring Boot services<br/>5 Flutter clients"]
-    DATA["8 Postgres clusters<br/>replica-3 block storage<br/>object store"]
+    DATA["13 Postgres clusters<br/>replica-3 block storage<br/>object store"]
     OBS["metrics · logs · dashboards<br/>alert routing"]
     SEC["SBOM + CVE tracker<br/>findings aggregator"]
     CHAOS["scheduled fault injector<br/>+ safety controller"]
@@ -346,9 +364,11 @@ first time.
 - **Replicated block storage**, three-way, host-level failure domain, as the sole storage
   class. The single-node storage provisioner is switched off on purpose so that an
   unqualified volume claim *cannot* silently pin itself to one machine's disk.
-- **Eight Postgres clusters** under an operator — four at three instances, four at two. The
+- **Thirteen Postgres clusters** under an operator — eight at three instances, five at two. The
   application and identity databases run **synchronous** replication; every one of them
-  archives continuously to object storage.
+  archives continuously to object storage. **Five of the thirteen are temporary:** the five
+  application databases were migrated 16 → 18 without a maintenance window, and their
+  predecessors stay up as the rollback path until the soak ends.
 - **Five Spring Boot services** and **five Flutter clients**, plus identity, ingress,
   metrics, logs and dashboards. **No node carries a taint any more, and that is a change
   rather than a simplification:** the two machines that were tainted — one with no wired
@@ -594,6 +614,13 @@ the time rather than reconstructed afterwards:
 | No decision records | The same arguments recur forever, and you cannot tell a wrong decision from an unlucky one. |
 | No contracts, no drills | The public edge silently widens; "it rebuilds from git" stays a belief. |
 | Hand-configured nodes | Adding one is a day's work; the fleet diverges until nothing is reproducible. |
+
+**One of those rows stopped being hypothetical.** *"Every upgrade is a maintenance window"* was
+an argument for using an operator until September 2026, when all five application databases were
+moved from PostgreSQL 16 to 18 while they were serving — a parallel cluster kept in sync by
+logical replication, cut over by pausing the connection pooler so clients blocked rather than
+failed. Between 87 and 142 seconds each, no errors, no window announced, nobody woken. The
+operator is what made that a scripted procedure instead of a project.
 
 **The compounding cost isn't the outages.** It is that all the time goes to firefighting. A
 stack in that state can't take a risk, can't try the new thing, can't be handed over, and

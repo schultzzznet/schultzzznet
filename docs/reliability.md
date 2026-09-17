@@ -266,6 +266,24 @@ here" is someone else's working day.)
 pause patching because you are "in the middle of a resilience test," you have admitted the
 resilience claim is conditional.
 
+### The same argument, applied to the database tier
+
+Deleting the reboot window is easy to accept for stateless things. The harder case is the one
+with the data in it — and a **major PostgreSQL version upgrade** is the case people most
+readily concede a window for, because the on-disk format changes and there is no in-place path.
+
+In September 2026 all five application databases went from 16 to 18 without one. The method was
+to stop treating the upgrade as an event: build the replacement cluster alongside the live one,
+keep it continuously in sync with logical replication, and make the cutover a **pause** rather
+than a stop — the connection pooler holds client connections open and drains the queries in
+flight, so applications block for seconds instead of receiving errors. Each database took
+between 87 and 142 seconds. One of them was the identity provider, which every other service
+authenticates against, so it was also the one with the least room to be wrong.
+
+What that cost, stated plainly: the old clusters are still running as the rollback path, so the
+database footprint is temporarily double. That is the deliberate trade — undoing the migration
+needs a connection string, not a restore.
+
 Dedicated fault injection still exists and is still worth having — it covers fault classes
 the reboot loop never produces. But the *most representative* single-fault test on this
 platform is the one that was already running.
