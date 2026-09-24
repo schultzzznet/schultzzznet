@@ -1,0 +1,25 @@
+# Site navigation, rendered in the header of every page by _includes/site-nav.html.
+# A new page is invisible to readers until it is listed here.
+- section: Start
+  pages:
+    - { title: The estate, url: / }
+- section: Platform
+  pages:
+    - { title: Delivery chain, url: /platform.html }
+    - { title: DevSecOps, url: /devsecops.html }
+    - { title: High availability, url: /reliability.html }
+    - { title: Quality & maturity, url: /quality.html }
+- section: AI
+  pages:
+    - { title: Operations agent, url: /aiops.html }
+    - { title: AI in development, url: /ai-dev.html }
+- section: Hardware
+  pages:
+    - { title: Embedded (Yocto), url: /yocto.html }
+    - { title: 3D printing, url: /printing.html }
+- section: Judgement
+  pages:
+    - { title: Lessons, url: /lessons.html }
+    - { title: Tool choices, url: /choices.html }
+    - { title: An incident, url: /incident.html }
+    - { title: Compliance, url: /compliance.html }

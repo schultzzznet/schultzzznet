@@ -64,6 +64,18 @@ while IFS= read -r page; do
   fi
 done < <(grep -rl '```mermaid' "${TARGETS[@]}" --include='*.md' 2>/dev/null || true)
 
+# The header nav is the only way between pages, so a page missing from it is unreachable.
+if [ -f docs/_data/nav.yml ]; then
+  for page in docs/*.md; do
+    name=$(basename "$page" .md)
+    url="/$name.html"; [ "$name" = index ] && url="/"
+    if ! grep -qE "url: $url( |})" docs/_data/nav.yml; then
+      echo "FAIL: $page is not in docs/_data/nav.yml - no page links to it from the header."
+      fail=1
+    fi
+  done
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo "Public docs guard FAILED — the above would be published to a public site."
   exit 1
