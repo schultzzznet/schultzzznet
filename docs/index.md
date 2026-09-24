@@ -779,6 +779,8 @@ That loop has no last iteration, and this site does not claim one.
 - **[The embedded side](yocto.md)** — a custom Linux image with signed over-the-air updates,
   the work required to make a vulnerability scanner tell the truth about it, and three traps
   that only real hardware finds.
+- **[The mechanical side](printing.md)**: printable parts as code, rendered on the
+  cluster into the previews on that page, and six first answers that turned out wrong.
 - **[What I'd do differently](lessons.md)** — the wrong orchestrator, two nodes too many,
   three OSDs that look like resilience, six claims reversed on evidence, and the four things
   worth keeping.
