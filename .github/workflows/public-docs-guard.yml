@@ -9,14 +9,16 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "examples/**"
       - "README.md"
-      - "scripts/check-public-docs.sh"
+      - "scripts/**"
       - ".github/workflows/public-docs-guard.yml"
   pull_request:
     paths:
       - "docs/**"
+      - "examples/**"
       - "README.md"
-      - "scripts/check-public-docs.sh"
+      - "scripts/**"
   workflow_dispatch:
 
 permissions:
@@ -32,19 +34,7 @@ jobs:
       - name: Check published docs for leaks
         run: ./scripts/check-public-docs.sh
 
-      # A guard that has never failed has never been shown to work. This proves the
-      # patterns actually match, without ever committing a real leak to the repo.
-      - name: Prove the guard fails on a planted leak
-        run: |
-          set -euo pipefail
-          tmp="$(mktemp -d)"
-          mkdir -p "$tmp/docs"
-          cat > "$tmp/docs/planted.md" <<'LEAK'
-          host somehost.tail0d1f2e.ts.net at 192.168.1.241
-          key lives in infra/.credentials/cosign.key
-          LEAK
-          if ./scripts/check-public-docs.sh "$tmp/docs" >/dev/null 2>&1; then
-            echo "::error::The guard PASSED a file containing a tailnet name, a LAN address and a credential path. It is not actually checking anything."
-            exit 1
-          fi
-          echo "Guard correctly rejected the planted leak."
+      # A guard that has never failed has never been shown to work: plant each kind of
+      # fault in a scratch copy and require a refusal. No real leak is ever committed.
+      - name: Prove the guard fails on planted faults
+        run: ./scripts/test-guard.sh
