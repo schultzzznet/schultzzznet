@@ -2,8 +2,8 @@
 
 **Platform engineer. Full-stack. AI-native.**
 
-**Every technology badged below is actually running — a live estate, not a wish-list.** Nine
-bare-metal Kubernetes nodes built from retired laptops, real applications behind real identity,
+**Every technology badged below is actually running — a live estate, not a wish-list.** Six
+bare-metal Kubernetes nodes built from retired laptops and small desktops, real applications behind real identity,
 serving around the clock. The AI is on **both** ends: a frontier model helped *build* it, and a
 local model that never leaves the network helps *run* it. And the whole platform is open source,
 community edition or free tier — not one paid licence, in part or in full.
@@ -325,8 +325,9 @@ the newest Yocto LTS the Raspberry Pi BSP actually supports, maintained to April
 **Fully scripted, zero-ceremony.** One command on the Mac syncs the layer to an aarch64 build host
 over git and launches a fully detached `bitbake` — it survives SSH drops, recovers from an unclean
 build-host reboot, and is documented end to end (Yocto concepts, first build, build ops, serial
-console). A **Nexus** instance is both the sstate mirror *and* the release artifact store the Pi
-**range-streams its signed OTA bundle** from; a repurposed **ESP32** serves the Pi's serial console
+console). A **Nexus** instance is both the source mirror *and* the release artifact store the Pi
+**range-streams its signed OTA bundle** from (while the build host serves its own compiled-output
+cache in place); a repurposed **ESP32** serves the Pi's serial console
 over WiFi — the same supply-chain-to-deploy reflex as the cluster, on a $35 board.
 
 ### Real learning — proven on the board, with an honest ceiling

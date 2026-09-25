@@ -139,7 +139,7 @@ than imply elasticity it does not have.
 | Service mesh | Linkerd / Istio | No need for mTLS between pods or fine-grained traffic policy. Linkerd wins on day-one cost when that changes. |
 | **Secrets at rest** | SOPS + age, or sealed secrets — **not Vault** | **Genuinely sub-baseline today**: plaintext base64 in cluster secrets. The fix should be the *lightest* self-hosted option; Vault is overkill for a handful of secrets and would itself become a thing to operate. |
 | Policy admission | Kyverno / OPA / sigstore policy controller | Worth doing once there is one hard rule worth enforcing — and there is: **signature-required at admission**. Signatures are verified in CI but are not yet load-bearing at deploy time. Highest-leverage next security step. |
-| Backups beyond Postgres | Velero | The database tier is the only stateful tier. Velero matters the moment that stops being true. |
+| Backups beyond Postgres | Velero | No longer "the database tier is the only stateful tier": the OTA release store and the build host's signing keys now have purpose-built backups, each with a restore drill (see [reliability](reliability.md#restore-is-drilled-not-assumed)). Velero matters when *generic* volume backup does — and the rule stays the same: only what nobody else holds. Caches re-download. |
 | Tracing | OpenTelemetry + Tempo | The collector has to land before instrumenting applications is worth anything. |
 
 The secrets row is the one worth dwelling on: it is listed in the deferred table *and* named

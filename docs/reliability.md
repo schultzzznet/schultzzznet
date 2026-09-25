@@ -162,6 +162,44 @@ entirely and rebuilding it from nothing on the same hardware. A wrong foundation
 caught this way costs an afternoon. Discovering it the other way, in production, costs a
 migration project.
 
+The rule is the same beyond the databases, and only for data **nobody else holds** — caches
+and proxies are deliberately not backed up, because they re-download:
+
+- **The OTA release store.** An empty artifact repository is started in a throwaway
+  namespace, configured from its declaration, compared against the live one (zero drift,
+  identical repository list), and then refilled from the backup with every file
+  checksum-verified *before* upload. The drill also has to fail at the one point it should:
+  a rebuilt repository with no releases in it is an outage for every device, so the client
+  check must refuse it until the restore runs.
+- **The signing keys.** Losing them means no device takes another update. They are
+  encrypted on the build host to a key that lives offline, pulled into versioned storage the
+  writer cannot delete from, and copied off-cluster. The drill decrypts the latest copy and
+  compares every file against the live originals, and it must also *refuse* a copy with one
+  byte changed and a decryption under the wrong key.
+
+---
+
+## The cluster must not need itself to start
+
+The home network's DNS resolver moved **onto** the cluster. Two failure modes came with it,
+and one of them happened.
+
+**It happened:** the load-balancer integration publishes a port by capturing traffic to that
+port on *every local address* of every node — including the node's own local resolver on
+port 53. For about ten minutes the nodes could not resolve anything, because their own
+lookups were being answered by the new service's plumbing. The fix was to publish the
+resolver on the one shared virtual address only, and the deploy now asserts that every node
+can still resolve a public name.
+
+**It would have happened next:** once the network hands out the cluster-hosted resolver, a
+node that uses it needs the cluster running in order to pull the images the cluster needs to
+start. A cold start would deadlock on itself. So the nodes are pinned to public resolvers,
+ignore what the network hands them, and the provisioning run checks that none of them
+resolves through the cluster — the rest of the house does, the cluster itself does not.
+
+> Any service a cluster hosts for others is a dependency the cluster must be able to start
+> without.
+
 ---
 
 ## The monitoring stack was the single point that mattered most

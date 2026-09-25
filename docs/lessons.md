@@ -195,6 +195,11 @@ The fix was to **delete one**, not to reconcile them. Same story with the public
 allowlist, which is stated in the edge config and in the scanner's classifier — except that
 one is deliberate, and a verifier fails the build when they disagree.
 
+It came back once more, in the artifact repository: its configuration was created by *two*
+setup scripts in two repositories, and they already disagreed about whether a published
+release may be overwritten. Neither ran on a rebuild. Now there is one declaration, applied on
+every deploy, and a drill that configures an empty instance from it and fails on any drift.
+
 > **Two sources of truth is a bug with a delay on it.** Either delete one, or write the
 > check that compares them — and if writing the check feels like too much work, that is the
 > argument for deleting one.
@@ -213,8 +218,9 @@ Kept because a page of decisions with no reversals is not credible:
 | A load test was causing intermittent connection errors | The network re-detected itself **~545 times a day regardless** — same rate with the test off | Compared the rate during and outside the test window |
 | An interrupted deploy caused a NIC failure | First link drop was **an hour before** anything was run | Read the timestamps rather than the narrative |
 | A merge step was stripping licence data | It wasn't — a **filter clause before upload** was, and two competing theories were disproved on the way | Uploaded the unfiltered document and looked |
+| A mirror-upload script was never called by anything, so the mirror was empty by neglect | It ran **every night**; its larger half had been switched off on purpose after it filled the store — the "never called" claim even made it into a commit message | The search that found no caller had an include pattern that **matched no files**; "no match" was read as "no caller". The retraction is in the next commit |
 
-Six reversals in the visible history. The number is low because most wrong ideas die before
+Seven reversals in the visible history. The number is low because most wrong ideas die before
 they are written down; it is not zero because the ones that survive long enough to be
 written down are worth keeping visible.
 

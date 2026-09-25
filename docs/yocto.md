@@ -81,9 +81,16 @@ one are different acts, and only the second is a control.
 
 ### Shared build cache, and the part that makes it work
 
-Building an operating system from source is expensive, so both the downloaded sources and
-the intermediate task outputs are mirrored to the same artefact repository the cluster uses.
-A wiped build tree restores over the LAN instead of recompiling.
+Building an operating system from source is expensive, so both halves of the cache are shared.
+The downloaded **sources** are mirrored to the same artefact repository the cluster uses —
+they genuinely disappear upstream, so that copy is a reproducibility guarantee. The
+intermediate **task outputs** are not copied anywhere: the build host serves its own cache
+read-only, in place. They used to be mirrored too, until the copy filled the repository;
+they are derived data, and a second copy of derived data buys only disk pressure.
+
+It is proven, not assumed: a build started from an **empty** local cache restored **490 of
+490** tasks from the served cache and compiled nothing, and the same build pointed at a dead
+mirror got zero and failed — which is what makes the first number mean anything.
 
 The non-obvious prerequisite: **a shared hash-equivalence server**. Without one, a mirrored
 cache entry produced on one machine resolves to a different identity on another and the
@@ -281,8 +288,8 @@ Make-based builds decide what is stale by *timestamp*, not content — so every 
 looked newer than its source and was treated as already built. The build system's own logs
 recorded the interrupted tasks as having *succeeded*, because they had, right up until the
 page cache never reached the disk. The shared cache was corrupted the same way. There is no
-safe surgical repair: wipe and rebuild. (Which is now cheap, because the cache restores from
-the mirror instead of recompiling.)
+safe surgical repair: wipe and rebuild. (The sources restore from the mirror; the task-output
+cache is served in place, so it shares the build host's fate and has to be rebuilt.)
 
 ---
 
