@@ -3,6 +3,7 @@
 - section: Start
   pages:
     - { title: The estate, url: / }
+    - { title: Status, url: /status.html }
 - section: Platform
   pages:
     - { title: Delivery chain, url: /platform.html }

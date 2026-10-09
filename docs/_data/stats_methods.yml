@@ -1,0 +1,125 @@
+# How each figure in stats.yml is measured, shown beside it on /status.html.
+# Every key in stats.yml needs an entry here and every entry needs a key: the leak
+# guard and scripts/gather-stats.py both fail on a mismatch, so a figure never ships
+# without saying where it came from. Commands are generic - no paths, no names.
+#   label  what the figure is called on the page
+#   unit   appended to the value (optional)
+#   how    one line: the command, and what exactly is counted
+cluster:
+  nodes: { label: "Nodes", how: "kubectl get nodes; the number of node objects." }
+  nodes_ready: { label: "Nodes Ready", how: "kubectl get nodes; nodes whose Ready condition is True." }
+  control_plane: { label: "Control-plane nodes", how: "kubectl get nodes; nodes carrying the control-plane role label (each also runs etcd)." }
+  agents: { label: "Agent nodes", how: "kubectl get nodes; nodes without the control-plane role label." }
+  k3s: { label: "k3s version", how: "kubectl version; the version the API server reports." }
+  cores: { label: "CPU cores", how: "kubectl get nodes; the sum of each node's reported CPU capacity." }
+  ram_gb: { label: "Memory", unit: " GB", how: "kubectl get nodes; the sum of memory capacity in bytes, divided by 10^9. Decimal gigabytes, not GiB." }
+  pods_running: { label: "Pods running", how: "kubectl get pods across all namespaces; pods in phase Running." }
+  pods_total: { label: "Pods, all phases", how: "kubectl get pods across all namespaces; every pod object, including completed job pods." }
+  namespaces: { label: "Namespaces", how: "kubectl get namespaces; every namespace object, empty and system ones included." }
+  containers: { label: "Containers in running pods", how: "kubectl get pods; the sum of containers declared by pods in phase Running (init containers not counted)." }
+  deployments: { label: "Deployments", how: "kubectl get deployments across all namespaces." }
+  statefulsets: { label: "StatefulSets", how: "kubectl get statefulsets across all namespaces." }
+  daemonsets: { label: "DaemonSets", how: "kubectl get daemonsets across all namespaces." }
+  cronjobs: { label: "CronJobs", how: "kubectl get cronjobs across all namespaces; suspended ones included." }
+  hpas: { label: "Horizontal autoscalers", how: "kubectl get horizontalpodautoscalers across all namespaces." }
+  ingresses: { label: "Ingresses", how: "kubectl get ingresses across all namespaces." }
+  pvcs: { label: "Persistent volume claims", how: "kubectl get persistentvolumeclaims across all namespaces." }
+  pvc_gib: { label: "Storage requested by claims", unit: " GiB", how: "kubectl get persistentvolumeclaims; the sum of requested size. Requested, not used." }
+  helm_releases: { label: "Helm releases", how: "kubectl get secrets filtered to Helm release type, labels only; distinct releases (one secret exists per revision)." }
+  crds: { label: "Custom resource definitions", how: "kubectl get customresourcedefinitions." }
+  age_days: { label: "Age of the oldest node", unit: " days", how: "kubectl get nodes; whole days since the oldest node object was created. The cluster has been rebuilt from scratch, so this is not the age of the project." }
+  restarts_total: { label: "Container restarts", how: "kubectl get pods; the sum of restart counts over all containers and init containers that currently exist." }
+storage:
+  ceph_raw_gib: { label: "Raw capacity", unit: " GiB", how: "ceph df, run through the toolbox pod; total raw bytes across all disks, before replication." }
+  ceph_used_gib: { label: "Raw capacity used", unit: " GiB", how: "ceph df; raw bytes in use, replicas included." }
+  ceph_stored_gib: { label: "Data stored", unit: " GiB", how: "ceph df; the sum of the 'stored' figure of every pool, which is logical data before replication." }
+  osds: { label: "Disk daemons (OSDs)", how: "ceph status; OSDs in the map." }
+  osds_up: { label: "OSDs up", how: "ceph status; OSDs reporting up." }
+  mons: { label: "Monitors", how: "ceph status; monitors in the monitor map." }
+  pools: { label: "Pools", how: "ceph osd pool ls detail; every pool, the internal manager pool included." }
+  pgs: { label: "Placement groups", how: "ceph status; placement groups in total." }
+  pgs_clean: { label: "Placement groups active+clean", how: "ceph status; placement groups in exactly the active+clean state." }
+  replica_size: { label: "Replica count", how: "ceph osd pool ls detail; the lowest replica size of any pool, so one weak pool would show." }
+  health: { label: "Ceph health", how: "ceph status; the overall health word (ok, warn or err)." }
+  health_warnings: { label: "Active health checks", how: "ceph status; the number of health checks currently raised, each of which may cover several items." }
+databases:
+  clusters: { label: "Postgres clusters", how: "kubectl get clusters of the Postgres operator; every cluster object." }
+  instances: { label: "Postgres instances", how: "Same objects; the sum of reported instances (primaries and replicas)." }
+  replicas: { label: "Replicas", how: "Same objects; instances minus one primary per cluster." }
+  pg16_clusters: { label: "Clusters on PostgreSQL 16", how: "Reported major version of each cluster, confirmed by SELECT current_setting('server_version_num') on its primary." }
+  pg18_clusters: { label: "Clusters on PostgreSQL 18", how: "Reported major version of each cluster, confirmed by SELECT current_setting('server_version_num') on its primary." }
+  synchronous_clusters: { label: "Clusters with a synchronous standby right now", how: "Read-only SELECT on each primary: pg_stat_replication has a standby in sync or quorum state. What is true now, not what was configured." }
+  synchronous_clusters_spec: { label: "Clusters configured for synchronous replication", how: "kubectl get clusters of the Postgres operator; a synchronous setting or a minimum of synchronous replicas in the spec. What was asked for." }
+  backups_total: { label: "Backup objects", how: "kubectl get backups of the Postgres operator; every backup object that still exists (older ones are pruned by retention)." }
+  backups_failed: { label: "Failed backups", how: "Same objects; phase failed." }
+  backups_24h: { label: "Backups completed in the last 24 hours", how: "Same objects; phase completed with a stop time within 24 hours of the measurement." }
+  archiving_clusters: { label: "Clusters archiving WAL", how: "kubectl get clusters of the Postgres operator; ContinuousArchiving condition True." }
+observability:
+  scrape_up: { label: "Scrape targets up", how: "Prometheus HTTP API through a temporary port-forward; count(up == 1)." }
+  scrape_total: { label: "Scrape targets", how: "Prometheus HTTP API; count(up)." }
+  series: { label: "Head series", how: "Prometheus HTTP API; prometheus_tsdb_head_series, the series in the in-memory head block only, not every series in the store. It swings by a third over the head compaction cycle, so read it as an order of magnitude." }
+  samples_per_sec: { label: "Samples ingested", unit: " per second", how: "Prometheus HTTP API; rate of samples appended over the last five minutes." }
+  alert_rules: { label: "Alert rules loaded", how: "Prometheus HTTP API /rules; rules of type alerting, chart-supplied ones included." }
+  alert_rules_custom: { label: "Alert rules written here", how: "kubectl get prometheusrules; alerting rules in objects not installed by a Helm chart." }
+  recording_rules: { label: "Recording rules loaded", how: "Prometheus HTTP API /rules; rules of type recording." }
+  dashboards: { label: "Dashboards provisioned", how: "kubectl get configmaps carrying the dashboard label; JSON dashboards inside them, chart-supplied ones included. Dashboards made by hand in the UI are not counted." }
+  dashboards_custom: { label: "Dashboards written here", how: "Same objects as the row above, restricted to those not installed by a Helm chart (the same test as the alert rules written here); the remainder of the total is chart-supplied." }
+  retention_days: { label: "Metric retention, time limit", unit: " days", how: "Prometheus HTTP API /status/flags; the time-retention flag. Retention is the lower of the time limit and the size limit in the next row, so this is a ceiling, not the history actually held." }
+  retention_size_gib: { label: "Metric retention, size limit", unit: " GiB", how: "Prometheus HTTP API /status/flags; the size-retention flag, read as binary units. 0 means no size limit. Whichever limit is reached first decides what is kept." }
+  data_span_days: { label: "Metric history actually held", unit: " days", how: "Prometheus HTTP API; now minus the oldest sample time in the TSDB. Read it before trusting any weekly figure." }
+  notifications_failed: { label: "Failed alert notifications", how: "Prometheus HTTP API; increase of the Alertmanager failure counter over the last 7 days, or over the history held if that is shorter (see the line above)." }
+  firing_now: { label: "Alerts firing now", how: "Prometheus HTTP API /alerts; alerts in state firing, including the two meta-alerts below." }
+  firing_now_excl_meta: { label: "Alerts firing now, excluding meta-alerts", how: "Same; minus the heartbeat that is meant to fire permanently and the inhibitor that appears whenever an info-level alert is active. Both report on the alerting system, not the estate." }
+supply_chain:
+  images_running: { label: "Distinct images running", how: "kubectl get pods; distinct image references across containers and init containers of pods in phase Running." }
+  images_first_party: { label: "First-party images", how: "Same references; those pulled from the estate's own registry with a flat repository name. A mirror of someone else's software keeps its upstream path and is counted as third-party." }
+  images_third_party: { label: "Third-party images", how: "Distinct images running, minus first-party." }
+  first_party_signed_verified: { label: "First-party images that verify", how: "cosign verify against the release public key, by digest, for each running first-party image." }
+  sbom_projects: { label: "SBOMs accepted by the tracker", how: "kubectl logs of the latest successful run of each SBOM job; uploads that returned HTTP 200. Acceptance, not analysis." }
+ci:
+  workflows: { label: "Workflow files", how: "Listing the workflow directory of the platform repository's committed tree (git archive of HEAD)." }
+  jobs: { label: "Workflow jobs", how: "Parsing each workflow file; entries under its jobs key." }
+  runs_on_self_hosted: { label: "Jobs on self-hosted runners", how: "Parsing the runs-on line of each job; those naming self-hosted." }
+  runs_on_github_hosted: { label: "Jobs on GitHub-hosted runners", how: "Parsing the runs-on line of each job; those naming an ubuntu, macos or windows image. Jobs that call a reusable workflow declare none." }
+  precommit_hooks: { label: "Pre-commit hooks", how: "Counting hook ids in the pre-commit configuration of the platform repository." }
+repo:
+  commits: { label: "Commits", how: "git rev-list --count HEAD in the platform repository." }
+  commits_30d: { label: "Commits in the last 30 days", how: "git rev-list --count --since='30 days ago' HEAD." }
+  age_days: { label: "Repository age", unit: " days", how: "Whole days since the earliest root commit." }
+  adrs: { label: "Decision records", how: "Committed files; numbered Markdown files in the decision-record directory." }
+  gaps_open: { label: "Open gaps", how: "Parsing the gap register: rows of its ID tables. The register is a hand-kept document, so this is a parse, not a database query." }
+  gaps_closed: { label: "Closed gaps", how: "Parsing the gap register: bold IDs on its Closed lines." }
+  make_targets: { label: "Make targets (summed per Makefile)", how: "Committed Makefiles; target names read statically from each, without running make. Names are de-duplicated within one file and counted per file, so a name that exists in two Makefiles counts twice. The retired Docker Swarm tree is excluded." }
+  playbooks: { label: "Ansible playbooks", how: "Committed files; top-level YAML files in a playbooks directory. The retired Docker Swarm tree is excluded." }
+  manifests: { label: "Kubernetes manifest files", how: "Committed files; YAML files under a manifests directory that declare a kind." }
+  runbooks: { label: "Runbooks", how: "Committed files; Markdown files in a runbooks directory, indexes excluded. The retired Docker Swarm tree is excluded." }
+  docs_pages: { label: "Documentation pages", how: "Committed files; Markdown files under the docs directory. The retired Docker Swarm pages are excluded." }
+  loc: { label: "Lines of code, docs and config included", how: "cloc --git HEAD; code lines of the committed tree, excluding comments and blanks. Markdown, YAML, JSON and XML are counted as code by cloc, so this is the size of the tree, not of the programs. The retired Docker Swarm tree is excluded." }
+  loc_code: { label: "Lines of code, programming languages only", how: "The same cloc run, summing only programming languages (Dart, Java, Kotlin, Swift, Python, Go, C and C++, JavaScript, TypeScript, shell, SQL and similar); Markdown, YAML, JSON, XML, HTML, SVG and build or config formats are left out." }
+  platform_head: { label: "Platform repository HEAD at generation", how: "git rev-list --count HEAD and the commit date of HEAD in the platform repository, taken at the moment of generation. Repository figures on this page are counted from that committed HEAD, not from a working tree. No commit hash is published." }
+  tests_java: { label: "Java test methods", how: "Static count of @Test, @ParameterizedTest and @RepeatedTest annotations in committed test sources. Counted, not run." }
+  tests_python: { label: "Python test functions", how: "Static count of test_ functions in committed application test files. Counted, not run; parametrised cases expand to more at run time." }
+  tests_dart: { label: "Dart tests", how: "Static count of test( and testWidgets( calls in committed Flutter test files. Counted, not run." }
+hardware:
+  printing_commits: { label: "3D printing repository, commits", how: "git rev-list --count HEAD in the printing repository." }
+  yocto_commits: { label: "Embedded Linux (Raspberry Pi) repository, commits", how: "git rev-list --count HEAD in the Yocto repository." }
+  rover_platform_commits: { label: "Rover platform repository, commits", how: "git rev-list --count HEAD in the rover platform repository." }
+  rover_platform_tests: { label: "Rover platform tests", how: "Static count of Python test_ functions and Go Test functions in committed test files. Counted, not run. C assertions are a separate row." }
+  rover_platform_c_assertions: { label: "Rover platform C assertions", how: "Static count of CHECK( assertions in committed C test files. An assertion is not a test: one test function holds several. Counted, not run." }
+  mower_commits: { label: "Mower repository, commits", how: "git rev-list --count HEAD in the mower repository." }
+  mower_tests: { label: "Mower tests", how: "Static count of Python test_ functions in committed test files. Counted, not run." }
+  video_rover_commits: { label: "Video rover repository, commits", how: "git rev-list --count HEAD in the video rover repository." }
+  video_rover_tests: { label: "Video rover tests", how: "Static count of Go Test functions in committed test files. Counted, not run." }
+  imx8_commits: { label: "i.MX8 repository, commits", how: "git rev-list --count HEAD in the i.MX8 repository." }
+referees:
+  uptimerobot_7d: { label: "Public endpoint uptime, 7 days", unit: "%", how: "The shields.io UptimeRobot JSON for the monitor behind the badge at the top of the estate page." }
+  uptimerobot_30d: { label: "Public endpoint uptime, 30 days", unit: "%", how: "The same monitor over 30 days. No longer window is published; see the estate page for why." }
+  healthchecks: { label: "Scheduled-jobs heartbeat at generation", how: "The healthchecks.io badge endpoint behind the badge at the top of the estate page; the state word it returned at the generation instant. The live badge above may differ by now." }
+  github_stars: { label: "GitHub stars on this repository", how: "GitHub REST API, repository endpoint, unauthenticated." }
+  github_pushed: { label: "Last push to this repository", how: "GitHub REST API, repository endpoint; pushed_at." }
+site:
+  commits: { label: "Commits to this site", how: "git rev-list --count HEAD in this repository, before the commit that carries this file." }
+  pages: { label: "Pages", how: "Counting Markdown files in this site's docs directory." }
+  pages_last_build: { label: "Last Pages build", how: "GitHub REST API, workflow runs; conclusion of the newest finished Pages build." }
+  pages_last_build_at: { label: "Last Pages build finished", how: "The same run; its updated time." }
+  guard_last_run: { label: "Last leak-guard run", how: "GitHub REST API, workflow runs; conclusion of the newest finished run of the guard workflow." }

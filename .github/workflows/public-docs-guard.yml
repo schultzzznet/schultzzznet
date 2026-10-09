@@ -19,6 +19,12 @@ on:
       - "examples/**"
       - "README.md"
       - "scripts/**"
+  # The stats page is a dated snapshot, and nothing pushes while nobody is looking. A
+  # weekly run is what turns CI red when docs/_data/stats.yml passes its age limit, with
+  # no commit needed to notice. (GitHub pauses scheduled runs on a public repo after 60
+  # days with no activity at all; a push or a manual run wakes them.)
+  schedule:
+    - cron: "17 6 * * 1"
   workflow_dispatch:
 
 permissions:
