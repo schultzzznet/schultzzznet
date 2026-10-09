@@ -16,7 +16,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 scratch() { # a fresh copy of the publishable tree
   rm -rf "$tmp/site" && mkdir -p "$tmp/site"
-  cp -R "$root/docs" "$root/examples" "$root/README.md" "$root/scripts" "$tmp/site/"
+  cp -R "$root/docs" "$root/examples" "$root/README.md" "$root/SECURITY.md" "$root/scripts" "$tmp/site/"
 }
 
 plant() { # <text>   appended to an existing, already-listed page, so only the content is wrong
@@ -60,6 +60,10 @@ must_fail "LAN address" "private LAN addresses"
 scratch
 plant 'key lives in infra/.credentials/cosign.key'
 must_fail "credential path" "credential paths"
+
+scratch
+printf '%s\n' 'also reachable at somehost.tail0d1f2e.ts.net' >> "$tmp/site/SECURITY.md"
+must_fail "tailnet hostname in SECURITY.md (it is published, so it is guarded)" "tailnet hostnames"
 
 scratch
 sed -i.bak '/printing\.html/d' "$tmp/site/docs/_data/nav.yml"

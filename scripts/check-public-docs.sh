@@ -5,7 +5,7 @@
 # written from scratch rather than copied out of the private repo, precisely so
 # there is nothing to scrub — this script asserts that stays true.
 #
-# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ examples/ README.md)
+# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ examples/ README.md SECURITY.md)
 #
 # GUARD_CONTENT_ONLY=1 runs the leak patterns alone and skips the structural checks
 # (nav, stats freshness, stats methods). scripts/gather-stats.py uses it to vet its own
@@ -23,7 +23,7 @@ TARGETS=("$@")
 # for one purpose does NOT enrol it in the others, and the gap is silent because
 # the check still passes — just over less than you think. When adding a directory
 # of publishable content, grep for every place the old list is named.
-[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs examples README.md)
+[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs examples README.md SECURITY.md)
 
 fail=0
 report_at() { # <label> <regex> <why> <path ...>

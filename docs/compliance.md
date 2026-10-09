@@ -10,7 +10,7 @@ title: Legal, licensing, and the regulatory posture nobody publishes for a home 
 ![cra](https://img.shields.io/badge/EU%20CRA-clause%20mapping%20not%20written-orange)
 ![gdpr](https://img.shields.io/badge/GDPR%20erasure-shipped%20and%20verified%202026--07--02-2EA44F)
 ![privacy](https://img.shields.io/badge/privacy%20label-false%20draft%20caught%20before%20any%20submission-orange)
-![licence](https://img.shields.io/badge/MIT-platform%20and%20OS%20layer%20only-blue)
+![licence](https://img.shields.io/badge/licence-MIT%20code%20%C2%B7%20CC%20BY%204.0%20prose%20(this%20site)-blue)
 ![signing](https://img.shields.io/badge/signing-{{ signed }}-005571)
 ![agpl](https://img.shields.io/badge/AGPL%20dependencies-scoped%2C%20not%20triggered-005571)
 
@@ -43,7 +43,7 @@ column is my own grading, not a conformity assessment.
 | Expectation | Status | What exists |
 |---|---|---|
 | **A clause-by-clause conformity mapping** | **Open** | **Not written.** Having controls and being able to *demonstrate* conformity against the regulation's own article numbering are different documents. |
-| **Coordinated disclosure** | **Open** | A written security policy exists, but only in the private repository. This public repository has none, so an outside reporter cannot find one. A published policy with a reachable contact is the fix. |
+| **Coordinated disclosure** | Partial | This public repository published a [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) on 2026-10-09: scope (the site and its scripts; the private estate is explicitly not offered for testing), what is most wanted (a leak, above all), a reporting route and honest expectations (no SLA, no bounty). It names GitHub's private vulnerability reporting first, with an email fallback; I have not verified that the private-reporting switch is on, so the email is the route I can vouch for. The contact is the profile address, not a dedicated one. |
 | **Integrity and provenance** | Partial | {{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} first-party images verify against the release key (measured {{ gen_day }}). Provenance is attached at build. Nothing enforces signatures at admission, and the {{ s.supply_chain.images_third_party }} third-party images are upstream's, not signed by me. |
 | **Secure defaults** | Partial | The public edge is default-deny and rate-limited. Inside the cluster it is not; see the measured posture below. |
 | A bill of materials | Partial | {{ s.supply_chain.sbom_projects }} SBOM uploads returned HTTP 200 in the latest nightly runs. That is acceptance of an upload, not a count read from the tracker and not analysis. The embedded repository says its release is snapshotted to the tracker; I have not re-measured that. |
@@ -108,12 +108,15 @@ to match reality, never the other way round.**
 
 ## Licensing: what running something obligates, versus what selling it would
 
-**Scope of "MIT", corrected 2026-10-09:** the private platform repository and the OS layer
-are MIT-licensed. This public site repository and the hardware repositories carry **no
-licence file**, which means default copyright applies, the opposite of what an MIT badge on
-a public site implies. Whether that is deliberate is still undecided; adding a licence is an
-open item, and I have not done it here. There are no external contributors, so nothing needs
-reconciling.
+**Scope of "MIT", corrected and then settled, 2026-10-09:** the private platform repository and
+the OS layer are MIT-licensed. This public site repository had **no licence file** until
+2026-10-09, which meant default copyright applied, the opposite of what an MIT badge on a
+public site implies. It now has two: [MIT](https://github.com/schultzzznet/schultzzznet/blob/main/LICENSE)
+for the code (`scripts/`, `examples/`, the Makefile and workflow) and
+[CC BY 4.0](https://github.com/schultzzznet/schultzzznet/blob/main/LICENSE-docs) for the
+writing and images, because MIT is a software licence and a write-up is not software. Quotations
+stay with their authors. The hardware repositories are private and still carry no licence file;
+that decision is open. There are no external contributors, so nothing needs reconciling.
 
 The dependency stack is a different question, because open-source licences carry different
 obligations depending on use, and "we run this for ourselves" and "we offer this as a service
@@ -161,8 +164,8 @@ of being caught early. That is the reason this page is in public.
 ## Open items
 
 - A conformity mapping against the CRA's article numbering.
-- A published security policy in this repository, with a dedicated reporting contact.
-- A licence decision for this repository and the hardware repositories.
+- A dedicated reporting contact for the security policy (it uses the profile address today), and confirmation that GitHub private vulnerability reporting is switched on.
+- A licence decision for the hardware repositories.
 - Terms of Service and a hosted privacy policy for all three apps; automated retention.
 - Signature enforcement at admission, and the in-cluster defaults above.
 

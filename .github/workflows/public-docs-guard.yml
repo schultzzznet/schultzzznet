@@ -11,6 +11,7 @@ on:
       - "docs/**"
       - "examples/**"
       - "README.md"
+      - "SECURITY.md"
       - "scripts/**"
       - ".github/workflows/public-docs-guard.yml"
   pull_request:
@@ -18,6 +19,7 @@ on:
       - "docs/**"
       - "examples/**"
       - "README.md"
+      - "SECURITY.md"
       - "scripts/**"
   # The stats page is a dated snapshot, and nothing pushes while nobody is looking. A
   # weekly run is what turns CI red when docs/_data/stats.yml passes its age limit, with

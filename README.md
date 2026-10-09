@@ -117,6 +117,15 @@ system. Each exists because something looked correct and was not.
 | [`kured-args.yaml`](examples/kured-args.yaml) | A reboot daemon that logged "nothing to do" hourly for weeks while 16,002 patched-but-not-running findings piled up. |
 | [`systemd-oneshot-timer.md`](examples/systemd-oneshot-timer.md) | The `RemainAfterExit` trap that makes a timer fire once per boot. |
 
+## Licence and security
+
+- **Code** (`scripts/`, `examples/`, the `Makefile` and the workflow): [MIT](LICENSE).
+- **Writing and images** (`docs/`, this README): [CC BY 4.0](LICENSE-docs). Reuse it, with credit.
+- Quotations and linked material stay with their authors. The other repositories are separate
+  projects with their own terms.
+- Found something here that should not be public, or a flaw in the scripts?
+  See [SECURITY.md](SECURITY.md).
+
 ## The repositories
 
 Only this one is public. The rest are private, so there is nothing to link.
