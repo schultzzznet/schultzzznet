@@ -133,6 +133,7 @@ SCHEMA = [
         ("docs_pages", "int"), ("loc", "int"), ("loc_code", "int"), ("platform_head", "head"),
         ("tests_java", "int"),
         ("tests_python", "int"), ("tests_dart", "int"),
+        ("app_loc8_version", "ver"), ("app_warn_version", "ver"), ("app_talk_version", "ver"),
     ]),
     ("hardware", [
         ("printing_commits", "int"), ("yocto_commits", "int"),
@@ -798,6 +799,14 @@ def test_counts(snap):
     }
 
 
+def pubspec_version(plat, rel):
+    """The `version:` line of a committed pubspec.yaml, e.g. 1.6.1+2 (name+build)."""
+    m = re.search(r"^version:\s*(\S+)\s*$", plat.read(rel), re.M)
+    if not m:
+        raise Fail(f"no version: line in {rel}")
+    return m.group(1)
+
+
 def measure_repo(plat):
     r, files = PLATFORM_REPO, plat.files
     roots = [int(x) for x in git(r, "log", "--max-parents=0", "--format=%at").split()]
@@ -828,6 +837,9 @@ def measure_repo(plat):
         "tests_java": count_in(plat, java, r"^\s*@(?:Test|ParameterizedTest|RepeatedTest)\b"),
         "tests_python": count_in(plat, pytests, r"^\s*(?:async\s+)?def test_\w*"),
         "tests_dart": count_in(plat, dart, r"(?<![A-Za-z_])(?:test|testWidgets)\("),
+        "app_loc8_version": pubspec_version(plat, "apps/flutter-loc8-app/pubspec.yaml"),
+        "app_warn_version": pubspec_version(plat, "apps/flutter_warn_app/pubspec.yaml"),
+        "app_talk_version": pubspec_version(plat, "apps/flutter-talk-app/pubspec.yaml"),
     }
 
 

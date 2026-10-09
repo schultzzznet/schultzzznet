@@ -283,6 +283,15 @@ opposite sides of the network boundary; see [AI, twice](#ai-twice). The largest 
 was **re-deriving context**, which is why the working agreement, the decision records and the
 rolling state note exist.
 
+## The apps
+
+The load the platform proves itself against is three of the repository's five Flutter clients: **Loc8** shares location
+inside invite-only groups, **Warn** maps road hazards people report, and **Talk** is a
+messenger with live events. They are at {{ rp.app_loc8_version }}, {{ rp.app_warn_version }}
+and {{ rp.app_talk_version }}. They are not a product: not in any app store, built to talk to a
+private homelab, with the unfinished parts listed. [The apps page](apps.md) has
+screenshots, how they sign in, and the bug that signed people out for the wrong reason.
+
 ## Repositories
 
 Nine repositories show active work. The platform itself, the embedded Linux layer, a

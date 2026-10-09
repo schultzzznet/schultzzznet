@@ -100,6 +100,9 @@ repo:
   tests_java: { label: "Java test methods", how: "Static count of @Test, @ParameterizedTest and @RepeatedTest annotations in committed test sources. Counted, not run." }
   tests_python: { label: "Python test functions", how: "Static count of test_ functions in committed application test files. Counted, not run; parametrised cases expand to more at run time." }
   tests_dart: { label: "Dart tests", how: "Static count of test( and testWidgets( calls in committed Flutter test files. Counted, not run." }
+  app_loc8_version: { label: "Loc8 app version", how: "The version: line of the Loc8 app's committed pubspec.yaml (version+build number). The version the repository declares, not a store release: none of the three apps is in an app store." }
+  app_warn_version: { label: "Warn app version", how: "The version: line of the Warn app's committed pubspec.yaml (version+build number). The version the repository declares, not a store release: none of the three apps is in an app store." }
+  app_talk_version: { label: "Talk app version", how: "The version: line of the Talk app's committed pubspec.yaml (version+build number). The version the repository declares, not a store release: none of the three apps is in an app store." }
 hardware:
   printing_commits: { label: "3D printing repository, commits", how: "git rev-list --count HEAD in the printing repository." }
   yocto_commits: { label: "Embedded Linux (Raspberry Pi) repository, commits", how: "git rev-list --count HEAD in the Yocto repository." }

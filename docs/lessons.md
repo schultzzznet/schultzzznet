@@ -315,6 +315,38 @@ confident claims, none checked against what the system had actually recorded.
 
 ---
 
+## 12. The bug that signed people out, and the wrong diagnosis that explained it
+
+The report was "old devices time out very, very fast". The natural suspect was the identity
+provider's timeouts, so I read its settings and made them explicit (an hour for the access
+token, thirty days idle for the offline refresh token, declared as code since 2026-10-09). That was worth
+doing, and it was a diagnosis of the server, from the server's side. It was not the cause.
+
+The apps ended a session on **any** failure while refreshing a token. A dropped connection,
+a restart of the identity provider, a proxy error page, a phone waking with a dead socket:
+each was read as "the server rejected you", the tokens were deleted, and the person was
+sent to the login screen holding a perfectly good refresh token that I had just deleted for
+them. No timeout had expired anything. The apps did.
+
+The fix is to ask a better question. A refresh now has three outcomes (worked, rejected,
+undecided), and only a reply that is *exactly* the OAuth `invalid_grant`, or having no
+token at all, counts as rejected. The classifier is strict on purpose: on Android the
+library reports any reply with an `error` field as an OAuth error regardless of the HTTP
+status, so a proxy's error page would otherwise look like a revoked session. Roughly
+twenty tests per app (18 to 25, counted by hand) pin both platforms' error shapes.
+
+The fix also needed a way to test it. **A test account must not be an account that real
+phones use**: the identity provider locks an account after repeated failed logins, and a
+test that fails on purpose should not be able to do that to a person. The synthetic traffic
+has had a user of its own since 2026-10-09.
+
+> **When a person says "it logs me out", look first at what the client does with an error,
+> not at how long the server says a session lives.** The server's number was correct. The
+> client's reaction to a hiccup was the bug, and no server setting could have fixed it.
+> [The apps](apps.md) have the rest of the story.
+
+---
+
 ## Read next
 
 - **[High availability, audited](reliability.md)** — the inventory these lessons came out of.

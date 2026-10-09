@@ -29,18 +29,18 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 191 |
+| Pods running | 192 |
 | Postgres clusters / instances | 13 / 34 |
 | Clusters with a synchronous standby right now | 8 of 13 |
 | Backup objects (completed in the last 24 hours) | 343 (13) |
 | Alert rules loaded | 222 |
-| Scrape targets up | 123 of 123 |
-| Commits to the platform repository | 1749 |
+| Scrape targets up | 124 of 124 |
+| Commits to the platform repository | 1754 |
 | Decision records | 39 |
-| Test definitions (counted, not run) | 642 |
+| Test definitions (counted, not run) | 721 |
 | CI workflows | 37 |
 
-*Measured 2026-10-09T08:01:07Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-10-09T14:35:01Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 ## What this is, and is not
@@ -102,6 +102,7 @@ All on the site, **<https://schultzzznet.github.io/schultzzznet/>**:
 
 - [What I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html): the mistakes, with their costs.
 - [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking): confident, wrong numbers, found by checking.
+- [The apps](https://schultzzznet.github.io/schultzzznet/apps.html): three Flutter apps (location, hazard warnings, messaging) with screenshots, and what is not finished.
 - [Reliability](https://schultzzznet.github.io/schultzzznet/reliability.html) and [incidents](https://schultzzznet.github.io/schultzzznet/incident.html).
 - [The AI ops agent](https://schultzzznet.github.io/schultzzznet/aiops.html) and [AI in development](https://schultzzznet.github.io/schultzzznet/ai-dev.html).
 - [The embedded image](https://schultzzznet.github.io/schultzzznet/yocto.html).

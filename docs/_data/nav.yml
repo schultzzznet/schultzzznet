@@ -10,6 +10,9 @@
     - { title: DevSecOps, url: /devsecops.html }
     - { title: High availability, url: /reliability.html }
     - { title: Quality & maturity, url: /quality.html }
+- section: Apps
+  pages:
+    - { title: The apps, url: /apps.html }
 - section: AI
   pages:
     - { title: Operations agent, url: /aiops.html }
