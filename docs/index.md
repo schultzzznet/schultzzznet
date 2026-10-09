@@ -160,6 +160,12 @@ are retracted here rather than quietly edited:
   air-gapped: it posts to chat and syncs findings with a ticket tracker.
 - **A cloud and self-hosted runner split.** It no longer exists. See the cost table.
 - **Four of thirteen failure domains** was stale. See below.
+- **A licence and a security policy.** The compliance page carried an MIT badge while this
+  repository had no licence file, and the only security policy lived in a private repository.
+  As of 2026-10-09 both exist here: [MIT for the code and CC BY 4.0 for the
+  writing](https://github.com/schultzzznet/schultzzznet/blob/main/LICENSE-docs), and a
+  [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) with
+  private reporting switched on. See [compliance](compliance.html).
 
 ## None of this is a demo
 
