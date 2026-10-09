@@ -25,7 +25,7 @@ pages. Reports based on such testing will not be treated as good-faith research.
 
 - **Preferred:** GitHub's private vulnerability reporting. On the repository, open the *Security*
   tab and choose *Report a vulnerability*.
-- **Fallback, or if that option is not shown:** email **github@schultzzz.net** with *security* in
+- **Fallback, or if that option is not shown:** email **ciso@schultzzz.net** with *security* in
   the subject.
 
 Please include what you found and where, what an attacker could do with it, and how to reproduce it.
