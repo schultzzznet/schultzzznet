@@ -17,7 +17,7 @@ write path to a production cluster, which makes the interesting question not *wh
 do* but **what is it allowed to do without asking.**
 
 This is the run-time half of a two-part practice, the production edge. [The dev-time
-half](ai-dev.md) is a cloud model as a reviewed engineering peer, deliberately a different
+half](ai-dev.html) is a cloud model as a reviewed engineering peer, deliberately a different
 model, in a different place, for a different reason.
 
 *Counts below are read from the agent's source as of 2026-10-09 and will move; they are

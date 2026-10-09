@@ -108,7 +108,7 @@ runbooks and {{ s.repo.docs_pages }} documentation pages in {{ s.repo.commits }}
 {{ s.repo.age_days }} days, 1,743 of them by one person; the other six are bots (`git shortlog`, 2026-10-09). One of the four
 post-mortems names its AI assistant in the byline: the Ceph exhaustion write-up credits GitHub Copilot
 and a model. It is a draft, and it is not the post-mortem published on [the incident
-page](incident.md). Since 2026-06-19, 19 commits carry a `Co-Authored-By` Claude trailer
+page](incident.html). Since 2026-06-19, 19 commits carry a `Co-Authored-By` Claude trailer
 (counted 2026-10-09 with `git log` over all {{ s.repo.commits }} commits). That is the more
 checkable credit.
 

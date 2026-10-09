@@ -27,7 +27,7 @@ number you can read.
 
 These three are not part of the snapshot. They are graded from outside and fetched by your
 browser when you open the page. The estate page says [what each of them does and does not
-mean](index.md#none-of-this-is-a-demo).
+mean](index.html#none-of-this-is-a-demo).
 
 [![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
