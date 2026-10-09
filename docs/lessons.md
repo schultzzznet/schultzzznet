@@ -4,14 +4,20 @@ title: What I'd do differently
 
 # What I'd do differently
 
-![decisions](https://img.shields.io/badge/decision%20records-33-1A5276)
-![reversed](https://img.shields.io/badge/reversed%20on%20evidence-6-orange)
-![rebuilt](https://img.shields.io/badge/full%20cluster%20rebuilds-2-326CE5)
+{% assign s = site.data.stats %}
+![decisions](https://img.shields.io/badge/decision%20records-{{ s.repo.adrs }}-1A5276)
+![reversed](https://img.shields.io/badge/reversed%20on%20evidence-9-orange)
+![nodes](https://img.shields.io/badge/nodes%20now-{{ s.cluster.nodes }}-326CE5)
 
 Every other page here describes something that works. This one is the list of things that
 were wrong on the way, several of which are still visible in the system today. It is the
 page I would want to read about someone else's platform, and the one most projects don't
 write — a "what we learned" section that names no mistakes is marketing.
+
+*Retraction, 2026-10-09: this page used to carry a badge saying the cluster had been fully
+rebuilt twice. I cannot back that number: the git history suggests more than two such
+rebuilds and I never kept a list. The badge is gone rather than corrected to another guess.
+The reversal badge said six while the table below listed seven; it now counts the rows.*
 
 The rule for what goes on this page: it has to have **cost something**, and the cost has to
 be describable. Regret without a number attached is just modesty.
@@ -74,7 +80,7 @@ was overdue.
 > A node you keep because it exists is not free. It costs a slot in every loop that iterates
 > over the fleet, forever.
 
-### Update: this one got acted on — the cluster is now six
+### Update: this one got acted on — the cluster is now {{ s.cluster.nodes }}
 
 **Both machines are out.** The paragraphs above were written while they were still running,
 and are left exactly as they were so the prediction can be checked against the outcome
@@ -103,7 +109,9 @@ was fictional, and it survived months of being written down as real.**
 
 **Second update, 2026-09-04 — the number moved again, past where the lesson said to stop.**
 The advice above was "stop at seven". The fleet did not: a faster machine joined as a third
-control-plane member, and both all-in-ones were then retired behind it, leaving **six**. So it
+control-plane member, and both all-in-ones were then retired behind it, leaving **six**
+({{ s.cluster.nodes }} nodes, {{ s.cluster.control_plane }} of them control-plane, as of
+{{ s.generated_at | date: "%Y-%m-%d" }}). So it
 landed one below the recommendation, by a route the lesson never considered — *replacing*
 capacity rather than only removing it. Worth saying plainly, because the tidy version of this
 story would be "the lesson said seven and we got seven". The count was never the point. "I
@@ -119,7 +127,7 @@ held all four times.
 
 ## 3. Storage: right call, wrong sequencing
 
-Replicated block storage across three nodes was the correct decision and I would make it
+Replicated block storage (three nodes at the time) was the correct decision and I would make it
 again. The **sequencing** was wrong.
 
 It went in *after* several stateful workloads were already running on single-node local
@@ -142,7 +150,8 @@ repaid the first time a node dies.
 ## 4. Three OSDs is a number that looks like resilience
 
 Related, and sharper. Three storage nodes with three-way replication sounds robust. It is
-not what most people assume it is.
+not what most people assume it is. *(Written when there were three storage hosts; see the
+note at the end of this section for today. The mechanism is unchanged.)*
 
 With replicas spread by host and exactly three eligible hosts, **every object already
 occupies every host.** Lose one and the placement algorithm has nowhere to put the missing
@@ -156,6 +165,15 @@ of a node loss.
 
 > **N replicas across exactly N hosts is not the same as N-way redundancy.** The margin you
 > actually have is `hosts − replicas`, and at zero the system is serving, not healing.
+
+**Note, 2026-10-09:** the section above went stale when a fourth host joined in early
+September, and I did not come back to it. Checked this morning with `ceph osd tree`, read-only: four
+hosts and {{ s.storage.osds }} OSDs, with {{ s.storage.replica_size }}-way replication, so a
+lost host now has somewhere to re-replicate to. That is the arithmetic. Whether it *does* is
+a separate claim: storage health reads `{{ s.storage.health }}` with
+{{ s.storage.health_warnings }} warnings as of {{ s.generated_at | date: "%Y-%m-%d" }}, and I
+have not drilled a node loss since the fourth host arrived, so "self-heals" is still
+unasserted here.
 
 ---
 
@@ -178,7 +196,8 @@ it recurs. Every one of these was deployed, green, and doing nothing:
   the paired service meant every retrigger was a no-op against an already-"active" unit
 
 **What I'd do differently:** treat "deployed" and "observed to have acted" as two different
-states in the tracker from the very first automation, not as a lesson learned seven times.
+states in the tracker from the very first automation, not as a lesson learned seven times
+(and more since: see sections 9 to 11).
 Every scheduled thing should ship with a `last-fired` signal *and* an alert on its absence —
 and the alert on absence has to be written **before** the thing is called done, because
 afterwards there is never a reason to go back and add it.
@@ -219,8 +238,11 @@ Kept because a page of decisions with no reversals is not credible:
 | An interrupted deploy caused a NIC failure | First link drop was **an hour before** anything was run | Read the timestamps rather than the narrative |
 | A merge step was stripping licence data | It wasn't — a **filter clause before upload** was, and two competing theories were disproved on the way | Uploaded the unfiltered document and looked |
 | A mirror-upload script was never called by anything, so the mirror was empty by neglect | It ran **every night**; its larger half had been switched off on purpose after it filled the store — the "never called" claim even made it into a commit message | The search that found no caller had an include pattern that **matched no files**; "no match" was read as "no caller". The retraction is in the next commit |
+| The four application and identity databases were highly available with **RPO 0**, in the public docs, after the move to PostgreSQL 18 | The move had silently dropped synchronous commit, resource limits and failover tolerations. From the cutover on 2026-09-16 to 2026-10-09 they were asynchronous and the docs still said zero | Auditing the public claims against the live system. Quorum-synchronous commit was restored that morning and checked on each primary |
+| A database replica that crash-looped had a **corrupt checkpoint**, then a **stray timeline-5 file**; and "no alert fired" | None of the three. The replica had diverged at a failover on 2026-09-25 and sat 14 days not streaming; its first restart exposed it. Three warning-level alerts did fire, buried among the alerts from the reboot, and I do not know whether I saw them | Reading what the replica and the alerts actually said, instead of the story I had already built |
 
-Seven reversals in the visible history. The number is low because most wrong ideas die before
+Nine reversals in the visible history (the last two added 2026-10-09; the badge at the top
+is typed by hand, so I count the rows). The number is low because most wrong ideas die before
 they are written down; it is not zero because the ones that survive long enough to be
 written down are worth keeping visible.
 
@@ -231,20 +253,65 @@ written down are worth keeping visible.
 Shorter list, and the reason the rest was survivable:
 
 - **Making rebuilding cheap.** The entire cluster has been wiped and rebuilt from scratch
-  twice. That is only tolerable because it is an afternoon, and it is an afternoon because
+  more than once (see the retraction at the top about the count). That is only tolerable because it is an afternoon, and it is an afternoon because
   everything is a derivative of a git repository. **Being wrong stopped being expensive**,
   which is what made it possible to be wrong usefully.
-- **Writing down decisions with their alternatives.** Thirty-odd decision records, several of
+- **Writing down decisions with their alternatives.** {{ s.repo.adrs }} decision records as of {{ s.generated_at | date: "%Y-%m-%d" }}, several of
   which have been reversed *by referring back to them* — including one that corrected a
   claim about why an earlier decision had been made, which turned out to be unsupported by
   the record it cited.
-- **Refusing to round numbers up.** Four of thirteen failure domains are genuinely
+- **Refusing to round numbers up.** At the first count, four of thirteen failure domains were genuinely
   single-fault tolerant. Publishing "four" instead of a nicer figure is why the other nine
-  are tracked instead of forgotten.
+  were tracked instead of forgotten. (That was the first count; the
+  [reliability page](reliability.md) holds the current one.)
 - **Pruning the backlog on purpose.** Thirty-four of fifty-nine open items were closed in one
   pass — some done, some obsolete, and nine as **won't-do**, each with a reason. Deciding
   what will never be done is the judgement call that keeps a register from becoming a guilt
-  pile.
+  pile. (Frozen history. Open items now: {{ s.repo.gaps_open }}, as of
+  {{ s.generated_at | date: "%Y-%m-%d" }}.)
+
+---
+
+## 9. A green line that never asked the right question
+
+A database replica diverged at a failover on 2026-09-25 and then sat 14 days not streaming
+from its primary. Nothing stopped it; the first restart crash-looped, which is how I found out.
+
+**What I'd do differently:** assert the property you mean, not a proxy for it. The property
+was *every replica is streaming*, and nothing checked that. New alerts now cover this class (replica not
+streaming, container crash-looping, instance not ready), added the same day, which is the
+wrong order — see section 5.
+
+---
+
+## 10. A copy that "mirrors the shape" is not the original
+
+The PostgreSQL 18 cutover on 2026-09-16 was meant to mirror the high-availability shape of
+the old clusters. It mirrored most of it. Synchronous commit, the resource limits and the
+failover tolerations were silently dropped, so for three weeks the four three-instance
+application and identity databases were asynchronous while the docs said RPO 0. Nothing
+was red. The replacement was healthy; it just was not the thing documented.
+
+I found it by auditing the public claims against the live system, which is the exercise this
+site exists to make routine. Those four are back on quorum-synchronous commit (any one of two
+standbys), checked on each primary on 2026-10-09. The two-instance clusters are asynchronous
+by design and say so.
+
+> **A generated copy needs a guard that compares it to its source.** "Mirrors" is a claim in
+> a commit message. A check that fails when the successor differs from the original is a
+> property. One now exists for this exact case.
+
+---
+
+## 11. Three wrong claims in one diagnosis
+
+When that replica crashed, I diagnosed a corrupt checkpoint. Wrong. Then a stray timeline-5
+file. Also wrong. I had also said no alert fired. Also wrong: three warning-level alerts had
+fired, buried among the alerts from the reboot, and I do not know whether I saw them. Three
+confident claims, none checked against what the system had actually recorded.
+
+> **Before diagnosing, read what the system recorded.** The status line was the weakest
+> evidence available; the alert history and the replica's own logs were there.
 
 ---
 
@@ -253,8 +320,10 @@ Shorter list, and the reason the rest was survivable:
 - **[High availability, audited](reliability.md)** — the inventory these lessons came out of.
 - **[DevSecOps, end to end](devsecops.md)** — the measurement traps, in more detail and with
   the code.
-- **[`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples)** — four
+- **[`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples)** — some
   of these lessons, extracted as runnable artifacts.
+- **[Live status](status.md)** — the figures quoted on this page, regenerated rather than
+  remembered.
 
 ---
 

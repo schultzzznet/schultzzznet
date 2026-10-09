@@ -2,48 +2,70 @@
 title: DevSecOps — the whole chain, and what it actually proves
 ---
 
+{% assign s = site.data.stats -%}
+{% assign asof = s.generated_at | date: "%Y-%m-%d" -%}
 # DevSecOps, end to end
 
-![sbom coverage](https://img.shields.io/badge/SBOM%20coverage-62%20of%2062%20running%20images-blueviolet)
-![signed](https://img.shields.io/badge/every%20image-signed%2C%20then%20VERIFIED-2E2E5F?logo=sigstore&logoColor=white)
-![provenance](https://img.shields.io/badge/attestations-provenance%20%2B%20SBOM-5C4EE5)
-![exposure](https://img.shields.io/badge/exposure%20tiers-4%20public%20%C2%B7%2019%20LAN%20%C2%B7%2039%20internal-326CE5)
-![privileged](https://img.shields.io/badge/privileged%20workloads-8%2C%20all%20tagged-orange)
-![noise](https://img.shields.io/badge/SBOM%20noise%20removed-96%25-2EA44F)
-![licences](https://img.shields.io/badge/licences%20restored-0%20%E2%86%92%20243-blueviolet)
-![hosts](https://img.shields.io/badge/host%20findings%20found%20unrebooted-16%2C002-critical)
-![gates](https://img.shields.io/badge/PR%20gates-8-24A1C1?logo=github&logoColor=white)
+![sbom](https://img.shields.io/badge/SBOM%20uploads%20accepted-{{ s.supply_chain.sbom_projects }}%20for%20{{ s.supply_chain.images_running }}%20running%20images-blueviolet)
+![signed](https://img.shields.io/badge/first--party%20images%20signed%20and%20verified-{{ s.supply_chain.first_party_signed_verified }}%20of%20{{ s.supply_chain.images_first_party }}-2E2E5F?logo=sigstore&logoColor=white)
+![exposure](https://img.shields.io/badge/exposure%20tiers%20%282026--10--09%29-4%20public%20%C2%B7%2022%20LAN%20%C2%B7%2042%20internal-326CE5)
+![privileged](https://img.shields.io/badge/privileged%20images%20%282026--10--09%29-8-orange)
+![gates](https://img.shields.io/badge/gates%20on%20pull%20requests-7%20of%208-24A1C1?logo=github&logoColor=white)
 ![edge](https://img.shields.io/badge/public%20edge-default--deny-critical)
-![tracked](https://img.shields.io/badge/findings%20tracked%20as%20work-166-2E2E5F)
 
 Security controls are easy to install and hard to keep honest. This page walks the whole
-chain — commit to running pod to continuously re-evaluated inventory — and, at each stage,
-says what the control *actually proves* rather than what it is marketed to prove.
+chain, commit to running pod to continuously re-evaluated inventory, and at each stage says
+what the control *actually proves* rather than what it is marketed to prove.
 
-Every number here is measured on the live system, not estimated.
+**What the numbers mean.** The "now" figures (badges, counts of images and runners) are
+rendered from the [status page](status.md) and were measured at {{ s.generated_at }}. The
+exposure tiers and the privileged count are not in that file; they are from a classifier run
+against the live cluster on 2026-10-09 and are dated where they appear. Everything else
+is an incident or a one-off measurement, and carries its own date or says it cannot be
+re-measured. An earlier version of this page said every number was measured on the live
+system. That was not true of the page, and the sentence is gone.
+
+> **Corrections, 2026-10-09.** Four things this page claimed were wrong when audited.
+> The badge row said *every* image was signed and verified: it is the first-party images,
+> {{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running, and the cluster does not enforce the signature at admission.
+> The gate table said all gates run in the cloud: none does. It marked two advisory gates as
+> blocking (CodeQL, API contract) and listed two languages where there are three. And "one self-hosted runner" was
+> out of date (§10).
 
 ---
 
 ## 1. The gates before a commit becomes an image
 
-| Gate | Runs on | Catches | Blocking |
-|---|---|---|---|
-| **CodeQL** | cloud | SAST across Java and JS | yes |
-| **Secret scanning** | cloud | credentials committed by accident | yes |
-| **Trivy + Syft** | cloud | image CVEs, and the SBOM itself | yes |
-| **DAST baseline** | cloud | live-app web findings | advisory |
-| **API contract tests** | cloud | schema drift against the published OpenAPI | yes |
-| **Exposure contract** | cloud | *what is reachable from the internet* — see §5 | yes |
-| **Rate-limit contract** | cloud | the auth endpoint's throttle still throttles | yes |
-| **Infra validation** | cloud | manifests, playbooks, shell, YAML | yes |
+All {{ s.ci.runs_on_self_hosted }} CI jobs across {{ s.ci.workflows }} workflow files run on
+self-hosted runners; {{ s.ci.runs_on_github_hosted }} run on GitHub-hosted ones (counted from the
+workflow files, as of {{ asof }}). Seven of the eight gates below trigger on pull requests,
+and all but the secret scan are path-filtered, so they do not run on every change.
 
-The unglamorous ones — the exposure and rate-limit contracts — are the two that have
-actually caught regressions, because they assert a *property of the running system* rather
-than a property of the source.
+| Gate | Triggers | Catches | Blocking |
+|---|---|---|---|
+| **CodeQL** | pull request | SAST across Java/Kotlin, JavaScript/TypeScript and Python | no: the analysis step is `continue-on-error` |
+| **Secret scanning** | pull request | credentials committed by accident | yes |
+| **Trivy + Syft** | pull request | image CVEs, and the SBOM itself | yes (critical with a fix only, see §10) |
+| **DAST baseline** | pull request | live-app web findings | advisory |
+| **API contract tests** | pull request | schema drift against the published OpenAPI | no: report-first; only failing to boot the target fails the job |
+| **Exposure contract** | push to the main branch, daily, on demand | *what is reachable from the internet*, see §5 | yes |
+| **Rate-limit contract** | pull request | the auth endpoint's throttle still throttles | yes |
+| **Infra validation** | pull request | manifests, playbooks, shell, YAML | yes |
+
+"Yes" means the job fails the workflow. Whether a failed check actually stops a merge depends
+on a repository ruleset, and I found two files that disagree about whether one exists, so I
+do not claim it. CodeQL runs as advisory because the result upload is refused on a private
+repository without GitHub's paid scanning, and GitHub-native code scanning is off. At least the last two
+push runs (2026-10-08 and 2026-10-09) failed; the first failed in the Java/Kotlin job, and I have not looked up why.
+
+The exposure contract is the one that encodes a real regression: the path-traversal bypass in
+§5, found on 2026-07-17. I have not mined run history to say how often it or the rate-limit
+contract has fired since. Both are worth having for the same reason: they assert a *property of
+the running system* rather than a property of the source.
 
 None of these gates check who, or what, authored the commit. **A change proposed by
-[the cloud model used as a development peer](index.md) walks through the identical table** —
-same SAST, same secret scan, same signing — and a human reviewer is still accountable for
+[the cloud model used as a development peer](index.md) walks through the identical table**,
+same SAST, same secret scan, same signing, and a human reviewer is still accountable for
 what it produced. AI-assisted is not a bypass lane.
 
 ---
@@ -52,7 +74,7 @@ what it produced. AI-assisted is not a bypass lane.
 
 ```mermaid
 flowchart LR
-  S["source"] --> B["build image<br/>immutable git-SHA tag"]
+  S["source"] --> B["build image<br/>version + git-SHA tag"]
   B --> P["provenance attestation"]
   B --> M["SBOM attestation"]
   P --> G["sign"]
@@ -64,9 +86,9 @@ flowchart LR
 
 Two decisions carry most of the weight:
 
-**The tag is the git SHA, never a floating `latest`.** A floating tag lets a rollout pull a
-cached older layer and report success — so "what is running" stops being answerable at
-exactly the moment you need the answer.
+**The tag carries the release version and the git SHA, never a floating `latest`.** A
+floating tag lets a rollout pull a cached older layer and report success, so "what is
+running" stops being answerable at exactly the moment you need the answer. None of the image references found on pods on 2026-10-09 used `latest` or no tag at all (0 of 68; the classifier counts image references on pods, so 68 here against 67 distinct images in the status counts).
 
 **The signature is verified, not merely produced.** Signing without a verification step is
 ceremony. The verify step is the control; the signing step is just its input.
@@ -75,45 +97,47 @@ ceremony. The verify step is the control; the signing step is just its input.
 
 ## 3. What gets scanned — derived from the cluster, never typed
 
-This is the part that changed most recently, and it is the part worth presenting, because
-the bug it fixed is one almost every organisation has.
-
 The nightly SBOM job used to hold a **hand-typed list** of applications to scan. Two live
 applications, both running two replicas, were not on it. They had no SBOM and no
-vulnerability record, and nothing anywhere reported a problem — the job printed success
-every night for exactly the apps it had been told about.
+vulnerability record, and nothing reported a problem: the job printed success every night
+for exactly the apps it had been told about.
 
-It was the third instance of one failure class on this platform:
-
-- an application sat in `ImagePullBackOff` for **12 days** because a build list never
-  named it
-- another was missing from **both** ship lists while running healthy
-- and then the scan list
+It was the third instance of one failure class on this platform, a hand-kept list that
+went stale without a sound. The other two: an application sat in `ImagePullBackOff` for
+**12 days** because a build list never named it, and another was missing from both ship lists
+while running healthy.
 
 So the lists were deleted. Scope is now **derived at run time**:
 
 | Job | Scope | Source of truth |
 |---|---|---|
-| application scan | the apps we build | every Deployment in the application namespace |
+| application scan | the apps I build | every Deployment in the application namespace |
 | platform scan | everything else | every image on every pod, init containers included |
 
 Deploying something enrols it. An empty derivation is a **hard failure**, not an empty
-loop — the old mode failed by being quietly smaller than anyone believed, which is the
-mode worth killing.
+loop. The old mode failed by being quietly smaller than anyone believed, which is the mode
+worth killing.
 
-The result of pointing that at reality for the first time:
+The result of pointing that at reality for the first time, on the first run (2026-08-19):
 
-> **62 distinct images run on the cluster. 56 of them are third-party. None of them had an
-> SBOM.** The public identity provider — the single most exposed component in the estate —
+> **62 distinct images ran on the cluster. 56 of them were third-party. None of them had an
+> SBOM.** The public identity provider, the single most exposed component in the estate,
 > had no vulnerability record at all. Nor did the databases, the object store, the metrics
 > and log stores, the storage layer, or the vulnerability tracker itself.
+
+Today ({{ asof }}) the status page counts {{ s.supply_chain.images_running }} distinct running
+images, {{ s.supply_chain.images_third_party }} of them third-party, and the trackers have accepted
+{{ s.supply_chain.sbom_projects }} SBOM uploads. That number is larger than the image count
+because it also holds images that have since stopped running. It proves acceptance, not analysis.
 
 Dependency bumping was already automated, so nothing was *stale*. But a bump only proves a
 newer version exists. It never says what is exploitable **now**. That was the gap.
 
-**And no exclusion list was introduced to replace it.** Scanning everything costs about ten
-minutes of machine time a night. A "don't scan these" list is the identical bug pointed the
-other way, and it drifts in the direction that flatters.
+**And no exclusion list was introduced to replace it.** Scanning everything is cheap: the
+platform scan takes about eleven minutes (10m49s to 11m00s, 2026-10-07 to 2026-10-09) and the
+application scan about two.
+A "don't scan these" list is the identical bug pointed the other way, and it drifts in the
+direction that flatters.
 
 ---
 
@@ -130,7 +154,10 @@ alone ranks things wrongly:
 | `exposure:internal` | cluster-internal service only |
 | `privileged` | a privileged container, or host network / PID / IPC |
 
-Current spread: **4 public, 19 LAN-only, 39 internal; 8 privileged.**
+Spread as of 2026-10-09, from the classifier run against the live cluster: **4 public
+(the three first-party apps and the identity provider), 22 LAN-only, 42 internal, across 68
+image references; 8 privileged.** The public count has not changed since the earlier measurement of
+4 / 19 / 39 across 62 images; the rest grew with the estate.
 
 Why both axes, in one example each:
 
@@ -187,9 +214,10 @@ http-request deny deny_status 404 if !public_paths
 ```
 
 `/actuator` is worth singling out. `/actuator/health` is mild and `/actuator/info` is
-harmless, but `/actuator/prometheus` returns 622 lines whose `uri=` labels enumerate the
-entire API surface — every path parameter, every route — which is at least as disclosive as
-leaving the API schema endpoint open. The blanket deny is right and health/info are
+harmless, but `/actuator/prometheus` returned 622 lines when I looked (the count moves with the
+app version; I have not re-measured it), and their `uri=` labels enumerate the entire API
+surface, every path parameter, every route, which is at least as disclosive as leaving the
+API schema endpoint open. The blanket deny is right and health/info are
 collateral.
 
 **Two places now state what is public, so they are checked against each other.** The edge
@@ -205,66 +233,57 @@ throttled.
 
 ## 6. Measurement traps found by checking
 
-A presentation-worthy trio, because each one produces *confident, wrong* numbers:
+Each of these produced *confident, wrong* numbers. The dated figures are receipts from the
+time; I cannot re-measure them, because they need credentials for the tracker.
 
-**96% of every SBOM was unmatchable filler.** The generator's file cataloger emitted a
-component per file — bare paths, no package identifier of any kind. A vulnerability tracker
-matches on package identifiers, so those rows could never produce a finding. One application
-carried **7,110 components, of which 6,847 were noise**. Turning the cataloger off took it to
-**264**, with the matchable set byte-identical. Verified on a minimal base image first: 92
-components to 15, same 14 packages.
+**Most of every SBOM was unmatchable filler.** The generator's file cataloger emitted a
+component per file: bare paths, no package identifier. A vulnerability tracker matches on
+package identifiers, so those rows could never produce a finding. In the worst case, one
+application, **7,110 components were 6,847 noise**; turning the cataloger off left about 260,
+with the matchable set byte-identical. The repo's own comment gives the general range as
+85 to 96 percent of an SBOM. On a minimal base image: 92 components to 15, the same 14
+packages. (I once wrote 264 for the remainder; 7,110 minus 6,847 is 263.)
 
-**A rejected upload still created the project.** The SBOM generator's default output format
-had moved to a specification version the tracker rejects. The upload returned an error —
-*and the project was created anyway, with its tags applied*. Checking "does the project
-exist?" would have said yes, forever, while nothing was ever ingested. The format is now
-pinned explicitly, with a comment saying why it cannot be simplified.
+**A rejected upload still created the project.** The generator's default output format had
+moved to a specification version the tracker rejects. The upload returned an error, *and the
+project was created anyway, with its tags applied*. "Does the project exist?" would have said
+yes forever while nothing was ingested. The format is now pinned, with a comment saying why.
 
-**The inventory API caps result rows regardless of the requested page size.** An early
-conclusion here — "no test-scope dependencies are present" — was drawn from the first 100 of
-7,110 components. The conclusion happened to survive the full set, but the evidence had not
-earned it. The honest total lives in a response header.
+**The inventory API caps result rows regardless of the requested page size.** "No test-scope
+dependencies are present" was concluded from the first 100 of 7,110 components. It happened
+to survive the full set, but the evidence had not earned it. The honest total is in a
+response header.
 
-And a fourth, which is the purest of the set:
+**A 403 with an empty body is indistinguishable from zero violations.** The credential that
+uploads SBOMs had never been granted permission to read policy violations back, so every
+"did this fail the policy?" query returned an empty, unauthorized response that looked
+exactly like a clean pass. The fix was a permission grant, not a policy change; until then a
+policy that fired correctly was invisible to the one system meant to act on it.
 
-**Licence data was generated correctly, then deleted immediately before upload.** A single
-filter clause stripped every licence out of the SBOM on its way to the tracker. The
-justification was written down and was *true when written* — an older tracker version
-rejected the licence formats the generator emitted, and licences were not needed for
-vulnerability matching. Both halves of that justification expired: the tracker was upgraded,
-and a copyleft policy now needs exactly that field.
+**Licence data was generated correctly, then deleted immediately before upload.** One filter
+clause stripped every licence from the SBOM on its way to the tracker. It arrived with the
+nightly scan on 2026-05-24 and was removed on 2026-08-13, 81 days. Its
+justification was written down and *true when written*: an older tracker rejected the
+licence formats, and licences were not needed for vulnerability matching. Both halves
+expired when the tracker was upgraded and a copyleft policy began to need exactly that field.
 
-So the control existed, the data existed, and one clause between them made both useless for
-three months. It was found by testing the assumption rather than reading the comment —
-*upload the unfiltered document and see what actually happens.* It returned success, ingested
-**243 licences**, and the copyleft policy fired for the first time. Four applications went
-from zero licences to a full set.
-
-Two competing theories were tested and **disproved** on the way, which is the part worth
-keeping: a merge step was suspected of stripping them (it does not — it keeps both copies),
-and the tracker was suspected of preferring the licence-free duplicate (it does not — it
+Found by testing the assumption rather than reading the comment: upload the unfiltered
+document and see. It returned success, ingested **243 licences** (at the time, 2026-08-13),
+and the copyleft policy fired for the first time. Four applications went from zero licences
+to a full set. Two theories were tested and **disproved**
+on the way, which is the part worth keeping: a merge step was suspected of stripping the
+licences (it keeps both copies), and the tracker of preferring the licence-free duplicate (it
 keeps the licence). Guessing would have produced a plausible fix for the wrong cause.
 
 > **Defensive code written against an external tool's behaviour has an expiry date, and
 > nothing tells you when it passes.** A comment explaining why something is disabled is a
 > claim about a version that has since moved.
 
-That licence data feeds a real policy, and the policy's first honest version over-fired: it
-flagged copyleft components by the hundred, and every single hit turned out to be ordinary
-base-image operating-system tooling that carries no service obligation — not one was an
-application dependency. The policy was split in two: an informational count of copyleft
-anywhere in the inventory, and a **failing** check scoped to application dependencies only.
-The baseline dropped to zero false positives without weakening what the policy actually
-guards against. [The fuller licensing picture](compliance.md) — what running each licence
-family obligates versus what selling a service on top of it would — lives on its own page.
-
-A fifth trap, found while chasing why that same policy looked like it was doing nothing at
-first: **a 403 with an empty body is indistinguishable from zero violations.** The
-automation credential used to upload SBOMs had never been granted permission to read policy
-violations back, so every query for "did this fail the policy?" returned an empty,
-unauthorized response that looked exactly like a clean pass. The fix was a permission grant,
-not a policy change — but until it was found, a policy that had been firing correctly the
-whole time was invisible to the one system that was supposed to act on it.
+The policy's first honest version then over-fired: hundreds of copyleft hits, every one of
+them ordinary base-image operating-system tooling, none an application dependency. It was
+split into an informational count of copyleft anywhere and a **failing** check scoped to
+application dependencies only, without weakening what it guards against.
+[The fuller licensing picture](compliance.md) lives on its own page.
 
 ---
 
@@ -332,16 +351,15 @@ fi
 ### And then: patched is not running
 
 The automation had two halves. The patching half worked. The rebooting half read the wrong
-path — inside its container, the location it checked resolved to its own empty directory
-rather than the host's — so it concluded nothing needed rebooting and **logged that
+path: inside its container, the location it checked resolved to its own empty directory
+rather than the host's, so it concluded nothing needed rebooting and **logged that
 conclusion hourly, on every node, for weeks.**
 
-The result was a fleet where every fix was applied to disk and none of it was running:
-**16,002 host findings, every single one with a fix already available**, and four different
-kernel series live simultaneously across nine machines. No error, no alert, no dashboard
-anomaly — the patching automation was recorded as shipped.
-
-It is one line:
+The result, discovered in July to August 2026 (the dated incident is on the
+[reliability page](reliability.md)), was a fleet where every fix was applied to disk and none of
+it was running: **16,002 host findings, every single one with a fix already available**, and
+four different kernel series live at once across the nine machines of that estate. No error,
+no alert, no dashboard anomaly; the patching automation was recorded as shipped. It is one line:
 
 ```yaml
 # The distro writes /var/run/reboot-required on the HOST. The daemon runs in a
@@ -352,36 +370,24 @@ It is one line:
 - --reboot-sentinel=/sentinel/reboot-required
 ```
 
-The gate that stops it rebooting *into* an incident is worth showing too, because it was
-originally the wrong shape:
+The gate that stops it rebooting *into* an incident was originally the wrong shape too: an
+ignore-list ("reboot unless one of these alerts is firing") is unbounded in the dangerous
+direction, because every alert added later is implicit permission to reboot. It is now a
+block-list, so a new alert defaults to blocking. The lock's lifetime must also exceed drain
+timeout plus reboot time plus release delay, or the lock expires mid-cycle and a second node
+starts draining while the first is still down. The
+[annotated config](https://github.com/schultzzznet/schultzzznet/blob/main/examples/kured-args.yaml)
+has the numbers.
 
-```yaml
-# Was an IGNORE-list: "reboot unless one of these alerts is firing" — unbounded in
-# the dangerous direction, since every alert added later is implicit permission to
-# reboot. Inverted to a BLOCK-list: reboot only when none of these are firing, so a
-# new alert defaults to blocking rather than allowing.
-- --alert-firing-only
-- --alert-filter-match-only
-- --alert-filter-regexp=^(KubeAPIDown|KubeNodeNotReady|KubeNodeUnreachable|KubeletDown|CephHealthError)$
+The check that would have caught the original bug in about ten seconds, had anyone thought
+to distrust the log line, is to compare the claim with the fact: the daemon's last log
+lines, then `ls -l /var/run/reboot-required` and `uname -r` against the installed kernels on
+the node itself.
 
-# The arithmetic between these three is load-bearing: lock-ttl must exceed
-# drain-timeout + reboot time + lock-release-delay, or the lock expires mid-cycle
-# and a SECOND node starts draining while the first is still down.
-- --drain-timeout=15m
-- --lock-ttl=60m
-- --lock-release-delay=15m
-```
-
-And the check that would have caught the original bug in about ten seconds, had anyone
-thought to distrust the log line:
-
-```sh
-kubectl -n kube-system logs -l name=kured --tail=20   # the claim
-ssh <node> ls -l /var/run/reboot-required             # the fact
-ssh <node> 'uname -r; ls /boot/vmlinuz-*'             # running vs installed
-```
-
-> The full annotated config is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/kured-args.yaml).
+**Today, as of 2026-10-09** (the exporter's gauges, read that morning): 0 findings against the
+running kernel on all 6 nodes, 898 against retained fallback kernels (structural, never zero),
+1 non-kernel finding, and every node scanned within the last 2.5 hours. The cluster was
+rebuilt (its oldest node is {{ s.cluster.age_days }} days old), so the nine machines of the incident are not the six nodes of today.
 
 > A vulnerability is closed when the fixed code is **executing**, not when the package is
 > installed. Those are different measurements and only one of them is the control.
@@ -396,11 +402,13 @@ forced.
 Every prior section answers *is something wrong*. None of them answer the next question:
 does anything happen about it, or does it sit in a dashboard nobody opens?
 
-A scheduled agent — the same one described on [its own page](aiops.md) — polls both
-vulnerability trackers every 30 minutes and keeps a matching set of tickets open in the work
+A scheduled agent, the one described on [its own page](aiops.md), is configured to poll both
+vulnerability trackers every 30 minutes and keep a matching set of tickets open in the work
 tracker: a new Critical or High finding opens one, a finding that disappears (a dependency
 bump merged, an image rebuilt, the next scan confirms it is gone) closes it automatically.
-No one retypes a CVE ID into a ticket, and no one remembers to close one either.
+No one retypes a CVE ID into a ticket, and no one remembers to close one either. I could not
+find that agent running in the cluster on 2026-10-09, so I cannot say whether it is polling
+today.
 
 **The interesting decision was how the two systems talk, not that they do.** The
 straightforward design has the tracker push a webhook when a ticket closes — and the house
@@ -411,8 +419,9 @@ internet in either direction, which turned the constraint that blocks the obviou
 the reason the actual one is simpler.
 
 Scope was chosen deliberately, not exhaustively. The embedded image's firmware findings and
-the first-party applications' dependency findings are tracked — **166 open tickets** across
-both. The far larger pool of third-party platform-image findings is not: an automated
+the first-party applications' dependency findings are tracked: **166 open tickets** across
+both when last counted. That count is undated and the tickets are not readable from the
+cluster, so treat it as history, not a gauge. The far larger pool of third-party platform-image findings is not: an automated
 dependency bumper is already the fixer there, and a human triaging a four-figure ticket count
 for CVEs they cannot act on faster than that bumper would be manufactured work, not caught
 work.
@@ -446,17 +455,27 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
   any of the above.
 - **Runtime behaviour is not monitored** for exploitation; this is build- and
   inventory-time analysis plus network-level exposure control.
-- **The pull-request gate is narrower than the badge row suggests.** Only *critical*
-  severity with an available fix blocks a merge; high, medium and low are report-only, and
+- **The pull-request gate is narrower than a green check suggests.** Only *critical*
+  severity with an available fix fails the job; high, medium and low are report-only, and
   the dependency-level scan runs nightly rather than per pull request. A change introducing
   a vulnerable dependency merges clean and surfaces afterwards. That is a deliberate
   throughput trade-off, and it is tracked as an open gap rather than presented as coverage.
+  CodeQL and the API contract tests do not block at all (§1).
 - **There is no secrets manager.** No sealed secrets, no vault, no external secrets
   operator. It is the recurring root cause behind a whole class of placeholder-credential
   defects, it is the highest-value unstarted item on the register, and writing it down here
   is more useful than implying it away.
-- **The deploy path has a single point of failure** — one self-hosted runner, on the LAN
-  side of a carrier-grade NAT boundary, because nothing in the cloud can reach the cluster.
+- **The deploy path has no cloud fallback.** Every CI and deploy job runs on a self-hosted
+  runner inside the LAN, because nothing in the cloud can reach the cluster behind a
+  carrier-grade NAT boundary, and GitHub-hosted runners have been refused since an Actions
+  billing block. Three runners are registered (two Linux, one macOS); on 2026-10-09 two were
+  online, and only one of them was Linux.
+- **Nothing is enforced at admission.** Signatures are verified in CI and by a cluster check
+  ({{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running first-party images verify, as of {{ asof }}), but no policy engine refuses an
+  unsigned image, and across the cluster's {{ s.cluster.namespaces }} namespaces there are no
+  NetworkPolicies and one Pod Security label (2026-10-09 audit). The mirrored and
+  third-party images are not signed by this pipeline at all. GitHub-native code scanning,
+  dependency alerts and secret scanning are off on the platform repository.
 - **Satellite repositories bypass the release policy gate**, by design of the small
   contract. Their own CI is the only thing between a commit and a rollout — and
   [the contract does not require them to have one](platform.md).
@@ -469,18 +488,9 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
 
 ## Read next
 
-- **[High availability, audited](reliability.md)** — the single-fault inventory, the drain
-  that removed its own control surface, and why the patching loop is the best chaos
-  experiment on the platform.
-- **[The operations agent](aiops.md)** — the additive-versus-disruptive split that makes an
-  automated write path to a production cluster defensible.
-- **[The embedded side](yocto.md)** — the same supply chain pointed at a Linux image built
-  from source.
-- **[Legal, licensing, and the regulatory posture](compliance.md)** — what the same supply
-  chain buys against a real regulation, and the two places a label was checked and found
-  wrong.
-- **[Testing, quality gates, and grading our own maturity](quality.md)** — the quality half
-  of this gate table, and an honest self-graded score.
+- **[High availability, audited](reliability.md)**: the single-fault inventory and the patching incident in full.
+- **[The operations agent](aiops.md)**: the additive-versus-disruptive split behind an automated write path.
+- **[Testing, quality gates, and grading our own maturity](quality.md)**: the quality half of the gate table.
 
 ---
 

@@ -1,21 +1,22 @@
 ---
-title: Printing — parts as code, rendered on the cluster
+title: Printing — parts as code, previewed by a pod and on the workstation
 ---
 
-# Parts as code: from a parameter to a spinning preview, on the same cluster
+# Parts as code: from a parameter to a spinning preview
 
 ![OpenSCAD](https://img.shields.io/badge/OpenSCAD-code%20CAD-F9D72C)
-![PrusaSlicer](https://img.shields.io/badge/PrusaSlicer-headless-FA6831)
 ![Prusa](https://img.shields.io/badge/printer-CORE%20One%2B-FA6831)
-![k3s](https://img.shields.io/badge/renders%20on-k3s-FFC61C?logo=k3s&logoColor=black)
-![deploy key](https://img.shields.io/badge/repo%20access-read--only%20deploy%20key-2EA44F)
-![host keys](https://img.shields.io/badge/host%20keys-pinned%20%2B%20tested-2EA44F)
+![k3s](https://img.shields.io/badge/internal%20gallery%20on-k3s-FFC61C?logo=k3s&logoColor=black)
 
 The mechanical layer of the estate. Every part is **source**: an OpenSCAD file or a
 standard-library Python generator, with its bolt patterns and clearances as named
-parameters. The mesh, the G-code and the previews on this page are **build output**. None
-of them is committed, all of them are rebuilt from the source, and the source repository
-is private. This page is published from it by one command.
+parameters. The mesh, the G-code and the previews are **build output**, rebuilt from the
+source. The G-code is never committed. The rover's meshes and previews are, since
+2026-10-07, so they are available offline, and the previews on this page are copies
+committed to this public site repository. The source repository, {{ site.data.stats.hardware.printing_commits }} commits as of
+{{ site.data.stats.generated_at | slice: 0, 10 }}, is private. This page is published from it by one command that
+renders the previews on the workstation, not on the cluster. Only the internal gallery
+renders on the cluster, in a pod.
 
 The design idea is the one in the first decision record: **buy the interfaces, print
 everything between them**. Motors, boards and batteries come off a shelf; the brackets,
@@ -32,29 +33,36 @@ flowchart LR
   GIF --> WEB["internal gallery"]
   STL -->|PrusaSlicer| GC[".gcode"]
   GC -->|PrusaLink| PR["printer"]
-  GIF -->|make publish| PAGES["this page"]
+  SRC -->|"make publish · renders locally"| WS["workstation render"]
+  WS --> PAGES["this page"]
 ```
 
 - **One toolchain image**: OpenSCAD, PrusaSlicer, ffmpeg and a virtual X server. Its tag
   is the content hash of its own Containerfile, so the tag changes exactly when the
   toolchain does. The parts are *not* baked in; the pod clones the repository at run time,
   so a push changes what gets rendered without a rebuild.
-- **The gallery** is a Deployment that re-clones and re-renders every part every fifteen
-  minutes and serves the result behind the cluster's ingress. The **print job** is a
-  CronJob running the same chain through slicing and upload; it ships suspended.
+- **The gallery** is a Deployment that re-clones the repository every fifteen minutes,
+  re-renders every part only when the commit has changed, and serves the result behind the
+  cluster's ingress. That is the design; lesson 7 says what it does today. The **print job**
+  is a CronJob running the same chain through slicing and upload. It is suspended, and was
+  when I checked on 2026-10-09.
 - Both run as non-root on a **read-only root filesystem**, with every capability dropped.
-- **Everything is a make target.** `make deploy` runs the unit tests, then the real
-  renderer in the real image under the pod's CPU and memory limits, then the access test,
-  then the push, server-side strict validation and apply. `make smoke` then fetches the
-  gallery through the ingress and checks the part count against the parts on disk. That
-  last check exists because "the API server accepted the objects" and "the page is served"
-  are different claims.
+- **Everything is a make target.** `make deploy` gates on the unit tests, the real renderer
+  in the real image under the pod's limits, the access test and strict server-side
+  validation, then applies. `make smoke` fetches the gallery through the ingress and
+  compares its part count with the parts on disk, because "the API server accepted the
+  objects" and "the page is served" are different claims. As of 2026-10-09 that comparison
+  cannot pass; see lesson 8.
+- **`make fit`** checks that the rover's printed parts do not occupy the same space. As of
+  2026-10-09 it **fails with 3 problems**: the Pi tray, the battery tray and the camera mast
+  overlap each other. The rover does not go together yet, and that list is the design's
+  to-do list. A failing fit puts DRAFT on the booklet's cover rather than stopping it.
 
 ## What was wrong first
 
 Most of the work here was finding out that the first answer was wrong. In order:
 
-**1. The renderer's animation mode could not animate.** The Debian OpenSCAD (2021.01)
+**1. The renderer's animation mode could not animate.** The Debian OpenSCAD (2021.01, the version the pod ran when I checked on 2026-10-09)
 fails under a virtual display once asked for eight or more animation frames, and its
 viewport variables are ignored outside animation mode. Every one of the 19 parts failed in
 the container while all of them worked on the workstation, which runs a newer build. The fix
@@ -96,11 +104,30 @@ caught a sourced script that declared no shell.
 
 **6. A push that logged an error and worked.** The image push reported a timeout against
 the registry, retried, and succeeded. Neither the error line nor the exit code settles
-which of the two happened; the registry's own tag list and a manifest fetch did.
+which of the two happened; the registry's own tag list and a manifest fetch did. This one
+is from memory: I cannot point to a record of it, so it is the only lesson here you cannot
+check.
+
+**7. A poll loop that worked exactly once.** The gallery built its first render at
+2026-10-09 04:59 UTC and has not managed a clone since: every fifteen-minute poll logs
+`clone FAILED; still serving cab74a3`, with `getcwd() failed` among the errors. It is
+serving a correct but frozen gallery. My reading of the script, not yet a fix, is that
+the loop deletes its working directory while standing in it. The container test runs a
+single pass, so it could not see a second one. The fix needs a test that runs two
+iterations first.
+
+**8. A gate broken by the file it protects.** Tracking the rover's meshes made the smoke
+test's expected count wrong: it counts every `.stl` under `models`, which is 28 files here
+(7 of them build output, plus one untracked third-party model), while the gallery serves
+20 parts. A check that cannot pass is as useless as one that cannot fail. I have not run
+`make smoke` to watch it say so; that is from reading the script and counting the files.
 
 ## The parts
 
-Every part in the repository, rendered from the committed source. The drone frame and its
+Every part in the repository, rendered from the committed source. As of 2026-10-09 the
+source holds 20 parts in 12 models at `cab74a3`; the generated list below was last
+published from `18c726b`, so it is four commits behind and lacks `technic_baseplate`.
+Regenerating it is the source repository's `make publish`, which I have not run. The drone frame and its
 floats are **finished work, not roadmap**: a later decision narrowed the scope to ground
 machines, because an aircraft is a different platform rather than another profile of the
 same one.

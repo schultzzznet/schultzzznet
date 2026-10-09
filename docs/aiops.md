@@ -4,40 +4,40 @@ title: The operations agent — what a local model is allowed to do
 
 # An AI ops agent with a narrow, audited write path
 
+{% assign skills = 6 %}{% assign rules = 5 %}{% assign restarts = 3 %}{% assign additive = 2 %}{% assign refused = 16 %}{% assign tests = 281 %}
+{% capture rr %}{{ rules }} mapped, {{ refused }} refused{% endcapture %}
 ![model](https://img.shields.io/badge/model-local%2C%20on--prem-black?logo=ollama&logoColor=white)
-![placement](https://img.shields.io/badge/placement-outside%20the%20cluster%2C%20on%20purpose-326CE5?logo=kubernetes&logoColor=white)
-![skills](https://img.shields.io/badge/skill%20vocabulary-6%20named%2C%20closed-2EA44F)
-![autoapply](https://img.shields.io/badge/unattended%20auto--apply-off%20by%20default-orange)
+![skills](https://img.shields.io/badge/skill%20vocabulary-{{ skills }}%20named%2C%20closed-2EA44F)
+![rules](https://img.shields.io/badge/alert%20rules-{{ rr | uri_escape }}-24A1C1)
+![autoapply](https://img.shields.io/badge/unattended%20auto--apply-off-orange)
 ![failclosed](https://img.shields.io/badge/chaos%20safety-fail--closed-critical)
-![discovery](https://img.shields.io/badge/fault%20schedules-discovered%2C%20never%20listed-24A1C1)
 
 There is a lot of "AI for ops" that is a chat window in front of a dashboard. This one has a
 write path to a production cluster, which makes the interesting question not *what can it
 do* but **what is it allowed to do without asking.**
 
-This is the run-time half of a two-part practice — the **production edge**;
-[the dev-time half](ai-dev.md) — a cloud model as a reviewed engineering peer, not a party
-trusted with a
-cluster — is deliberately a different model, running in a different place, for a different
-reason.
+This is the run-time half of a two-part practice, the production edge. [The dev-time
+half](ai-dev.md) is a cloud model as a reviewed engineering peer, deliberately a different
+model, in a different place, for a different reason.
+
+*Counts below are read from the agent's source as of 2026-10-09 and will move; they are
+typed here, not generated, which is the one weakness of this page.*
 
 ---
 
 ## It runs outside the cluster, deliberately
 
-The agent does not run as a workload on the cluster it watches.
-
 > A monitor that dies with the thing it monitors is not a monitor.
 
-It runs on a separate small machine, supervised by the host's own service manager, reaching
-the cluster over the network like any other client. When the cluster is unhealthy — which is
-the only time the agent matters — the agent is still up, still has its history, and can
-still say so.
+The agent does not run as a workload on the cluster it watches. It runs on a separate small
+machine, supervised by the host's own service manager, reaching the cluster over the network
+like any other client. When the cluster is unhealthy, which is the only time the agent
+matters, the agent is still up, still has its history, and can still say so.
 
 The model itself is **local**. No cluster state, no logs, no alert payloads and no
-configuration leave the house to be inferred on. That is a privacy property and a
-dependency property at once: the ops brain does not stop working because someone else's API
-is down or has changed its terms.
+configuration leave the house to be inferred on. That is a privacy property and a dependency
+property at once: the ops brain does not stop working because someone else's API is down or
+has changed its terms.
 
 ---
 
@@ -47,25 +47,27 @@ is down or has changed its terms.
 flowchart LR
   subgraph IN["read-only inputs"]
     M["metrics"]
-    L["logs + API audit trail"]
-    A["active, non-silenced alerts"]
-    K["node / pod / replica state"]
-    V["vulnerability findings"]
-    C["CI + change metadata"]
+    L["logs"]
+    A["active alerts"]
+    K["node / workload state"]
+    C["identity-provider state"]
+    P["pull-request health"]
   end
   IN --> AG["correlate · summarise · propose"]
-  AG --> ADD["additive action<br/>runs unattended"]
+  AG --> ADD["additive action<br/>runs unattended once armed"]
   AG --> DIS["disruptive action<br/>waits for a human"]
   AG --> REP["digest + escalation"]
 ```
 
-Correlation across those sources is the actual product. A pod restart is noise; a pod
-restart *plus* a node's disk latency climbing *plus* a change merged forty minutes earlier
-is a hypothesis worth a human's attention.
+Correlation across those sources is the intent: a pod restart is noise; a pod restart *plus*
+a node's disk latency climbing *plus* a recent merged change is a hypothesis worth a human's
+attention. Whether the local model actually does that well is a claim I have not measured.
 
-Specialist collectors feed it: one samples application errors out of the log store, one
-tracks traffic and capacity trends, one watches build and test failure rates. The agent's job
-is to turn those into a short list, not a longer dashboard.
+Two things I had listed here and have taken out as of 2026-10-09. Vulnerability findings are
+synced to a ticket tracker and announced in chat, but nothing in the code feeds them into the
+correlation. The cluster's API audit trail is in the log store, but I found no agent code
+that queries it. Specialist collectors feed the rest, and the job is a short list, not a
+longer dashboard.
 
 ---
 
@@ -78,48 +80,55 @@ forced through the same builder before anything is allowed to run.
 > reviewer, the auditor of what was coming out.*
 > — DHH on the first phase of agentic development, [Lex Fridman Podcast #501](https://lexfridman.com/dhh-2/) (2026)
 
-That sentence describes this ops agent's permanent design, not a transitional one. The
-guardrails are not a stepping stone toward a model that runs unsupervised; they are the
-point.
+For this agent that is the permanent design, not a transitional one. The guardrails are not
+a stepping stone toward a model that runs unsupervised; they are the point.
 
-**A human asks for something in chat.** A deterministic parser handles ordinary phrasing;
-an LLM router only takes over when the parser misses and the text looks like it wants a
-mutation. Neither one ever produces a command. Both can only emit a skill name plus typed
-parameters, chosen from a **closed vocabulary of six**: scale, restart, drain, activate,
-rebalance, backup. **Every chat-triggered action — all six skills, no exceptions — is posted
-as a dry run and waits for an explicit human approval.** There is no unattended path from a
-conversation, however additive the request looks.
+### Chat path
 
-**A firing alert triggers a lookup — and the model is not in this loop at all.** A small,
-hand-written table maps a short list of specific alerts to one of the same six skills. The
-model is deliberately excluded here: an alert is untrusted input, and routing it through an
-LLM before acting on it would add exactly the prompt-injection surface the rest of this
-design exists to avoid — a lookup is deterministic, testable, and cannot be talked into
-anything. The table holds **four rules today, and sixteen further alert types are explicitly
-declared un-actionable, each with a written reason** — a level-based alert that would loop
+A deterministic parser handles ordinary phrasing; an LLM router only takes over when the
+parser misses and the text looks like it wants a mutation. Neither one ever produces a
+command. Both can only emit a skill name plus typed parameters, chosen from a **closed
+vocabulary of {{ skills }}**: scale, restart, drain, activate, rebalance, backup. **Every
+chat-triggered action, all {{ skills }} skills with no exceptions, is posted as a dry run and
+waits for an explicit human approval.** There is no unattended path from a conversation,
+however additive the request looks. An approval that nobody clicks expires after ten minutes.
+
+### Alert path
+
+A firing alert triggers a lookup, and the model is not in this loop at all. A small,
+hand-written table maps specific alerts to one of the same {{ skills }} skills. An alert is
+untrusted input, and routing it through an LLM before acting would add exactly the
+prompt-injection surface the rest of this design exists to avoid. A lookup is deterministic,
+testable, and cannot be talked into anything.
+
+As of 2026-10-09 the table holds **{{ rules }} rules, and {{ refused }} further alert types are explicitly
+declared un-actionable, each with a written reason**: a level-based alert that would loop
 forever if acted on, a symptom whose "fix" would erase the evidence, a physical fault no
 command can touch. Absence is an oversight; a name on that second list is a decision.
 
-Only **two of those four** rules are additive (an on-demand backup, which adds an object and
-touches nothing live) — and only those are *eligible* to run unattended, and only once a
-separate switch has been deliberately armed; it defaults off. The other two are restarts,
-which are correct but disruptive — a restart can erase the evidence of what crashed, or cycle
-replicas that were still serving — so they queue through the identical approval card as the
-chat path.
+Only **{{ additive }} of the {{ rules }}** are additive (an on-demand backup, which adds an
+object and touches nothing live). Only those are *eligible* to run unattended, and only once
+a separate switch has been deliberately armed. **That switch is still off.** The other
+{{ restarts }} are restarts, which are correct but disruptive: a restart can erase the
+evidence of what crashed, or cycle replicas that were still serving. They queue through the
+identical approval card as the chat path. The fifth rule, a restart for a backup component
+that had ended up on the same node as its database primary, was added on 2026-09-16; it
+touches no database and is still gated.
 
 > A silent self-heal is not one. Even the unattended path always announces what it did.
 
-Every guardrail — the skill vocabulary, a rule that no service can be scaled to zero, one
-permanently protected control-plane node, a rate limit between any two executions, and a
-timeout on an unapproved proposal — lives in that single shared builder, so neither entry
-point can route around it by construction. Even a worst case stays bounded: a hostile
-instruction smuggled into a log line the model is summarising can, at most, produce a
-structured request like *scale to zero* — the scale-to-zero guardrail refuses it, and a human
-would still have had to click approve regardless. Three independent stops between suggestion
-and effect.
+### Shared guardrails
+
+Every guardrail lives in the single shared builder, so neither entry point can route around
+it by construction: the skill vocabulary, a rule that no service can be scaled to zero, one
+permanently protected control-plane node, a five-minute rate limit between any two
+executions, and the approval timeout. Even a worst case stays bounded. A hostile instruction
+smuggled into a log line the model is summarising can, at most, produce a structured request
+like *scale to zero*; the guardrail refuses it, and a human would still have had to click
+approve. Three independent stops between suggestion and effect.
 
 Draining a node is instructive on its own: it is frequently *safe* by the quorum arithmetic,
-and it is still always on the gated side. Safety is not the criterion — **reversibility** is.
+and it is still always on the gated side. Safety is not the criterion, **reversibility** is.
 An unnecessary on-demand backup costs one wasted object. A node drained that should not have
 been costs an incident.
 
@@ -128,40 +137,36 @@ defaults to off and is documented as *leave it there*. Some capabilities should 
 editing configuration and thinking about it, not clicking a button while distracted.
 
 Every gated action shows the exact command, who asked for it, and a dry run of its effect
-before anyone can approve it. Every step is logged and attributed. An approval that does not
-show you what you are approving is a rubber stamp.
+before anyone can approve it, and every step is logged and attributed. An approval that does
+not show you what you are approving is a rubber stamp.
 
 ### The refusal list is the load-bearing half
 
-The mapping from alert to action is a **plain dictionary, not a model decision** — the local
-model is weakest at exactly the structured extraction that routing requires, so routing never
-reaches it. What is more interesting is the second table, which is longer:
+The mapping from alert to action is a **plain dictionary, not a model decision**; the local
+model is weakest at exactly the structured extraction that routing requires, so routing
+never reaches it. What is more interesting is the second table, which is longer. This is an
+abridged excerpt, with the names shortened, the labels left out and the reasons paraphrased:
 
 ```python
 # Eligible to run unattended: additive only. Creates an object, destroys nothing.
-# Cost of a wrong one is a wasted object.
 REMEDIATIONS = {
     "BackupStale":      Rule(skill="backup",  auto=True),
     "LastBackupFailed": Rule(skill="backup",  auto=True),
-    # Correct, but disruptive — a restart erases the evidence of what crashed.
-    "AppPodDown":          Rule(skill="restart", auto=False),
+    # Correct, but disruptive: a restart erases the evidence of what crashed.
+    "AppPodDown":            Rule(skill="restart", auto=False),
     "AppDeploymentDegraded": Rule(skill="restart", auto=False),
+    # ... and the backup-component co-location restart, also auto=False
 }
 
 # Refused outright, each with a reason. This table is longer than the one above
 # and that ratio is the point.
 NEVER_REMEDIATE = {
     "ContainerOOMKilled":
-        "level-based stale gauge — the alert stays firing after recovery, so a "
-        "restart rule would loop forever against an already-healthy pod",
+        "level-based stale gauge: the alert stays firing after recovery, so a "
+        "restart would re-trigger it forever (verified 2026-08-07)",
     "ClusterLostRedundancy":
-        "the fix deletes a volume. At minute 2 a broken replica and a recovering "
-        "one look identical; only at minute 18 is the difference visible",
-    "AppJvmHeapHigh":
-        "restarting masks the leak and resets the only signal that would find it",
-    "NodeNetworkLinkFlapping":
-        "physical. On this fleet it was a loose back plate the RJ45 was screwed to",
-    # ... ten more
+        "a replica with an unusable data directory needs a rebuild, not a restart",
+    # ... fourteen more
 }
 ```
 
@@ -177,31 +182,38 @@ def test_only_additive_skills_may_auto_apply():
             )
 ```
 
-That test was **falsified before it was trusted** — flip a restart rule to `auto=True` and
-watch it fail — because a guard nobody has seen fail is not known to be a guard.
+That test was **falsified before it was trusted**: flip a restart rule to `auto=True` and
+watch it fail, because a guard nobody has seen fail is not known to be a guard.
 
-**The refusal list proved itself in production, by doing nothing.** Across three days that
-included a genuinely crash-looping database, the agent proposed exactly zero actions. During
-that incident `ContainerRestartingFrequently` fired and was correctly refused. Had it been
-mapped to `restart`, the agent would have cycled a database pod mid-recovery and destroyed
-the log evidence — `invalid xl_info in checkpoint record` — that was actually used to
-diagnose it.
+**Retraction, 2026-10-09.** This section used to say the refusal list "proved itself in
+production" over a database incident, with the agent proposing zero actions across three
+days. I cannot back that with a dated log: the incident is undated, the remediation
+proposals were not armed in the infrastructure code until 2026-09-29, and the diagnosis the
+old text quoted from that incident turned out to be wrong. What I can still stand behind is
+smaller. `ContainerRestartingFrequently` is on the refusal list, so a crash-looping database
+pod does not get restarted by this agent; a restart rule for it would have cycled a pod
+mid-recovery and destroyed the log evidence. On the same day as this note a database replica
+that had silently diverged at a failover two weeks earlier crash-looped on its first restart,
+and the alerts that now cover that class are alerts for a human. None of them is mapped to an
+action.
 
 > Zero false positives over a real incident is a better result than a clever remediation,
-> and it is the harder one to demonstrate, because success looks like an empty log.
+> and it is the harder one to demonstrate, because success looks like an empty log. I do not
+> yet have the log.
 
 ---
 
 ## The chaos safety controller, and fail-closed as a default
 
-Scheduled fault injection runs against the platform — call it the resident **provocateur**:
-its entire job is manufacturing exactly the kind of trouble everything else on this site is
-built to survive. The controller that guards it is the part worth copying.
+Scheduled fault injection runs against a staging target on the platform: call it the
+resident **provocateur**. Its entire job is manufacturing exactly the kind of trouble
+everything else on this site is built to survive. The controller that guards it is the part
+worth copying.
 
 It pauses **every** fault schedule when any of these is true:
 
 - the feature is switched off
-- the cluster is not in steady state — any alert at or above a severity threshold is firing,
+- the cluster is not in steady state: any alert at or above a severity threshold is firing,
   or a workload is degraded
 - **the check itself errored**
 
@@ -211,24 +223,24 @@ decoration; the whole reason it exists is the case where something unexpected is
 and "unexpected" very often means the check broke too.
 
 It also tracks *duration*. A brief blip pauses injection quietly. An injected fault that has
-not self-healed inside its recovery budget escalates loudly, with the correct framing: the
-alarming thing is not the fault, it is that **the automatic recovery loop is not recovering.**
+not self-healed inside its recovery budget (five minutes by default) escalates loudly, with
+the correct framing: the alarming thing is not the fault, it is that **the automatic
+recovery loop is not recovering.**
 
-### Schedules are discovered, never listed
+As of 2026-10-09 there are two schedules, a pod kill and a packet-loss fault, each hourly on
+weekdays in the daytime, and the controller pauses and
+re-arms each one as the steady-state check changes, so whether they are armed is a reading
+of that moment and not a fact to type here. Their last fires were on 2026-10-08. The controller
+was armed in the infrastructure code on 2026-09-22.
 
-The controller enumerates fault schedules from the live cluster on every tick. It does not
-read a configured list of things to guard.
-
-This is the same lesson as [deriving vulnerability-scan scope from the cluster](devsecops.md)
-instead of maintaining it by hand, and it was learned the same way: an earlier kill switch
-matched **one hardcoded name**, and a second class of fault had been added afterwards. The
-switch reported success and covered half the system.
-
-> A hand-maintained list of things to protect drifts in exactly one direction: smaller than
-> everyone believes.
-
-Derived scope means adding a new fault class enrols it in its own safety guard at the moment
-it exists — not once someone remembers.
+**Schedules are discovered, never listed.** The controller enumerates fault schedules from
+the live cluster on every tick; it does not read a configured list of things to guard. This
+is the same lesson as [deriving vulnerability-scan scope from the cluster](devsecops.md), and
+it was learned the same way: an earlier kill switch matched **one hardcoded name**, and a
+second class of fault had been added afterwards. The switch reported success and covered half
+the system. A hand-maintained list of things to protect drifts in exactly one direction:
+smaller than everyone believes. Derived scope means a new fault class is enrolled in its own
+safety guard at the moment it exists, not once someone remembers.
 
 ---
 
@@ -236,11 +248,10 @@ it exists — not once someone remembers.
 
 The safety controller had **never been deployed to the machine whose only job was to hold
 it.** The deployment mechanism copied a directory rather than checking out the repository,
-so the host quietly kept a months-old build. Arming the controller would have been a no-op
-that reported success.
-
-It was armed for real only after that was found. The first fault it actually guarded fired
-days later.
+so the host quietly kept an old build, and arming the controller would have been a no-op
+that reported success. It was armed for real only after that was found. The copy mechanism
+is still how the agent ships (a directory sync that deletes what is not in the source), which
+is why this lesson is in the present tense.
 
 The pattern is identical to [the reboot daemon that never rebooted](reliability.md) and the
 fault injector that had never fired: **configured, plausible, and inert.** The
@@ -252,22 +263,18 @@ distinguishing field in all three cases is the same one, and it was on no dashbo
 
 ---
 
-## Small operational scars worth keeping
-
-Two, because they are the kind of thing that only appears once something runs unattended for
-months:
+## A scar worth keeping
 
 **A process-level watchdog, because libraries wedge.** The messaging socket the agent uses
-for approvals can enter a permanent reconnect loop after the host sleeps — connected
-according to every log line, delivering nothing. The agent counts broken-pipe errors and,
-past a threshold inside a short window, deliberately exits so the host's service manager
-respawns it with a fresh connection. Self-healing at the process level, because *the library
-believed it was fine* and only the failure rate disagreed.
+for approvals can enter a permanent reconnect loop after the host sleeps: connected according
+to every log line, delivering nothing. The agent counts broken-pipe errors and, past a
+threshold inside a short window, deliberately exits so the host's service manager respawns
+it with a fresh connection. Self-healing at the process level, because *the library believed
+it was fine* and only the failure rate disagreed.
 
-**Formatting is a correctness bug when the message is the interface.** An automated
-remediation notice double-wrapped its own code fences and rendered as unreadable literal
-markup. If the only channel through which a human approves a cluster change is garbled, the
-control is degraded regardless of how correct the logic behind it is.
+A smaller one: an automated remediation notice once double-wrapped its own code fences and
+rendered as unreadable literal markup. When the message is the interface, formatting is a
+correctness bug.
 
 ---
 
@@ -275,46 +282,55 @@ control is degraded regardless of how correct the logic behind it is.
 
 Three layers, deliberately:
 
-- **Unit tests** — over 300, offline, no cluster and no model reachable — prompt-router
-  regression, command parsing, and every guardrail asserted directly: the never-scale-to-zero
-  rule, the protected node, the rate limit, and both recognisers landing on the same action
-  for the same request.
-- **Integration tests that run against the real cluster** from the agent's actual host, over
-  its real access path. A mock cannot tell you that the credential, the route and the
-  permissions are all correct simultaneously.
-- **Live operation.** It has run unsupervised for months. Additive remediations have executed
-  and are logged. The safety controller has paused schedules, resumed them, and its state is
-  served from an endpoint that a dashboard reads — so *its* liveness is itself observable
-  rather than assumed.
+- **Unit tests**: {{ tests }} test functions across the agent's suite as of 2026-10-09 (a
+  static count of definitions, not a pass rate; parametrised cases make the collected count
+  higher). They run offline, with no cluster and no model reachable: prompt-router
+  regression, command parsing, and every guardrail asserted directly. Those are the
+  never-scale-to-zero rule, the protected node, the rate limit, and both recognisers landing
+  on the same action for the same request.
+- **Integration tests** written to run against the real cluster from the agent's host, over
+  its real access path, because a mock cannot tell you that the credential, the route and
+  the permissions are all correct simultaneously. They exist in the repository; I have not
+  found a schedule that runs them, so I do not claim they run regularly.
+- **Live operation, dated.** The agent was first scaffolded in April 2026, but for most of
+  that time it answered chat mentions only. Scheduled polling and the daily digest have been
+  in the infrastructure code since 2026-09-06, the chaos safety controller since 2026-09-22,
+  and approval-gated remediation proposals since 2026-09-29. Unattended auto-apply has never
+  been switched on.
+
+**Retraction, 2026-10-09.** This section used to say the agent "has run unsupervised for
+months" and that "additive remediations have executed and are logged". The first is true of
+the chat loop only. The second I cannot support: the unattended path has never been armed,
+and the agent's audit log lives in memory and does not survive a restart, so there is no
+trail to point to. Its chaos state is served read-only over HTTP for a dashboard, but that
+server is off by default, so its liveness is observable only where it has been enabled.
 
 ---
 
 ## Honest limits
 
-- **It is one instance.** Losing it degrades autonomy, not availability — which is why it is
+- **It is one instance.** Losing it degrades autonomy, not availability, which is why it is
   ranked below the storage and registry gaps rather than above them.
 - **It proposes far more than it applies.** The unattended surface is intentionally the
-  boring end of the action space, and that is the design working, not a shortfall.
-- **A small local model is not an engineer.** It is very good at correlating six data
-  sources at 3am and saying "these three facts are related." It is not good at deciding
-  whether the related facts justify an outage.
+  boring end of the action space, and that is the design working, not a shortfall. I have no
+  count of proposals approved, rejected and expired, because the audit log is not persisted
+  yet.
+- **A small local model is not an engineer.** It is good at saying "these three facts are
+  related" at 3am. It is not good at deciding whether the related facts justify an outage.
 - **None of it proves reachability or intent.** The agent reasons over the same signals a
   human would read, with the same limits those signals have.
 - **The approval channel is a third-party messaging service.** If it is down, gated actions
-  cannot be approved. Additive ones still run; the escalation path degrades to the alert
-  router.
+  cannot be approved, and today that means all remediation, because auto-apply is off. Once
+  it is armed, additive ones will still run.
 
 ---
 
 ## Read next
 
-- **[High availability, audited](reliability.md)** — the single-fault inventory, the drain
-  that removed its own control surface, and why the patching loop is the best chaos
-  experiment on the platform.
-- **[DevSecOps, end to end](devsecops.md)** — the gates, and the derived-scope principle this
-  page borrows.
-- **[AI in development](ai-dev.md)** — the other half: a cloud model as a reviewed
-  engineering peer, and the honest gap in measuring what it actually improves.
+- **[High availability, audited](reliability.md)**: the single-fault inventory and the drain
+  that removed its own control surface.
+- **[DevSecOps, end to end](devsecops.md)**: the gates, and the derived-scope principle.
+- **[AI in development](ai-dev.md)**: the other half, a cloud model as a reviewed peer.
 
 ---
 
