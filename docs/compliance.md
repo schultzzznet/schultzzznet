@@ -43,7 +43,7 @@ column is my own grading, not a conformity assessment.
 | Expectation | Status | What exists |
 |---|---|---|
 | **A clause-by-clause conformity mapping** | **Open** | **Not written.** Having controls and being able to *demonstrate* conformity against the regulation's own article numbering are different documents. |
-| **Coordinated disclosure** | Partial | This public repository published a [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) on 2026-10-09: scope (the site and its scripts; the private estate is explicitly not offered for testing), what is most wanted (a leak, above all), a reporting route and honest expectations (no SLA, no bounty). It names GitHub's private vulnerability reporting first, with an email fallback; I have not verified that the private-reporting switch is on, so the email is the route I can vouch for. The contact is the profile address, not a dedicated one. |
+| **Coordinated disclosure** | Partial | This public repository published a [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) on 2026-10-09: scope (the site and its scripts; the private estate is explicitly not offered for testing), what is most wanted (a leak, above all), a reporting route and honest expectations (no SLA, no bounty). It names GitHub's private vulnerability reporting first, with an email fallback; Private reporting was switched on and confirmed through the repository's API on 2026-10-09; the email is the fallback. The contact is the profile address, not a dedicated one. |
 | **Integrity and provenance** | Partial | {{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} first-party images verify against the release key (measured {{ gen_day }}). Provenance is attached at build. Nothing enforces signatures at admission, and the {{ s.supply_chain.images_third_party }} third-party images are upstream's, not signed by me. |
 | **Secure defaults** | Partial | The public edge is default-deny and rate-limited. Inside the cluster it is not; see the measured posture below. |
 | A bill of materials | Partial | {{ s.supply_chain.sbom_projects }} SBOM uploads returned HTTP 200 in the latest nightly runs. That is acceptance of an upload, not a count read from the tracker and not analysis. The embedded repository says its release is snapshotted to the tracker; I have not re-measured that. |
@@ -164,7 +164,7 @@ of being caught early. That is the reason this page is in public.
 ## Open items
 
 - A conformity mapping against the CRA's article numbering.
-- A dedicated reporting contact for the security policy (it uses the profile address today), and confirmation that GitHub private vulnerability reporting is switched on.
+- A dedicated reporting contact for the security policy (it uses the profile address today).
 - A licence decision for the hardware repositories.
 - Terms of Service and a hosted privacy policy for all three apps; automated retention.
 - Signature enforcement at admission, and the in-cluster defaults above.
