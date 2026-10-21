@@ -9,7 +9,7 @@ Control plane|ha|3-member embedded quorum with all three members on the fastest 
 Relational data|ha|{{ s.databases.clusters }} clusters under an operator, every one archiving its write-ahead log continuously ({{ s.databases.archiving_clusters }} of {{ s.databases.clusters }}). The four application and identity clusters commit with <strong>quorum-synchronous</strong> replication again since 2026-10-09 (<a href="#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee">they had been asynchronous for 23 days</a>). The two-instance clusters are asynchronous by design~
 Block storage|ha|Every block is stored {{ s.storage.replica_size }} times over {{ s.storage.osds }} disk daemons, one per host, read back from the live cluster~
 Stateless applications|ha|2 replicas each, <strong>hard</strong> topology spread, and a disruption budget on all but one (the missing one is tracked)~
-Identity|ha|2 replicas (read 2026-10-09) with database-backed cluster discovery. The cross-pod login exchange that proves it was last run 2026-07-03, not today~
+Identity|ha|2 replicas (read 2026-10-21) with database-backed cluster discovery. The cross-pod login exchange that proves it was last run 2026-07-03, not today~
 Ingress|ha|2 of 2 replicas ready~
 Cluster DNS|ha|2 of 2 replicas ready, with a disruption budget~
 Object store|partial|One pod. Its volume sits on replicated block storage, so the data survives a node and the service does not~
@@ -61,7 +61,7 @@ from the manifest that was supposed to produce them. The exceptions are the rows
 
 <table>
   <thead>
-    <tr><th>Domain</th><th>Verdict</th><th>Shape (cluster replica counts read 2026-10-09)</th></tr>
+    <tr><th>Domain</th><th>Verdict</th><th>Shape (cluster replica counts read 2026-10-21)</th></tr>
   </thead>
   <tbody>
 {%- for r in inv_rows %}

@@ -29,18 +29,18 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 192 |
+| Pods running | 191 |
 | Postgres clusters / instances | 13 / 34 |
 | Clusters with a synchronous standby right now | 8 of 13 |
 | Backup objects (completed in the last 24 hours) | 343 (13) |
-| Alert rules loaded | 222 |
+| Alert rules loaded | 227 |
 | Scrape targets up | 124 of 124 |
-| Commits to the platform repository | 1754 |
+| Commits to the platform repository | 1846 |
 | Decision records | 39 |
-| Test definitions (counted, not run) | 721 |
-| CI workflows | 37 |
+| Test definitions (counted, not run) | 1087 |
+| CI workflows | 38 |
 
-*Measured 2026-10-09T14:35:01Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-10-21T05:49:49Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 ## What this is, and is not

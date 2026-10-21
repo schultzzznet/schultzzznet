@@ -468,8 +468,9 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
 - **The deploy path has no cloud fallback.** Every CI and deploy job runs on a self-hosted
   runner inside the LAN, because nothing in the cloud can reach the cluster behind a
   carrier-grade NAT boundary, and GitHub-hosted runners have been refused since an Actions
-  billing block. Three runners are registered (two Linux, one macOS); on 2026-10-09 two were
-  online, and only one of them was Linux.
+  billing block. Seven runners are registered (two Linux, two macOS builders and three macOS gate
+  instances); the second Linux one is a desktop that is powered off when idle and woken on
+  demand, so on a quiet night only one Linux runner is online.
 - **Nothing is enforced at admission.** Signatures are verified in CI and by a cluster check
   ({{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running first-party images verify, as of {{ asof }}), but no policy engine refuses an
   unsigned image, and across the cluster's {{ s.cluster.namespaces }} namespaces there are no
