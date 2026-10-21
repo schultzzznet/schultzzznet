@@ -32,28 +32,33 @@ story is true, but the billing gap is what made it total.
 As of {{ asof }}: **{{ s.ci.runs_on_self_hosted }} of the {{ s.ci.runs_on_self_hosted | plus: s.ci.runs_on_github_hosted }} `runs-on:` lines
 in {{ s.ci.workflows }} workflow files are self-hosted, {{ s.ci.runs_on_github_hosted }} are GitHub-hosted.** The
 split that exists now is by role, and the label counts below I re-counted from the workflow
-files on 2026-10-09:
+files on 2026-10-21:
 
 | Runner label | `runs-on:` lines | What runs there |
 |---|---|---|
-| Linux builders | 50 | most CI, scans, DAST and jobs that need containers or service sidecars |
-| Mac builder | 24 | the deploy, the release gate, image scans and the registry/signing/`kubectl` work, plus the mobile and some application CI |
+| Linux builders | 29 | most CI, scans, DAST and jobs that need containers or service sidecars |
+| Mac builder | 44 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and the light application CI that moved here from the Linux builders |
+| Mac gate pool | 2 | only the 90-minute release gate, on three dedicated runner instances, so it never waits in the same pool as the jobs it gates |
 | One Linux builder with a spare-capacity label | 1 | the nightly mutation-testing run that the other Linux builder cannot finish |
 
 ```mermaid
 flowchart LR
   GH["GitHub: schedules and triggers only<br/>no hosted runner is used"]
-  subgraph LIN["Linux builders · 50 lines"]
+  subgraph LIN["Linux builders · 29 lines"]
     A["lint · scans · DAST<br/>container and service jobs"]
   end
-  subgraph MAC["Mac builder · 24 lines"]
-    B["container build + push<br/>sign + verify<br/>release gate · rollout"]
+  subgraph MAC["Mac builder · 44 lines"]
+    B["container build + push<br/>sign + verify<br/>rollout · light CI"]
+  end
+  subgraph GATE["Mac gate pool · 2 lines"]
+    G["release gate"]
   end
   subgraph WIFI["Spare-capacity Linux builder · 1 line"]
     W["nightly mutation-testing run"]
   end
   GH --> LIN
   GH --> MAC
+  GH --> GATE
   GH --> WIFI
   B --> REG[("in-cluster image registry")]
   B --> API["Kubernetes API server"]

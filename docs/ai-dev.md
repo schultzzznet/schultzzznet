@@ -154,7 +154,7 @@ expect and check for.
 
 ## Read next
 
-- **[The operations agent](aiops.md)** — the run-time half: a local, air-gapped model with a
+- **[The operations agent](aiops.md)** — the run-time half: a local model with a
   narrow, audited write path to the cluster.
 - **[DevSecOps, end to end](devsecops.md)** — the gate table every change walks through,
   regardless of who or what proposed it.
