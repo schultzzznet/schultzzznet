@@ -39,7 +39,7 @@ files on 2026-10-21:
 | Linux builders | 29 | most CI, scans, DAST and jobs that need containers or service sidecars |
 | Mac builder | 44 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and the light application CI that moved here from the Linux builders |
 | Mac gate pool | 2 | only the 90-minute release gate, on three dedicated runner instances, so it never waits in the same pool as the jobs it gates |
-| One Linux builder with a spare-capacity label | 1 | the nightly mutation-testing run that the other Linux builder cannot finish |
+| One Linux builder, picked by its own label | 1 | the nightly mutation-testing run that the other Linux builder cannot finish |
 
 ```mermaid
 flowchart LR
@@ -53,13 +53,13 @@ flowchart LR
   subgraph GATE["Mac gate pool · 2 lines"]
     G["release gate"]
   end
-  subgraph WIFI["Spare-capacity Linux builder · 1 line"]
+  subgraph NIGHT["Dedicated nightly Linux builder · 1 line"]
     W["nightly mutation-testing run"]
   end
   GH --> LIN
   GH --> MAC
   GH --> GATE
-  GH --> WIFI
+  GH --> NIGHT
   B --> REG[("in-cluster image registry")]
   B --> API["Kubernetes API server"]
 ```
