@@ -6,7 +6,6 @@ cluster:
   nodes_ready: 6
   control_plane: 3
   agents: 3
-  k3s: "v1.35.5+k3s1"
   cores: 48
   ram_gb: 99.4
   pods_running: 191
