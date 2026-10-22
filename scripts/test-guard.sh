@@ -58,6 +58,22 @@ plant 'the node at 192.168.1.241'
 must_fail "LAN address" "private LAN addresses"
 
 scratch
+plant 'runs k3s v1.35.9 on six nodes'
+must_fail "k3s version" "infrastructure software versions"
+
+scratch
+plant 'the release tag v1.35.9+k3s1'
+must_fail "k3s release tag" "infrastructure software versions"
+
+scratch
+plant 'identity is Keycloak 26.1.4 behind Traefik 3.2'
+must_fail "Keycloak and Traefik versions" "infrastructure software versions"
+
+scratch
+plant 'the databases run PostgreSQL 18 and the cluster has Ceph replica-3'
+must_pass "major versions and non-version numbers"
+
+scratch
 plant 'key lives in infra/.credentials/cosign.key'
 must_fail "credential path" "credential paths"
 

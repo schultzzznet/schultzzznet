@@ -10,7 +10,6 @@ cluster:
   nodes_ready: { label: "Nodes Ready", how: "kubectl get nodes; nodes whose Ready condition is True." }
   control_plane: { label: "Control-plane nodes", how: "kubectl get nodes; nodes carrying the control-plane role label (each also runs etcd)." }
   agents: { label: "Agent nodes", how: "kubectl get nodes; nodes without the control-plane role label." }
-  k3s: { label: "k3s version", how: "kubectl version; the version the API server reports." }
   cores: { label: "CPU cores", how: "kubectl get nodes; the sum of each node's reported CPU capacity." }
   ram_gb: { label: "Memory", unit: " GB", how: "kubectl get nodes; the sum of memory capacity in bytes, divided by 10^9. Decimal gigabytes, not GiB." }
   pods_running: { label: "Pods running", how: "kubectl get pods across all namespaces; pods in phase Running." }

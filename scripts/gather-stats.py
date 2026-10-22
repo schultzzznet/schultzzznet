@@ -89,7 +89,7 @@ HARDWARE = {
 SCHEMA = [
     ("cluster", [
         ("nodes", "int"), ("nodes_ready", "int"), ("control_plane", "int"), ("agents", "int"),
-        ("k3s", "ver"), ("cores", "int"), ("ram_gb", "float"),
+        ("cores", "int"), ("ram_gb", "float"),
         ("pods_running", "int"), ("pods_total", "int"), ("namespaces", "int"),
         ("containers", "int"), ("deployments", "int"), ("statefulsets", "int"),
         ("daemonsets", "int"), ("cronjobs", "int"), ("hpas", "int"), ("ingresses", "int"),
@@ -418,7 +418,6 @@ def measure_cluster():
     ready = sum(1 for n in nodes for c in n["status"]["conditions"]
                 if c["type"] == "Ready" and c["status"] == "True")
     cp = sum(1 for n in nodes if "node-role.kubernetes.io/control-plane" in n["metadata"].get("labels", {}))
-    server = json.loads(kubectl("version", "-o", "json"))["serverVersion"]["gitVersion"]
     running = [p for p in pods if p["status"].get("phase") == "Running"]
     restarts = 0
     for p in pods:
@@ -438,7 +437,6 @@ def measure_cluster():
 
     return {
         "nodes": len(nodes), "nodes_ready": ready, "control_plane": cp, "agents": len(nodes) - cp,
-        "k3s": server,
         "cores": int(round(sum(quantity(n["status"]["capacity"]["cpu"]) for n in nodes))),
         "ram_gb": sum(quantity(n["status"]["capacity"]["memory"]) for n in nodes) / 1e9,
         "pods_running": len(running), "pods_total": len(pods),

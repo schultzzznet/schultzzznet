@@ -461,7 +461,7 @@ to be here did.
 
 | Layer | What runs | Qualification |
 |---|---|---|
-| Platform | k3s {{ c.k3s }}, containerd, embedded etcd, CoreDNS, Traefik, Helm, Ansible | The "retired laptops" part is literal |
+| Platform | k3s, containerd, embedded etcd, CoreDNS, Traefik, Helm, Ansible | The "retired laptops" part is literal |
 | Data and identity | Rook-Ceph (replica {{ st.replica_size }}), CloudNativePG, MinIO object store, Keycloak | Postgres on 16 and 18 during the soak |
 | Supply chain | cosign, SLSA provenance, Syft (CycloneDX 1.6), Trivy, Dependency-Track, DefectDojo, gitleaks, ZAP, Renovate, Dependabot, {{ ci.precommit_hooks }} pre-commit hooks | CodeQL's last push run failed on 2026-10-08, cause not read. SonarQube is advisory, not a gate. GitHub-native scanning is off |
 | Observability | Prometheus, Grafana, Loki, Alertmanager, Chaos Mesh, kured | Retention is a ceiling, history held is {{ ob.data_span_days }} days |

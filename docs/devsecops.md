@@ -121,7 +121,7 @@ worth killing.
 The result of pointing that at reality for the first time, on the first run (2026-08-19):
 
 > **62 distinct images ran on the cluster. 56 of them were third-party. None of them had an
-> SBOM.** The public identity provider, the single most exposed component in the estate,
+> SBOM.** The public identity provider
 > had no vulnerability record at all. Nor did the databases, the object store, the metrics
 > and log stores, the storage layer, or the vulnerability tracker itself.
 
@@ -189,7 +189,7 @@ Two findings from doing this properly:
 
 **The allowlist alone was bypassable.** Prefix matching runs against the *raw* path, but the
 downstream router resolves `../` afterwards. So a request to an allowed prefix followed by
-traversal reached the monitoring stack — verified as a real bypass, returning live data. The
+traversal reached an internal console — verified as a real bypass (found and fixed 2026-07-17). The
 fix is a URL-decoding traversal rejection ordered *before* the allowlist, which covers the
 encoded variants too. Order matters; a correct rule in the wrong position is not a control.
 
@@ -197,8 +197,8 @@ encoded variants too. Order matters; a correct rule in the wrong position is not
 # The order of these two blocks IS the control. Reversed, the second one is decoration.
 
 # 1. Reject traversal FIRST. HAProxy matches the RAW path; the router downstream
-#    resolves `../` afterwards — so `/app/../prometheus` matches `path_beg /app`
-#    here and still reaches Prometheus. url_dec makes one rule cover `../`,
+#    resolves `../` afterwards — so `/app-one/../internal` matches `path_beg /app-one`
+#    here and still reaches an internal console. url_dec makes one rule cover `../`,
 #    `%2e%2e` and the `..%2f` encoded-slash trick.
 http-request deny deny_status 400 if { path,url_dec -m sub .. }
 

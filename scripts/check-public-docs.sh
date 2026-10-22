@@ -126,6 +126,13 @@ report "IPv6 addresses" \
   '\b([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}\b|\bf[cd][0-9a-f]{2}:[0-9a-f:]*|\bfe[89ab][0-9a-f]:[0-9a-f:]*|\b([0-9a-f]{1,4}:){2,6}:([0-9a-f]{1,4}\b)?' \
   "An IPv6 address, tailnet ULA ones included, identifies a machine as surely as IPv4."
 
+# An exact version of a piece of infrastructure software tells a reader which published
+# vulnerabilities apply. Major versions ("PostgreSQL 18") say nothing of the kind and stay allowed;
+# the rule is name + major.minor, plus the k3s release-tag shape (v1.35.9+k3s1).
+report "infrastructure software versions" \
+  '\b(k3s|k8s|kubernetes|kubectl|kubelet|traefik|keycloak|rook|ceph|cloudnative-?pg|cnpg|kube-vip|dependency-?track|trivy|syft|cosign|etcd|containerd|metrics-server|prometheus|alertmanager|loki|grafana|sonarqube|defectdojo|nexus|minio|pitest|spotless|helm|ansible)[ -]?v?[0-9]+\.[0-9]+(\.[0-9]+)?\b|\bv[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]*' \
+  "An exact version of infrastructure software maps the stack to known vulnerabilities; say \"current\" or the major version."
+
 report "issue-tracker sites" \
   'atlassian\.net' \
   "A tracker subdomain names the account and links to private tickets."
