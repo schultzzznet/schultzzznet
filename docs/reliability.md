@@ -5,7 +5,7 @@ body_read: 2026-10-09
 summary:
   - "**What it is:** an audit of which failure domains survive losing one machine, which do not, and which are deliberately not replicated. The inventory table below is read off the live cluster and gives the current count; the rows for the public edge, the switch and the ops agent are not cluster-measured and say so."
   - "**The three best stories:** a patching loop that never rebooted anything for weeks; a database replica that was Running, Ready and fourteen days out of the stream; and an alert that was correct, deployed, and structurally unable to fire."
-  - "**New since 18 October:** the whole estate was down for four days (14 to 18 October) and came back, with every cron-driven job from those days left inert and nothing reaching a person. And the fault-injection schedules have not fired since 13 October, because their own safety gate keeps pausing them."
+  - "**New since 18 October:** the whole estate was shut down on purpose for four days (14 to 18 October, while I was away) and its first cold start exposed catch-up jobs that failed and went unnoticed. The uptime badges counted the planned shutdown as downtime. And the fault-injection schedules have not fired since 13 October, because their own safety gate keeps pausing them."
   - "**Open, stated plainly:** the registry, the public edge and monitoring depth are single points; the physical layer is an accepted risk; secrets are not yet rotated."
 ---
 
@@ -523,13 +523,14 @@ is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob
 
 ---
 
-## The estate was down for four days
+## The estate was shut down on purpose for four days
 
 *Added 2026-10-27. 14 to 18 October 2026.*
 
-The whole estate was down for four days, and came back on the 18th. The reason is not the subject
-of this section; what the estate did on the way back is, because it is the first cold start the
-platform has had, and it is the same lesson as the rest of the page.
+I took the whole estate down on purpose while I was away, and brought it back on the 18th. This
+was a planned shutdown, not an outage, and an earlier version of this page treated it as an
+unexplained one. It is on the page anyway because it was the first cold start the platform has had,
+and what the estate did on the way back is the same lesson as the rest of the page.
 
 - **What healed itself.** The cluster came up, the databases recovered, and the scheduled database
   backups completed again in the early hours of the 19th.
@@ -537,18 +538,22 @@ platform has had, and it is the same lesson as the rest of the page.
   cold start and were never retried (the schedule made them moot). Two cron-driven jobs that
   derive and prune the bills of materials had last succeeded on the 14th; their catch-up runs hit
   their retry limit within a minute of four nodes becoming ready, and nothing noticed. The exposure
-  check on the public edge did not run from the 14th to the 17th.
-- **What did not reach a person.** The metrics store was off, and the two outside referees (the
-  uptime probe and the heartbeat) both recorded the gap correctly and both notify by email only.
-  The seven-day uptime figure fell to roughly a third. No message arrived anywhere a person would
-  see it. That is the finding, and it is open: routing the referees to chat is on the register.
+  check on the public edge did not run from the 14th to the 17th, which a shutdown explains and a
+  restart should have made up.
+- **What the badges did.** The two outside referees (the uptime probe and the heartbeat) recorded
+  the gap correctly, and had no way to be told it was planned. The seven-day uptime figure fell to
+  roughly a third, and the 30-day one carries the four and a half days until they leave the
+  window in mid-November. A maintenance window that the badges understand is not built.
+- **What this did not test.** Nothing reached a person, and none needed to: I was the person who
+  had switched it off. Whether an unplanned outage would reach anyone is still unproven, because
+  both referees notify by email only. Routing them to chat is on the register.
 - **What changed because of it.** Scheduled GitHub workflows that go red or stale are now reported
   daily by a guard (2026-10-24), and bringing the estate down and up now has make targets (pause,
   resume, shut down, start up; 2026-10-18) instead of pulling power.
 
 The pattern is the one this page keeps finding: jobs that were configured, scheduled and green
-while quietly not running. Four days without a refresh of the bills of materials or a check of the
-public edge, and no alert, is that class exactly.
+while quietly not running. Catch-up jobs that fail within a minute of a restart, with no alert,
+are that class exactly. A planned shutdown was the cheapest way to find them.
 
 ---
 

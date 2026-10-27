@@ -3,6 +3,10 @@
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
 - date: 2026-10-27
+  text: "The embedded side's nightly vulnerability upload, refused every night since at least 24 September, was fixed: a new key, and a preflight that now stops the build up front if the tracker rejects it. The first scheduled run since is the test. [The account](yocto.html#two-claims-on-this-page-were-false-on-27-october)."
+- date: 2026-10-27
+  text: "The printing page's parts list was regenerated: 29 parts in 14 models, including the camera mount's calibration flags and tilt parts. The publisher now skips any model git does not track. [The parts](printing.html#the-parts)."
+- date: 2026-10-27
   text: "This site was reviewed from the outside for clarity and completeness. Every page now opens with an *In short* block, the build fails if one goes stale, and seven statements that had gone out of date or were never true are corrected ([the corrections](#corrections-2026-10-27))."
 - date: 2026-10-26
   text: "The operations agent was hardened and put under measurement: tool arguments validated (a model-supplied name had reached a command run as root), only named approvers count, every executed action audited, and a quality loop with a graded sample. [The account](aiops.html#the-agent-since-2026-10-26)."
@@ -21,4 +25,4 @@
 - date: 2026-10-19
   text: "Pull requests became the practice: 112 of the next 133 commits carry a number. They are still merged by the person who wrote them. [Who reviews, honestly](ai-dev.html#who-reviews-honestly)."
 - date: 2026-10-18
-  text: "The estate came back after four days down (14 to 18 October). Jobs that run on a schedule were left inert, and nothing reached a person. [The account](reliability.html#the-estate-was-down-for-four-days)."
+  text: "The estate came back after a four-day shutdown I chose (14 to 18 October, while I was away). Its first cold start left catch-up jobs failed and unnoticed, and the uptime badges counted the shutdown as downtime. [The account](reliability.html#the-estate-was-shut-down-on-purpose-for-four-days)."

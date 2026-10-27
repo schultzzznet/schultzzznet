@@ -7,7 +7,7 @@ summary:
   - "**The most useful part is §6, the measurement traps:** seven controls that were configured, green and inert, each found by checking rather than reading. None of them errored."
   - "**What the gates are:** eight, seven on pull requests; only a *critical* finding with an available fix blocks an image, and the code-analysis and API-contract gates report without blocking. Signatures are verified in the pipeline, not at the cluster's boundary."
   - "**Since 18 October:** every Secret in git is encrypted, sixteen guards run daily and report through the alerting stack (counted from the guard runner on 27 October), SSH on the nodes is key-only, and an outside attack-path review found no direct path from the internet to cluster-admin."
-  - "**Still not there:** no admission policy, no network policies (none exist, read 27 October), encryption at rest is off, the old secret values are not yet rotated, and the embedded side's nightly vulnerability upload fails every night."
+  - "**Still not there:** no admission policy, no network policies (none exist, read 27 October), encryption at rest is off, the old secret values are not yet rotated, and the embedded side's nightly vulnerability upload, broken from 24 September, was fixed on 27 October and has not yet run on its schedule."
 ---
 
 {% assign s = site.data.stats -%}

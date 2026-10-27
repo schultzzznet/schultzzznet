@@ -13,7 +13,7 @@
 > daily), no plaintext Secret is left in git, the ops agent was hardened and put under measurement, and the
 > estate was reviewed from the outside four times. **Not finished:** no admission control or network
 > policies, secrets are not yet rotated or encrypted at rest in the cluster, the embedded side's nightly
-> vulnerability upload has failed every night since at least 24 September, and fault injection has not fired
+> vulnerability upload failed every night from at least 24 September until it was fixed on 27 October, and fault injection has not fired
 > since 13 October (its own safety gate keeps pausing it). Start with
 > [*Recently*](https://schultzzznet.github.io/schultzzznet/#recently), or
 > [*Where to start*](https://schultzzznet.github.io/schultzzznet/#where-to-start).
@@ -111,7 +111,7 @@ is partial: my last self-rating (2026-09) counted 2 of 31 planned failure scenar
 
 **Embedded.** A custom Yocto layer on the 6.0 LTS release (wrynose) for a Raspberry Pi 3 B+: a
 signed RAUC A/B image, updated over the air, with an SBOM and CVE scan. **The nightly upload of that
-SBOM to the tracker has failed every night since at least 2026-09-24, and no device has reported back
+SBOM to the tracker failed every night from at least 2026-09-24 until it was fixed on 2026-10-27, and no device has reported back
 since 2026-09-01** (corrected on the site on 2026-10-27). A signed update and a deliberate rollback have both
 been proven on the board, and the same path now carries an image for a bench test rig. A Pi 3 cannot do
 hardware secure boot, so the updates are signed and integrity-checked, but the boot chain is not

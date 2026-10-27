@@ -5,7 +5,7 @@ summary:
   - "**What it is:** six retired machines running bare-metal Kubernetes with replicated storage, thirteen Postgres clusters, a signed supply chain, scheduled fault injection and a local-model ops agent. It is running, not planned. **There is no organic user base:** the load is synthetic, and what is real is what the platform did in response to itself."
   - "**What the site is for:** the habit of asserting the property instead of trusting the report. Most findings here are controls that were configured, green and inert, found by checking, dated, and retracted in public."
   - "**Since 18 October:** changes go through pull requests, git became the only way a change may reach the cluster (drift is checked daily), no plaintext Secret is left in the manifests, the ops agent was hardened and put under measurement, and an outside review of the whole estate was published."
-  - "**Not finished, plainly:** no admission control or network policies, secrets are encrypted in git but not at rest in the cluster, the embedded side's nightly vulnerability upload has failed every night since at least 24 September, no device reports back, and the fault-injection schedules have not fired since 13 October (their own safety gate keeps pausing them)."
+  - "**Not finished, plainly:** no admission control or network policies, secrets are encrypted in git but not at rest in the cluster, no device reports back (the embedded side's nightly vulnerability upload was broken from at least 24 September to 27 October; fixed, not yet proven by a scheduled run), and the fault-injection schedules have not fired since 13 October (their own safety gate keeps pausing them)."
   - "**Short on time?** [Where to start](#where-to-start) is the next heading. Five minutes: the measurement traps. Twenty: the reliability audit."
 ---
 {% assign s = site.data.stats %}
@@ -71,10 +71,10 @@ off-site probe of the public entrance, so they still report when the power or th
 is what failed. None of them lives inside the system it grades, which is the entire point of
 a referee.
 
-**The uptime numbers are not the goal, and the 30-day one shows why.** The whole estate was
-down from 2026-10-14 to 2026-10-18, so that window carries roughly four and a half days of
-downtime until it scrolls out (about mid-November), and no one outage on the page explains
-it otherwise. [Three more notes on reading these badges, and the arithmetic of why there is no
+**The uptime numbers are not the goal, and the 30-day one shows why.** I shut the whole
+estate down on purpose from 2026-10-14 to 2026-10-18, while I was away, so that window carries roughly
+four and a half days of "downtime" until it scrolls out (about mid-November). The badges cannot be told
+that a shutdown was planned. [Three more notes on reading these badges, and the arithmetic of why there is no
 90-, 180- or 365-day figure, are on the status page](status.html#notes-on-the-badge-wall).
 
 ## Right now
@@ -165,10 +165,11 @@ were false the whole time. They are retracted here rather than quietly edited:
   arguments validated, an approver allowlist, an audit file, deployment from git, and a quality
   loop that measures what it says. See [the agent](aiops.md).
 - **The embedded page** said a daily job keeps the bill of materials current in the tracker and
-  that devices report back. **Neither is true:** the upload has been refused every night since at
-  least 2026-09-24, and no device has reported since 2026-09-01. See [the embedded side](yocto.md#two-claims-on-this-page-that-are-false-today).
+  that devices report back. **Neither was true:** the upload was refused every night from at
+  least 2026-09-24 until it was fixed on 2026-10-27 (the first scheduled run since is the test),
+  and no device has reported since 2026-09-01. See [the embedded side](yocto.md#two-claims-on-this-page-were-false-on-27-october).
 - **"I have not worked out where the downtime came from."** It was the four days from
-  2026-10-14 to 2026-10-18, when the whole estate was down. See [the status page](status.html#notes-on-the-badge-wall).
+  2026-10-14 to 2026-10-18, when I had shut the whole estate down on purpose while I was away. See [the status page](status.html#notes-on-the-badge-wall).
 - **Fault injection** was described as running hourly on weekdays. It last fired on 2026-10-13. See
   [reliability](reliability.md#fault-injection-is-paused-by-its-own-safety-gate).
 
