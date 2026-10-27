@@ -1,8 +1,17 @@
 ---
 title: What I'd do differently
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** the list of things that were wrong on the way, several still visible in the system. The rule for an entry is that it cost something and the cost can be described: regret without a number attached is just modesty."
+  - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
+  - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
+  - "**New on 27 October:** lesson 13, what four outside reviews in fourteen days found, with the caveat that the reviewer is an AI model of the same family that helps build the estate, so the dates matter more than the grades."
 ---
 
 # What I'd do differently
+
+{% include in-short.html %}
 
 {% assign s = site.data.stats %}
 ![decisions](https://img.shields.io/badge/decision%20records-{{ s.repo.adrs }}-1A5276)
@@ -344,6 +353,39 @@ has had a user of its own since 2026-10-09.
 > not at how long the server says a session lives.** The server's number was correct. The
 > client's reaction to a hiccup was the bug, and no server setting could have fixed it.
 > [The apps](apps.md) have the rest of the story.
+
+---
+
+## 13. What outside reviews found
+
+*Added 2026-10-27. Four reviews in fourteen days, each dated, each with a worklist.*
+
+The site's thesis is that naming mistakes in public is the point, and until now it named only the
+ones I found myself. In October the estate was reviewed from the outside four times, by an AI model
+asked to read read-only, grade against the objectives the repositories state for themselves, and
+be unkind. Two caveats first, because they decide how much to trust any of this. **The reviewer is
+the same family of model that helps build the estate**, so it is a checklist generator with
+unusual stamina, not an independent audit. And a first run of sixteen reviewers was cut off by a
+session limit after three finished, which is why the method section of that review comes before its
+findings. What made the findings usable is that the high-severity ones were handed to separate
+skeptic agents told to refute them: 18 of them, of which **15 were confirmed, 3 were downgraded and
+none was refuted**. Every downgrade corrected the finding's premise, not its substance, and was
+recorded beside the original rather than edited into it.
+
+| Review | Verdict in one line | What changed because of it |
+|---|---|---|
+| **The whole estate**, 14 October | The peg is real and the learning is real; the gap is between them. Graded 4 of 5 on learning, 3 on process, **2.5 on claims versus reality**. The operational layer and this site told the truth; the repository's own README and eight topology documents did not. | The README's retracted claims were replaced with what is true; topology documents re-read against the cluster; ADR statuses fixed and given a daily probe; twelve guards put on a schedule (sixteen now); 81 broken links fixed and kept at zero by a hook. |
+| **How someone could get in**, 22 October | No direct path from the internet to cluster-admin was found; **the inside is soft**: what a foothold becomes is worse than how one is gained. | Key-only SSH on the nodes, proven by a fresh login (22 October); a generated Grafana password in place of a committed default; test passwords out of command lines. The rest is tracked privately and deliberately not itemised here until it is fixed. |
+| **The AI in the cluster**, 26 October | The summaries were inflated and one data source had been blind for fourteen days without a mention; a model-supplied name reached a root command. | The agent was hardened and put under measurement the same day: [the account is here](aiops.html#the-agent-since-2026-10-26). |
+| **This site**, 27 October | Clarity 4, completeness 3, fast-reader accessibility 2: no page had a summary, and five statements had turned stale in the pessimistic direction. | An *In short* block on every page, enforced by the build; a dated *Recently* list; this lesson; and the corrections on the [estate page](index.html#corrections-2026-10-27). |
+
+**What I would carry from it.** First, the best finding of the lot was not a vulnerability: the
+habit this site is built on, *assert the property, do not trust the report*, was applied to the
+cluster and to this site and **not to the repository's own prose**, which is where the claims
+that did not survive were. The front door was the least-checked part. Second, a review of an
+estate that moves faster than its documents goes stale the day it is filed: the 14 October review's
+top finding, the repository's README contradicting this site, had been fixed by the 21st. The
+number to quote is therefore never the grade; it is the date.
 
 ---
 

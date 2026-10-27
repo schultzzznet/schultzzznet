@@ -1,8 +1,17 @@
 ---
 title: Legal, licensing, and the regulatory posture nobody publishes for a home project
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** the less flattering questions, asked of a home-built platform: if a regulator, an app-store reviewer or a licence audit arrived tomorrow, what would hold up. Graded against a stated target, in public, including where it falls short."
+  - "**The EU Cyber Resilience Act:** partly met by construction, not by design; a clause-by-clause mapping has not been written. **GDPR:** three apps hold real personal data; erasure was shipped and verified on 2 July 2026. A draft privacy label that was false was caught before any submission."
+  - "**Licensing:** MIT for code and CC BY 4.0 for writing on this site, a security policy with private reporting, and the AGPL-licensed dependencies scoped so that they are not triggered."
+  - "**Open items, unchanged since 9 October:** the clause mapping, terms of service and a hosted privacy policy for the three apps, a licence decision for the hardware repositories, and signature enforcement at admission."
 ---
 
 # CRA, GDPR, app-store rules, and what a licence actually obligates
+
+{% include in-short.html %}
 
 {% assign s = site.data.stats %}
 {% assign gen_day = s.generated_at | slice: 0, 10 %}
@@ -14,7 +23,7 @@ title: Legal, licensing, and the regulatory posture nobody publishes for a home 
 ![signing](https://img.shields.io/badge/signing-{{ signed }}-005571)
 ![agpl](https://img.shields.io/badge/AGPL%20dependencies-scoped%2C%20not%20triggered-005571)
 
-*Status as of 2026-10-09. Where a figure comes from the estate it is read off the running
+*Status as of 2026-10-09 (the summary above was re-checked on 2026-10-27 and the posture is unchanged; the body was last read in full on 2026-10-09). Where a figure comes from the estate it is read off the running
 system by [the stats generator](status.md), measured at {{ s.generated_at }}.*
 
 Most write-ups of a home-built platform stop at the architecture diagram. This one also asks

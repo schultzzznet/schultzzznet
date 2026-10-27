@@ -1,6 +1,14 @@
 ---
 title: Why these tools, and what got rejected
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred* (not needed yet), *rejected on principle* (a standing constraint, here: no cloud-only services), and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
+  - "**A trigger has fired:** the GitOps row. A reconciler was rejected in August on the condition that manifests were ever seen drifting from git. They were, at a cost each time, and on 24 October the decision was reopened: detect first, secrets second, Flux by default for the declarative half. [The account is on the delivery-chain page](platform.html#how-a-change-reaches-the-cluster)."
+  - "**Secrets moved out of the deferred list, halfway:** encrypted in git since 25 October (SOPS and age); rotation and encryption at rest in the cluster are not done."
+  - "**Still deferred or open:** admission-time policy (the highest-leverage next security step), network policies, tracing, a service mesh. Several choices on this page are contested, and one is a live risk."
 ---
+
 
 {% assign s = site.data.stats %}
 {% assign gen = s.generated_at | date: "%-d %B %Y" %}
@@ -9,9 +17,11 @@ title: Why these tools, and what got rejected
 
 ![k3s nodes](https://img.shields.io/badge/k3s%20nodes-{{ s.cluster.nodes }}-1A5276)
 ![ceph replicas](https://img.shields.io/badge/ceph%20replicas-{{ s.storage.replica_size }}-326CE5)
-![right-sizing rejections with a reopen trigger](https://img.shields.io/badge/right--sizing%20rejections%20with%20a%20reopen%20trigger-all%20four%2C%20three%20stated%209%20Oct%202026-2EA44F)
+![right-sizing rejections with a reopen trigger](https://img.shields.io/badge/right--sizing%20rejections%20with%20a%20reopen%20trigger-all%20four%2C%20one%20reopened%2024%20Oct%202026-2EA44F)
 
-*Written by hand and last reviewed on 9 October 2026. Figures rendered from the
+{% include in-short.html %}
+
+*Written by hand; the GitOps and secrets rows were re-read on 27 October 2026, the rest was last reviewed on 9 October 2026. Figures rendered from the
 [generated stats](status.md) are as of {{ gen }}. On that day I also re-read the node
 topology, the storage class, the autoscalers and the NetworkPolicy count from the cluster;
 the rest, including the secrets-at-rest and self-hosted-scanner statements, rests on the
@@ -39,7 +49,7 @@ Three lists, and the distinction between them is the whole point:
 > had a reopen trigger; only one did, and the third list held a single entry. I wrote that
 > the networking engine could not enforce policy; it can (below). I gave the wrong reason for
 > not using Longhorn (below). I said the orchestrator was wrong "for a year"; it was about
-> half of one. And I said drift was *monitored*; it is checked on demand. Each is fixed where
+> half of one. And I said drift was *monitored*; it was checked on demand (and, since 24 October, daily). Each is fixed where
 > it appeared.
 
 ---
@@ -158,7 +168,7 @@ orchestrator rather than swapped out on its own.
 | Topic | Candidate | Why not yet |
 |---|---|---|
 | Service mesh | Linkerd / Istio | No need for mTLS between pods or fine-grained traffic policy. Linkerd wins on day-one cost when that changes. |
-| **Secrets at rest** | SOPS + age, or sealed secrets — **not Vault** | **Genuinely sub-baseline today**: plaintext base64 in cluster secrets. The fix should be the *lightest* self-hosted option; Vault is overkill for a handful of secrets and would itself become a thing to operate. |
+| **Secrets** | SOPS + age, or sealed secrets — **not Vault** | **Half done, 27 October 2026.** *In git:* done on 25 October with SOPS and age, two recipients, and a check that fails any new plaintext Secret; the choice was the lightest self-hosted option, because Vault is overkill for a handful of secrets and would itself become a thing to operate. *Still open:* the old values stay in git history until rotated, and **inside the cluster they are ordinary Secrets, with encryption at rest not switched on** (read back 27 October). The earlier "plaintext base64 in cluster secrets" was right about the cluster and, until 25 October, about git too. |
 | Policy admission | Kyverno / OPA / sigstore policy controller | Worth doing once there is one hard rule worth enforcing — and there is: **signature-required at admission**. Signatures are verified in CI but are not yet load-bearing at deploy time. Highest-leverage next security step. |
 | Backups beyond Postgres | Velero | No longer "the database tier is the only stateful tier": the OTA release store and the build host's signing keys now have purpose-built backups, each with a restore drill (see [reliability](reliability.md#restore-is-drilled-not-assumed)). Velero matters when *generic* volume backup does — and the rule stays the same: only what nobody else holds. Caches re-download. |
 | Tracing | OpenTelemetry + Tempo | The collector has to land before instrumenting applications is worth anything. |
@@ -208,7 +218,7 @@ are decisions from that date, not older ones, and the VPA one is the weakest of 
 
 | Candidate | Why not here | Reopen if |
 |---|---|---|
-| **ArgoCD / Flux** | Solves multi-team drift and pull-based reconciliation; neither exists at one-maintainer scale. See below. | A second maintainer joins, or manifests are observed drifting from git |
+| **ArgoCD / Flux** | Solved multi-team drift and pull-based reconciliation; neither existed at one-maintainer scale. **Reopened 24 October 2026**: the second trigger fired. See below. | ~~A second maintainer joins, or manifests are observed drifting from git~~ Fired. Stage 3 (rolling out from git on merge) is decided by 2026-12-01 from the drift data |
 | **KEDA** | Would be a permanently-running component watching a metric that does not exist. | There is a real queue to scale on |
 | **VPA** | Fights the HPA on the same metric unless carefully partitioned; requests are hand-tuned instead. | Something other than CPU drives scaling, so the two stop competing |
 | **Redis** | None of my own services needs a cache or queue. The only one running is Valkey, bundled as DefectDojo's task queue. Adding one in advance is how a platform accumulates components nobody understands. | An application of mine has a cache or queue workload |
@@ -226,9 +236,17 @@ Deployment is already declarative and reproducible from nothing, and there is a 
 A reconciler would add a second source of truth and a permanently-running component.
 
 > **Reopen if:** a second maintainer joins, **or** manifests are ever observed drifting from
-> git. Both are checkable on demand (`make helm-drift`, `make iac-coverage`). Neither runs
-> continuously, and that is the honest remaining gap: an arbitrary edit made by hand is not
-> caught until someone asks.
+> git. *(Written 9 October: "Both are checkable on demand. Neither runs continuously, and that
+> is the honest remaining gap: an arbitrary edit made by hand is not caught until someone asks.")*
+>
+> **Outcome, 27 October 2026: the trigger fired, and this page owes the answer.** Drift was
+> observed repeatedly with a cost each time, and on the 24th the decision was reopened in four
+> stages, not as a switch to a tool: *detect* (done: a daily read-only diff of every plain
+> manifest), *secrets in git* (done on the 25th), *roll out from git on merge* (Flux by default;
+> not built, decided by 2026-12-01), *the imperative steps* (later). A reconciler is therefore no
+> longer rejected, only not yet needed for the half that detection already covers. Drift is no
+> longer "checked on demand": it is checked daily and alerts. The full account is on
+> [the delivery-chain page](platform.html#how-a-change-reaches-the-cluster).
 
 That trigger is the part that makes this a decision rather than a preference: when the
 question comes back, it is a lookup instead of a fresh argument.

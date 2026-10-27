@@ -1,0 +1,24 @@
+# The landing page's "Recently": what changed in the estate, newest first. Rendered by docs/index.md.
+# Each entry is a date and one or two sentences (markdown allowed); the full account lives on the page it links to.
+# scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
+# stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
+- date: 2026-10-27
+  text: "This site was reviewed from the outside for clarity and completeness. Every page now opens with an *In short* block, the build fails if one goes stale, and seven statements that had gone out of date or were never true are corrected ([the corrections](#corrections-2026-10-27))."
+- date: 2026-10-26
+  text: "The operations agent was hardened and put under measurement: tool arguments validated (a model-supplied name had reached a command run as root), only named approvers count, every executed action audited, and a quality loop with a graded sample. [The account](aiops.html#the-agent-since-2026-10-26)."
+- date: 2026-10-25
+  text: "No plaintext Secret is left in the manifests: all fourteen are encrypted with SOPS and age. Rotating the old values, which stay in git history, is open. [The staged plan](platform.html#how-a-change-reaches-the-cluster)."
+- date: 2026-10-24
+  text: "Git became the only way a change may reach the cluster. A daily read-only diff of every plain manifest found six differences on its first run, all resolved the same day. Sixteen guards now run daily."
+- date: 2026-10-23
+  text: "Fault injection was unlatched after ten days paused, by breaking two latches in the safety gate. It has not fired since 13 October, because the gate keeps pausing it. [Why](reliability.html#fault-injection-is-paused-by-its-own-safety-gate)."
+- date: 2026-10-22
+  text: "SSH on the nodes became key-only, one node at a time, proven by a fresh login. An outside attack-path review found no direct path from the internet to cluster-admin and a soft inside. [What reviews found](lessons.html#13-what-outside-reviews-found)."
+- date: 2026-10-21
+  text: "The daily guards found three states that were committed but never applied, and all three were applied the same day."
+- date: 2026-10-20
+  text: "Everything reaches the cluster through its floating address, not through one machine's name, after a nine-hour network loss on the primary node broke three CI jobs the day before."
+- date: 2026-10-19
+  text: "Pull requests became the practice: 112 of the next 133 commits carry a number. They are still merged by the person who wrote them. [Who reviews, honestly](ai-dev.html#who-reviews-honestly)."
+- date: 2026-10-18
+  text: "The estate came back after four days down (14 to 18 October). Jobs that run on a schedule were left inert, and nothing reached a person. [The account](reliability.html#the-estate-was-down-for-four-days)."
