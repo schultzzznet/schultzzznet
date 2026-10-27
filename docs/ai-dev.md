@@ -1,12 +1,20 @@
 ---
 title: AI in development — the other half of the story
+reread: 2026-10-27
+summary:
+  - "**What it is:** a cloud model used as an engineering peer on every repository, including the words on this site. It gets one exemption from the rules: none. It has no access to the running system, and its changes walk through the same gates as anyone's."
+  - "**Who reviews, honestly:** one accountable human, plus CI. The AI-review request is wired, and GitHub rejects it every time; the five latest pull requests have no review at all (checked 27 October). Since 18 October the practice is pull requests (112 of 133 commits), merged by the person who wrote them, because the plan cannot enforce review."
+  - "**How much is AI-assisted:** 123 commits carry a co-author trailer; 65 of the 133 since 18 October do. There is still no measured effect on quality, only the claim that it clearly helps."
+  - "**The point of the page:** AI accelerates the work and verification is still the job. The model once reported two facts about this platform that a query showed to be false."
 ---
 
 {% assign s = site.data.stats %}
 # AI in development, held to the same bar as AI in production
 
+{% include in-short.html %}
+
 ![review](https://img.shields.io/badge/PR%20review-AI%20request%20wired%2C%20not%20delivering-orange?logo=github&logoColor=white)
-![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured%20(as%20of%202026--10--09)-orange)
+![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured%20(as%20of%202026--10--27)-orange)
 
 [The run-time half of this story](aiops.md) — the **production edge** — is a small local
 model with a narrow write path to a production cluster. This is the other half, the
@@ -61,11 +69,15 @@ measurable. The rule is that nothing is exempt, not that nothing is red.
 ### Who reviews, honestly
 
 This is a one-person repository, so the gate is CI, not a second human. One person reads and
-pushes every change and is accountable for it. Of the {{ s.repo.commits }} commits as of
-{{ s.generated_at | date: "%Y-%m-%d" }}, only 3 are merge commits, and almost nothing goes through a
-pull request. The code owner file names that person as required reviewer for every path, but
-GitHub cannot enforce it: on this private repository, on the plan in use, the branch
-protection and ruleset APIs both answer 403.
+pushes every change and is accountable for it. **That changed on 2026-10-18, in form but not in
+substance.** Until then almost nothing went through a pull request (3 merge commits in the history,
+and an outside review on 2026-10-14 counted 303 of 323 recent commits straight to the main
+branch). Since then the practice is pull requests: 112 of the 133 commits made between
+2026-10-18 and 2026-10-27 carry a pull request number (27 of the 133 are bots). They are
+merged by the person who wrote them, and the code owner file naming that person as required
+reviewer cannot be enforced: on this private repository, on the plan in use, the branch protection
+and ruleset APIs both answer 403. A pull request without a second pair of eyes still gives a
+named point for CI to gate on, a diff that is read before it merges, and a number to cite.
 
 > **Retraction, 2026-10-09.** This page used to say that every non-draft pull request gets the
 > model requested as a reviewer automatically, and that both the human and the model were
@@ -105,16 +117,16 @@ pull request shows, and that is why the rule here is supervision, not a verdict 
 **What it clearly does well, on the evidence.** As of {{ s.generated_at | date: "%Y-%m-%d" }} the
 platform repository holds {{ s.repo.adrs }} architecture decision records, {{ s.repo.runbooks }}
 runbooks and {{ s.repo.docs_pages }} documentation pages in {{ s.repo.commits }} commits over
-{{ s.repo.age_days }} days, 1,743 of them by one person; the other six are bots (`git shortlog`, 2026-10-09). One of the four
+{{ s.repo.age_days }} days, 1,897 of them by one person; the other 46 are bots (`git shortlog`, 2026-10-27). One of the four
 post-mortems names its AI assistant in the byline: the Ceph exhaustion write-up credits GitHub Copilot
 and a model. It is a draft, and it is not the post-mortem published on [the incident
-page](incident.html). Since 2026-06-19, 19 commits carry a `Co-Authored-By` Claude trailer
-(counted 2026-10-09 with `git log` over all {{ s.repo.commits }} commits). That is the more
-checkable credit.
+page](incident.html). Since 2026-06-19, 123 commits carry a `Co-Authored-By` Claude trailer
+(counted 2026-10-27 with `git log` over all 1,943 commits; 65 of the 133 since 2026-10-18).
+That is the more checkable credit.
 
-**What it has not been made to prove.** As of 2026-10-09 there is no acceptance-rate metric,
+**What it has not been made to prove.** As of 2026-10-27 there is no acceptance-rate metric,
 no measured defect-escape delta, no before/after quality comparison. The trailers do not fill
-the gap: 19 of {{ s.repo.commits }} is about 1 percent, concentrated in October, so they
+the gap: 123 of 1,943 is about 6 percent overall but about half of the last nine days, so they
 undercount earlier use. The cheapest measurement to try first is the share of commits
 co-authored by AI against the revert and fix-up rate. Until then the honest claim is *"this
 clearly helps"*, not *"this improves output by a stated percentage."*

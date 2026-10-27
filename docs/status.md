@@ -1,9 +1,17 @@
 ---
 title: Status
 description: Every figure measured by a command, with the command beside it. A dated snapshot, not a feed.
+reread: 2026-10-27
+summary:
+  - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running estate by a script, with the command and what was counted printed beside it."
+  - "**It is a snapshot, not a feed:** a guard fails the build when the numbers are more than three weeks old, so staleness is visible. It cannot keep them current."
+  - "**Aggregates only, by design:** counts, percentages and dates. Vulnerability counts, the code-quality gate and realm counts are absent on purpose, because the generator does not hold those credentials."
+  - "**Three referees sit outside the system** and are fetched live: a heartbeat for scheduled jobs and two uptime windows. Notes on how to read them, including why there is no 90-, 180- or 365-day figure, are below."
 ---
 
 # Live status
+
+{% include in-short.html %}
 
 {% assign s = site.data.stats %}
 {% assign gen = s.generated_at | date: "%s" %}
@@ -32,6 +40,50 @@ mean](index.html#none-of-this-is-a-demo).
 [![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 [![Public endpoint 30d](https://img.shields.io/uptimerobot/ratio/30/m803634462-26ba093afb66ea071e032353?label=30d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
+
+### Notes on the badge wall
+
+*Moved here from the landing page on 2026-10-27, unchanged except where it is marked, because a
+reader with five minutes should meet the map before the measurement theory.*
+
+> **Three notes on that badge wall, because badges are where honesty usually goes to die.**
+>
+> **The uptime numbers are not the goal.** The cluster has been wiped and rebuilt, and
+> patching reboots every node on a rolling basis. Powering nodes off mid-afternoon to see
+> what happens was the practice earlier on; I have not verified that any node was powered
+> off on purpose in the last 30 days. A scheduled fault injector also breaks
+> things, but see the corrections: it works on a sandbox and cannot move this figure. This is
+> a learning platform operated to production standards, not a product carrying an
+> availability commitment.
+>
+> **The first badge says *scheduled jobs*, not *alerting*, because that is what it measures.**
+> It reports the worst status of every check in the account. A badge whose label is narrower
+> than its scope will eventually be believed. It also read `late` once while the alert
+> pipeline was provably healthy. My first explanation (some other check was overdue) was
+> wrong. The real cause was that the heartbeat check's expected period equalled the sender's
+> interval, five minutes against five minutes, with no headroom, so a ping a second late was
+> late by construction. Nothing was broken; the ruler was the same length as the thing
+> measured. **The monitoring was the least reliable component in the story**, and a false
+> positive gets the alarm muted, which manufactures the blindness of a false negative more
+> slowly. That is why there is more than one referee: one can be wrong, and a single monitor
+> gives you no way to find out.
+>
+> **There is deliberately no long-window uptime figure.** The provider will render 90, 180
+> and 365 days, and the series reads as a steadily improving record. It is not. On 2026-10-09
+> I read the monitor at 98.97% for 90 days, 99.485% for 180 and 99.746% for 365. Multiply each
+> back out and every window holds the same 1,335 minutes of downtime: the monitor has less
+> history than the window, so the numerator is fixed and only the denominator grows. The 7-
+> and 30-day figures move independently, so those are measurements. The longer ones are
+> arithmetic wearing a measurement's clothes.
+
+**Where the 30-day shortfall comes from (added 2026-10-27).** On 2026-10-09 the page said most of
+the downtime in the 30-day window was unattributed. It is no longer: the whole estate was down from
+2026-10-14 to 2026-10-18, and four and a half days is about 15 percent of thirty. While that gap
+is inside the window, the figure will read far below the seven-day one; it leaves the window in the
+middle of November. The thing worth saying about it is what the referees did and did not do. The
+off-site probe recorded it, as designed. The heartbeat badge recorded it. What did not happen is a
+message reaching a person, because both of them notify by email only; that is a known gap (see
+[the reliability page](reliability.html#the-estate-was-down-for-four-days)).
 
 {% assign order = "cluster,storage,databases,observability,supply_chain,ci,repo,hardware,referees,site" | split: "," %}
 {% assign titles = "The cluster,Storage,Databases,Observability,Supply chain,CI,The platform repository,Hardware repositories,The referees (snapshot),This site" | split: "," %}

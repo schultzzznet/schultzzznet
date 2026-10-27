@@ -1,8 +1,17 @@
 ---
 title: Printing — parts as code, previewed by a pod and on the workstation
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** the mechanical layer of the estate. Every part is source (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters; the mesh, G-code and previews are build output, rebuilt from it."
+  - "**The idea:** buy the interfaces and print everything between them. Motors, boards and batteries come off a shelf; the brackets, decks and docks are a parameter change and a few hours away."
+  - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page."
+  - "**This page's parts list is behind:** it was last published on 9 October and lacks the parts added since (a servo mount with calibration flags and a sign, among others). Regenerating it is the source repository's publish step, which has not been run."
 ---
 
 # Parts as code: from a parameter to a spinning preview
+
+{% include in-short.html %}
 
 ![OpenSCAD](https://img.shields.io/badge/OpenSCAD-code%20CAD-F9D72C)
 ![Prusa](https://img.shields.io/badge/printer-CORE%20One%2B-FA6831)
@@ -115,6 +124,10 @@ serving a correct but frozen gallery. My reading of the script, not yet a fix, i
 the loop deletes its working directory while standing in it. The container test runs a
 single pass, so it could not see a second one. The fix needs a test that runs two
 iterations first.
+
+*Re-read 2026-10-27: unchanged, and now demonstrated twice.* The pod was redeployed on about 20
+October, rendered once at start (it now serves a newer revision), and has failed every poll since
+with the same error. The bug is a property of the loop, not of that pod, and it is still unfixed.
 
 **8. A gate broken by the file it protects.** Tracking the rover's meshes made the smoke
 test's expected count wrong: it counts every `.stl` under `models`, which is 28 files here

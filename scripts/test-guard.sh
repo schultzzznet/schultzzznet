@@ -85,6 +85,46 @@ scratch
 sed -i.bak '/printing\.html/d' "$tmp/site/docs/_data/nav.yml"
 must_fail "page missing from the nav" "docs/printing.md is not in docs/_data/nav.yml"
 
+# --- the fast reader's block: on every page, and not allowed to go stale ---
+# Each case damages one page's front matter (or the landing page's "Recently" list) in the scratch copy and must be
+# refused BY the summary rule, so a fault cannot hide behind another check failing at the same time.
+summary_fault() { # <label> <file under docs/> <python that edits the text held in t, using re>
+  scratch
+  (cd "$tmp/site" && python3 - "docs/$2" "$3" <<'PY'
+import re, sys
+path, code = sys.argv[1], sys.argv[2]
+t = open(path).read()
+env = {"t": t, "re": re}
+exec(code, env)
+open(path, "w").write(env["t"])
+PY
+  )
+  must_fail "$1" "every page has a fresh In short block"
+}
+summary_fault "a page with no summary" lessons.md \
+  't = re.sub(r"summary:\n(?:  - .*\n)+", "", t, count=1)'
+summary_fault "a page that does not include the block" lessons.md \
+  't = t.replace("{% include in-short.html %}", "")'
+summary_fault "a summary reread date long past" lessons.md \
+  't = re.sub(r"^reread: .*$", "reread: 2020-01-01", t, count=1, flags=re.M)'
+summary_fault "a summary reread date in the future" lessons.md \
+  't = re.sub(r"^reread: .*$", "reread: 2099-01-01", t, count=1, flags=re.M)'
+summary_fault "a body_read date older than the limit" choices.md \
+  't = re.sub(r"^body_read: .*$", "body_read: 2020-01-01", t, count=1, flags=re.M)'
+summary_fault "a body_read date later than the summary's" choices.md \
+  't = re.sub(r"^body_read: .*$", "body_read: 2026-10-28", t, count=1, flags=re.M)'
+summary_fault "a summary of seven items" lessons.md \
+  't = t.replace("summary:\n", "summary:\n" + "  - \"padding\"\n" * 4, 1)'
+summary_fault "a summary item that is a wall of text" lessons.md \
+  't = t.replace("summary:\n", "summary:\n  - \"" + "word " * 120 + "\"\n", 1)'
+summary_fault "Liquid in a summary" lessons.md \
+  't = t.replace("summary:\n", "summary:\n  - \"{{ site.data.stats.cluster.nodes }} nodes\"\n", 1)'
+summary_fault "a Recently list gone stale" _data/recently.yml \
+  't = re.sub(r"date: \d{4}-\d{2}-\d{2}", "date: 2020-01-01", t)'
+summary_fault "a Recently list out of order" _data/recently.yml \
+  't = t.replace("date: 2026-10-26", "date: 2026-10-28", 1)'
+echo "  pass  the In short check refused every planted fault"
+
 # --- the machine-generated stats page: freshness, completeness, and the newer leak shapes ---
 
 scratch

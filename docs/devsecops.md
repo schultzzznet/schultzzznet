@@ -1,10 +1,20 @@
 ---
 title: DevSecOps — the whole chain, and what it actually proves
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** the whole chain from commit to running pod to a continuously re-evaluated inventory, and for each control what it actually *proves* as opposed to what it is marketed to prove."
+  - "**The most useful part is §6, the measurement traps:** seven controls that were configured, green and inert, each found by checking rather than reading. None of them errored."
+  - "**What the gates are:** eight, seven on pull requests; only a *critical* finding with an available fix blocks an image, and the code-analysis and API-contract gates report without blocking. Signatures are verified in the pipeline, not at the cluster's boundary."
+  - "**Since 18 October:** every Secret in git is encrypted, sixteen guards run daily and report through the alerting stack (counted from the guard runner on 27 October), SSH on the nodes is key-only, and an outside attack-path review found no direct path from the internet to cluster-admin."
+  - "**Still not there:** no admission policy, no network policies (none exist, read 27 October), encryption at rest is off, the old secret values are not yet rotated, and the embedded side's nightly vulnerability upload fails every night."
 ---
 
 {% assign s = site.data.stats -%}
 {% assign asof = s.generated_at | date: "%Y-%m-%d" -%}
 # DevSecOps, end to end
+
+{% include in-short.html %}
 
 ![sbom](https://img.shields.io/badge/SBOM%20uploads%20accepted-{{ s.supply_chain.sbom_projects }}%20for%20{{ s.supply_chain.images_running }}%20running%20images-blueviolet)
 ![signed](https://img.shields.io/badge/first--party%20images%20signed%20and%20verified-{{ s.supply_chain.first_party_signed_verified }}%20of%20{{ s.supply_chain.images_first_party }}-2E2E5F?logo=sigstore&logoColor=white)
@@ -461,20 +471,24 @@ Stated plainly, because a control you misunderstand is worse than one you lack:
   a vulnerable dependency merges clean and surfaces afterwards. That is a deliberate
   throughput trade-off, and it is tracked as an open gap rather than presented as coverage.
   CodeQL and the API contract tests do not block at all (§1).
-- **There is no secrets manager.** No sealed secrets, no vault, no external secrets
-  operator. It is the recurring root cause behind a whole class of placeholder-credential
-  defects, it is the highest-value unstarted item on the register, and writing it down here
-  is more useful than implying it away.
+- **Secrets are encrypted in git but not rotated, and not encrypted at rest.** There is
+  still no vault or external secrets operator, by choice: since 2026-10-25 every Secret in the
+  manifests is encrypted with SOPS and age, and a check fails any new plaintext one. That closes
+  the class of placeholder-credential defects that came from secrets in plain text in git. It
+  does not close the old values, which stay in git history until rotated (open, and the
+  object-store root credential comes first because it is also the backup credential in three
+  namespaces), and inside the cluster the Secrets are ordinary Kubernetes Secrets with
+  encryption at rest switched off (read back 2026-10-27).
 - **The deploy path has no cloud fallback.** Every CI and deploy job runs on a self-hosted
   runner inside the LAN, because nothing in the cloud can reach the cluster behind a
   carrier-grade NAT boundary, and GitHub-hosted runners have been refused since an Actions
-  billing block. Seven runners are registered (two Linux, two macOS builders and three macOS gate
-  instances); the second Linux one is a desktop that is powered off when idle and woken on
-  demand, so on a quiet night only one Linux runner is online.
+  billing block. Fifteen runner instances are registered on four machines (read 2026-10-27): four builders
+  and three release-gate instances on one Mac, and eight Linux instances on three machines, one of
+  which is a desktop that is powered off when idle and woken on demand (offline when I read it). One Mac still runs every deploy.
 - **Nothing is enforced at admission.** Signatures are verified in CI and by a cluster check
   ({{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running first-party images verify, as of {{ asof }}), but no policy engine refuses an
   unsigned image, and across the cluster's {{ s.cluster.namespaces }} namespaces there are no
-  NetworkPolicies and one Pod Security label (2026-10-09 audit). The mirrored and
+  NetworkPolicies and one Pod Security label (2026-10-09 audit; read again on 2026-10-27: still none, and still one namespace of twenty-two labelled). The mirrored and
   third-party images are not signed by this pipeline at all. GitHub-native code scanning,
   dependency alerts and secret scanning are off on the platform repository.
 - **Satellite repositories bypass the release policy gate**, by design of the small

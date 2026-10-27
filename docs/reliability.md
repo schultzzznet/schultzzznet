@@ -1,5 +1,12 @@
 ---
 title: High availability — what has it, what does not, and how we know
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What it is:** an audit of which failure domains survive losing one machine, which do not, and which are deliberately not replicated. The inventory table below is read off the live cluster and gives the current count; the rows for the public edge, the switch and the ops agent are not cluster-measured and say so."
+  - "**The three best stories:** a patching loop that never rebooted anything for weeks; a database replica that was Running, Ready and fourteen days out of the stream; and an alert that was correct, deployed, and structurally unable to fire."
+  - "**New since 18 October:** the whole estate was down for four days (14 to 18 October) and came back, with every cron-driven job from those days left inert and nothing reaching a person. And the fault-injection schedules have not fired since 13 October, because their own safety gate keeps pausing them."
+  - "**Open, stated plainly:** the registry, the public edge and monitoring depth are single points; the physical layer is an accepted risk; secrets are not yet rotated."
 ---
 
 {% assign s = site.data.stats %}
@@ -28,6 +35,8 @@ Operations agent|single|One instance (not cluster-measured). Losing it degrades 
 {%- assign n_all = inv_rows | size -%}
 
 # Single-fault tolerance, measured rather than assumed
+
+{% include in-short.html %}
 
 ![domains](https://img.shields.io/badge/failure%20domains-{{ n_ha }}%20of%20{{ n_all }}%20genuinely%20HA-326CE5?logo=kubernetes&logoColor=white)
 ![nodes](https://img.shields.io/badge/nodes%20Ready-{{ s.cluster.nodes_ready }}%20of%20{{ s.cluster.nodes }}-2EA44F)
@@ -514,6 +523,62 @@ is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob
 
 ---
 
+## The estate was down for four days
+
+*Added 2026-10-27. 14 to 18 October 2026.*
+
+The whole estate was down for four days, and came back on the 18th. The reason is not the subject
+of this section; what the estate did on the way back is, because it is the first cold start the
+platform has had, and it is the same lesson as the rest of the page.
+
+- **What healed itself.** The cluster came up, the databases recovered, and the scheduled database
+  backups completed again in the early hours of the 19th.
+- **What did not.** Five catch-up database backups, created as the nodes returned, failed on the
+  cold start and were never retried (the schedule made them moot). Two cron-driven jobs that
+  derive and prune the bills of materials had last succeeded on the 14th; their catch-up runs hit
+  their retry limit within a minute of four nodes becoming ready, and nothing noticed. The exposure
+  check on the public edge did not run from the 14th to the 17th.
+- **What did not reach a person.** The metrics store was off, and the two outside referees (the
+  uptime probe and the heartbeat) both recorded the gap correctly and both notify by email only.
+  The seven-day uptime figure fell to roughly a third. No message arrived anywhere a person would
+  see it. That is the finding, and it is open: routing the referees to chat is on the register.
+- **What changed because of it.** Scheduled GitHub workflows that go red or stale are now reported
+  daily by a guard (2026-10-24), and bringing the estate down and up now has make targets (pause,
+  resume, shut down, start up; 2026-10-18) instead of pulling power.
+
+The pattern is the one this page keeps finding: jobs that were configured, scheduled and green
+while quietly not running. Four days without a refresh of the bills of materials or a check of the
+public edge, and no alert, is that class exactly.
+
+---
+
+## Fault injection is paused by its own safety gate
+
+*Added 2026-10-27.*
+
+Two Chaos Mesh schedules (a pod kill and a 25 percent packet loss, hourly on weekdays in the
+daytime) run against a sandbox workload, behind a safety controller that pauses them whenever the
+cluster is not in steady state. That controller is the part of this page worth copying, and on
+2026-10-27 it is also the reason the injection is not running.
+
+- **They last fired on 2026-10-13.** Both schedules are paused now, by the controller, because two
+  warning-level alerts have been firing since the previous morning (a failed job, and a database
+  backup component sharing a node with its primary). The gate vetoes on *any* warning.
+- **From 13 to 23 October they were paused for a worse reason, and the controller was right to
+  distrust the check, not the cluster.** Two latches kept the gate shut. An out-of-memory alert
+  was latched critical by three old kills, because the metric it read keeps a pod's last
+  termination reason until the pod object is recreated; the rule now needs a restart in the last
+  thirty minutes, with unit tests pinned so the old expression fails them. And the alert that
+  fires when chaos *stops* firing cannot fire while chaos is paused, which made its own
+  can-this-alert-fire guard fail, which raised a guard-failed alert, which the gate also counted.
+  Both were broken on 2026-10-23 and the schedules read armed.
+- **So: armed is a reading of one moment, again.** The fix for the latches did not make the
+  schedules fire; it made them *able* to. Whether a gate that vetoes on any warning is the right
+  threshold for an estate that rarely has none is an open question, and the honest summary today is
+  that fault injection contributed nothing to the reliability evidence on this page for two weeks.
+
+---
+
 ## The gap register, and why closing things you will never do matters
 
 Gaps are tracked in one register, ordered by **risk × leverage** rather than by technology
@@ -590,8 +655,10 @@ rather than by reading it:
   It was found by testing the assumption, *does the tracker actually reject this?*, rather
   than by trusting the comment that said it did. It did not. Several applications went from
   zero licences to a full set, and the copyleft policy started firing.
-- **There is no central secrets manager**, and it is written down as an open P1 rather than
-  implied away. It is the recurring root cause behind a whole class of credential bugs.
+- **There was no central secrets manager**, and it was written down as an open P1 rather than
+  implied away: the recurring root cause behind a whole class of credential bugs. On
+  2026-10-25 every Secret in git became encrypted (SOPS and age). What remains open is
+  rotating the old values and encryption at rest in the cluster, so this is half closed, not closed.
 
 ---
 

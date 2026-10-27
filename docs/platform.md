@@ -1,11 +1,16 @@
 ---
 title: How the platform builds and ships things
+reread: 2026-10-27
+summary:
+  - "**Where it runs:** every build and deploy runs on the estate's own runners. GitHub's hosted runners were refused after a billing lapse, and the house connection (carrier-grade NAT) means they could not reach the cluster anyway. There is no cloud fallback."
+  - "**The contract:** a satellite repository ships by bringing a Dockerfile and a manifest. It was proven end to end on 2026-08-11 in under two minutes, and is not running today."
+  - "**How a change reaches the cluster, since 24 October:** the rule is that git is the only way in. A daily read-only diff of every plain manifest against the live cluster is running, and every Secret in git is encrypted. Rolling out from git on merge, and turning the imperative steps into idempotent jobs, are not built."
+  - "**Weak points:** the deploy path is one Mac; the release gate covers three apps only; signatures are verified in CI, not at admission."
 ---
 
-{% assign s = site.data.stats %}
-{% assign asof = s.generated_at | date: "%Y-%m-%d" %}
-
 # The delivery chain
+
+{% include in-short.html %}
 
 An application does not have to live in the platform's repository to run on it. It can sit
 in its own repo and deploy over a small published contract. This is how that works, and why
@@ -32,12 +37,12 @@ story is true, but the billing gap is what made it total.
 As of {{ asof }}: **{{ s.ci.runs_on_self_hosted }} of the {{ s.ci.runs_on_self_hosted | plus: s.ci.runs_on_github_hosted }} `runs-on:` lines
 in {{ s.ci.workflows }} workflow files are self-hosted, {{ s.ci.runs_on_github_hosted }} are GitHub-hosted.** The
 split that exists now is by role, and the label counts below I re-counted from the workflow
-files on 2026-10-21:
+files on 2026-10-27:
 
 | Runner label | `runs-on:` lines | What runs there |
 |---|---|---|
 | Linux builders | 29 | most CI, scans, DAST and jobs that need containers or service sidecars |
-| Mac builder | 44 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and the light application CI that moved here from the Linux builders |
+| Mac builder | 45 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and the light application CI that moved here from the Linux builders |
 | Mac gate pool | 2 | only the 90-minute release gate, on three dedicated runner instances, so it never waits in the same pool as the jobs it gates |
 | One Linux builder, picked by its own label | 1 | the nightly mutation-testing run that the other Linux builder cannot finish |
 
@@ -47,7 +52,7 @@ flowchart LR
   subgraph LIN["Linux builders · 29 lines"]
     A["lint · scans · DAST<br/>container and service jobs"]
   end
-  subgraph MAC["Mac builder · 44 lines"]
+  subgraph MAC["Mac builder · 45 lines"]
     B["container build + push<br/>sign + verify<br/>rollout · light CI"]
   end
   subgraph GATE["Mac gate pool · 2 lines"]
@@ -235,6 +240,57 @@ workflow (`deploy-app.yml`) is a single job with no policy step, so a satellite'
 between a commit and a rollout. That is a deliberate consequence of keeping the contract
 small, and an asymmetry worth knowing when deciding what belongs in a satellite versus the
 platform itself.
+
+---
+
+## How a change reaches the cluster
+
+*Added 2026-10-27, from a decision made on the 24th. The short version is in the box above.*
+
+**The rule.** *Git is the only way a change reaches the cluster.* A change made by hand is a defect,
+found by a guard, not a habit. This is infrastructure as code with no hand changes, whether or not
+a controller does the rolling out.
+
+**It reopened a decision, and the reopen-trigger had fired.** On 2026-08-10 a pull-based
+reconciler (Argo CD, Flux) was rejected on principle: it solves multi-team drift, which a
+one-maintainer estate does not have, and rebuild-from-git was already proven by a drill. The
+[choices page](choices.html#the-worked-example-argocd-and-flux) wrote down when to reopen it:
+*manifests are ever observed drifting from git*. They were, repeatedly, and each time with a cost:
+
+- a retention setting that lived only on the live object for 19 days after a SEV1;
+- four hand-applied monitors lost in a rebuild, one of which had silently disabled storage alerts;
+- ten log-ruler values and an alert rule committed but not applied for days;
+- unpinned application manifests rolled back by the next deploy;
+- an installer that dropped a flag and brought a second default storage class back;
+- and on 2026-10-21 a deploy that pinned a new image in git and a second deploy two minutes later
+  that rolled the cluster *back* to the old one, where it stayed for two days.
+
+**What was measured before choosing.** Every hand-run step was classified (172 make targets and 59
+playbooks). 104 are checks, drills and status views, which are not state at all; 24 are host-level
+automation; 20 are imperative orchestration; 6 are wrappers; **19 are declarative applies a controller
+could own.** On the same day, of 81 plain manifests, 74 matched the live cluster and 6 did not.
+
+**Four stages, each useful on its own:**
+
+| Stage | What | State on 2026-10-27 |
+|---|---|---|
+| 1. Detect | A read-only diff of every plain manifest against the live cluster, daily, with an alert on any difference. About three seconds. Deliberate exceptions carry a reason and an expiry. | **Done 2026-10-24.** It found 6 differences on its first run and all were resolved the same day. Three files are excluded with dated reasons that force a decision by 2026-12-01. |
+| 2. Secrets in git | SOPS with age, two recipients (an operator key and a recovery key held elsewhere); a check fails any new plaintext Secret. | **Done 2026-10-25** for all 14 Secrets. **Open:** rotating the old values, which stay in git history, starting with the object-store root credential. |
+| 3. Roll out from git | The declarative half applied on merge (19 steps), by a reconciler (Flux by default) or by CI. | **Not built.** To be decided by 2026-12-01 from the drift data. It waits on in-cluster hardening. |
+| 4. Imperative steps | Realm setup, database major-upgrade scripts, bootstrap and key jobs, turned into idempotent jobs case by case. | **Not started.** |
+
+**It reaches beyond the cluster.** The machine that runs the operations agent is not in the
+cluster, and it is the one place where an unreviewed change matters most (it can act on the
+cluster after a click). It now follows the same rule: the deploy exports a merged commit instead
+of copying a working directory, stamps it, and a daily check compares the host with git.
+
+**What this does not give.** There is no continuous reconciliation: a hand edit is caught by the
+next daily run, not instantly. The diff sees plain manifests, not Helm releases (a separate check
+covers those). And the rule is one person's discipline plus guards, because the plan cannot enforce
+review. A related lesson from 2026-10-20: a rollout writes the new image tag into the manifest and
+re-applies every application manifest, so an app shipped from a scratch checkout without committing
+its pin is rolled back by the next deploy. Two services were, for about 100 minutes, until the pin
+was committed.
 
 ---
 

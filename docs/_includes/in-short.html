@@ -1,0 +1,19 @@
+{%- comment -%}
+  The fast reader's block, rendered from the page's own front matter so every page has the same one:
+    reread:    the date this summary was last checked against the system (required)
+    body_read: the date the whole page body was last read in full against the system, when that is earlier than
+               `reread` (optional; defaults to `reread`). Honest by construction: a summary can be re-checked
+               without claiming the 5,000 words under it were.
+    summary:   three to six short items; markdown allowed; no generated numbers (front matter cannot run Liquid)
+  Generated figures carry their own date. scripts/check-summaries.py fails the build when a page has no summary,
+  or when `reread` or `body_read` is stale.
+{%- endcomment -%}
+<aside class="in-short" aria-label="In short">
+  <p class="in-short-head"><strong>In short</strong> <span>as of {{ page.reread | date: "%-d %B %Y" }}</span></p>
+  <ul>
+  {%- for item in page.summary %}
+    <li>{{ item | markdownify | replace: "<p>", "" | replace: "</p>", "" | strip }}</li>
+  {%- endfor %}
+  </ul>
+  <p class="in-short-foot">Generated figures were measured {{ site.data.stats.generated_at | date: "%-d %B %Y" }}. This summary was checked against the system on {{ page.reread | date: "%-d %B %Y" }}; the page body was last read in full on {{ page.body_read | default: page.reread | date: "%-d %B %Y" }}. Dated statements in the text keep their own dates.</p>
+</aside>

@@ -8,6 +8,16 @@
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
 - The rule of the whole thing: assert the property, do not trust the report.
 
+> **In short, as of 2026-10-27.** Running, with no organic users: the load is synthetic. **Since 18 October:**
+> changes go through pull requests, git is the only way a change may reach the cluster (drift is checked
+> daily), no plaintext Secret is left in git, the ops agent was hardened and put under measurement, and the
+> estate was reviewed from the outside four times. **Not finished:** no admission control or network
+> policies, secrets are not yet rotated or encrypted at rest in the cluster, the embedded side's nightly
+> vulnerability upload has failed every night since at least 24 September, and fault injection has not fired
+> since 13 October (its own safety gate keeps pausing it). Start with
+> [*Recently*](https://schultzzznet.github.io/schultzzznet/#recently), or
+> [*Where to start*](https://schultzzznet.github.io/schultzzznet/#where-to-start).
+
 [![Scheduled jobs](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 [![Public endpoint 30d](https://img.shields.io/uptimerobot/ratio/30/m803634462-26ba093afb66ea071e032353?label=30d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
@@ -29,18 +39,18 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 191 |
+| Pods running | 186 |
 | Postgres clusters / instances | 13 / 34 |
 | Clusters with a synchronous standby right now | 8 of 13 |
-| Backup objects (completed in the last 24 hours) | 343 (13) |
+| Backup objects (completed in the last 24 hours) | 348 (13) |
 | Alert rules loaded | 227 |
 | Scrape targets up | 124 of 124 |
-| Commits to the platform repository | 1846 |
-| Decision records | 39 |
-| Test definitions (counted, not run) | 1087 |
-| CI workflows | 38 |
+| Commits to the platform repository | 1943 |
+| Decision records | 41 |
+| Test definitions (counted, not run) | 1147 |
+| CI workflows | 39 |
 
-*Measured 2026-10-21T05:49:49Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-10-27T06:10:37Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 ## What this is, and is not
@@ -52,7 +62,8 @@ cluster. What each figure counts, and the command behind it, is on the
   on 2026-09-04, and k3s has been the only platform since the previous Docker Swarm cluster was
   decommissioned on 2026-06-09. "Months of uptime" would not be true.
 - **Is not highly available throughout.** The platform's own failure-domain review, dated
-  2026-09-09 and not re-measured since, counted 7 of 13 as highly available. The ones that are not: the public entrance, the physical layer (one switch, one power
+  2026-09-09 and not re-measured since (the whole estate was also down from 2026-10-14 to
+  2026-10-18), counted 7 of 13 as highly available. The ones that are not: the public entrance, the physical layer (one switch, one power
   feed), the image registry, the steward, and the single-instance metrics and log stores.
 - **Is not zero-loss everywhere.** Block storage is replica-3. As of 2026-10-09, the table above shows 8 of 13
   Postgres clusters with a synchronous standby. Those are the 8 three-instance clusters,
@@ -61,6 +72,11 @@ cluster. What each figure counts, and the command behind it, is on the
 - **Is not a user base.** Self-registration was switched off on 2026-09-29, per the platform's state notes (not
   re-checked today), so only I can create an account. The apps are deliberately modest demos that exercise every layer.
 
+> **Corrections, 2026-10-27.** Five statements on the site had turned stale in the pessimistic direction
+> (pull requests, secrets in git, drift checking, the ops agent, a runner count), two on the embedded page
+> were false throughout, and the uptime shortfall now has a cause. They are listed, with dates, on
+> [the estate page](https://schultzzznet.github.io/schultzzznet/#corrections-2026-10-27).
+>
 > **Retractions, 2026-10-09.** Earlier versions of this profile said "no single points of
 > failure", "RPO 0, proven" and "Docker Swarm compatible", and that the AI runs inside the
 > cluster. None of those was true when I checked. The worst was the second: the PostgreSQL 18
@@ -80,19 +96,24 @@ not claim it would move unchanged.
 **Scaling.** CPU-based autoscalers are live. Scaling on request rate is not built.
 
 **Supply chain.** First-party images are signed with cosign using a local key, so this is
-signing, not keyless Sigstore. As of 2026-10-09, 6 of the 7 first-party images running verify
-against the release key, and the tracker has accepted 70 SBOMs. Acceptance is not analysis.
-I rate it SLSA Build L2 myself; nobody has audited that.
+signing, not keyless Sigstore. As of 2026-10-27, 6 of the 7 first-party images running verify
+against the release key, and the tracker has accepted 71 SBOMs. Acceptance is not analysis.
+I rate it SLSA Build L2 myself; nobody has audited that. **Secrets:** every Secret in git has been
+encrypted with SOPS and age since 2026-10-25; the old values are not yet rotated and the cluster does
+not encrypt them at rest.
 
 **AI.** The ops agent answers in Slack, queries Prometheus, and proposes actions such as a node
-drain or a scale, which a human approves with a button. It does not act alone. An orchestrator
+drain or a scale, which a human approves with a button. It does not act alone. Since 2026-10-26 its
+arguments are validated, only named approvers count, and what it says is recorded and graded
+(a first review found "critical" in 79 of 96 summaries, with no critical alert firing in 69 of them). An orchestrator
 that closes the whole delivery loop into one policy-gated workflow is not built; chaos injection
 is partial: my last self-rating (2026-09) counted 2 of 31 planned failure scenarios.
 
 **Embedded.** A custom Yocto layer on the 6.0 LTS release (wrynose) for a Raspberry Pi 3 B+: a
-signed RAUC A/B image, updated over the air, with an SBOM and CVE scan documented as a daily job. A signed update and a
-deliberate rollback have both been proven on the board, and the last over-the-air update was
-2026-09-01 (release 2026.09.1). A Pi 3 cannot do
+signed RAUC A/B image, updated over the air, with an SBOM and CVE scan. **The nightly upload of that
+SBOM to the tracker has failed every night since at least 2026-09-24, and no device has reported back
+since 2026-09-01** (corrected on the site on 2026-10-27). A signed update and a deliberate rollback have both
+been proven on the board, and the same path now carries an image for a bench test rig. A Pi 3 cannot do
 hardware secure boot, so the updates are signed and integrity-checked, but the boot chain is not
 verified.
 
@@ -100,7 +121,8 @@ verified.
 
 All on the site, **<https://schultzzznet.github.io/schultzzznet/>**:
 
-- [What I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html): the mistakes, with their costs.
+- [Recently](https://schultzzznet.github.io/schultzzznet/#recently): what changed, newest first, with dates.
+- [What I'd do differently](https://schultzzznet.github.io/schultzzznet/lessons.html): the mistakes, with their costs, and [what four outside reviews found](https://schultzzznet.github.io/schultzzznet/lessons.html#13-what-outside-reviews-found).
 - [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking): confident, wrong numbers, found by checking.
 - [The apps](https://schultzzznet.github.io/schultzzznet/apps.html): three Flutter apps (location, hazard warnings, messaging) with screenshots, and what is not finished.
 - [Reliability](https://schultzzznet.github.io/schultzzznet/reliability.html) and [incidents](https://schultzzznet.github.io/schultzzznet/incident.html).

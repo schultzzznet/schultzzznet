@@ -1,5 +1,12 @@
 ---
 title: The estate
+reread: 2026-10-27
+summary:
+  - "**What it is:** six retired machines running bare-metal Kubernetes with replicated storage, thirteen Postgres clusters, a signed supply chain, scheduled fault injection and a local-model ops agent. It is running, not planned. **There is no organic user base:** the load is synthetic, and what is real is what the platform did in response to itself."
+  - "**What the site is for:** the habit of asserting the property instead of trusting the report. Most findings here are controls that were configured, green and inert, found by checking, dated, and retracted in public."
+  - "**Since 18 October:** changes go through pull requests, git became the only way a change may reach the cluster (drift is checked daily), no plaintext Secret is left in the manifests, the ops agent was hardened and put under measurement, and an outside review of the whole estate was published."
+  - "**Not finished, plainly:** no admission control or network policies, secrets are encrypted in git but not at rest in the cluster, the embedded side's nightly vulnerability upload has failed every night since at least 24 September, no device reports back, and the fault-injection schedules have not fired since 13 October (their own safety gate keeps pausing them)."
+  - "**Short on time?** [Where to start](#where-to-start) is the next heading. Five minutes: the measurement traps. Twenty: the reliability audit."
 ---
 {% assign s = site.data.stats %}
 {% assign c = s.cluster %}
@@ -25,6 +32,33 @@ local model helps **run** it.
 from one address. What is real is what the platform did in response to itself (see
 [the corrections](#corrections-2026-10-09)), and the figures below are measured, not remembered.
 
+{% include in-short.html %}
+
+## Where to start
+
+| You have | Read |
+|---|---|
+| **2 minutes** | The *In short* block above, then *Recently* below |
+| **5 minutes** | Add [the measurement traps](devsecops.md#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert |
+| **20 minutes** | Add [reliability, audited](reliability.md), the single-fault inventory and the patching loop that never rebooted anything, and [what outside reviews found](lessons.md#13-what-outside-reviews-found) |
+| **One story** | [One incident, in full](incident.md), a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
+| **An hour** | Add [the delivery chain](platform.md), including [how a change reaches the cluster](platform.md#how-a-change-reaches-the-cluster), and [the operations agent](aiops.md); [AI in development](ai-dev.md) is the cloud half of the AI story |
+| **Code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples), four extracted, runnable, commented artifacts, one with a self-test that demonstrates its own bug |
+| **Tooling arguments** | [Why these tools, and what got rejected](choices.md) |
+| **Hiring** | [What I'd do differently](lessons.md) is probably the most informative page here |
+| **The rest** | [Quality and self-graded maturity](quality.md), [legal and regulatory posture](compliance.md), [the embedded side](yocto.md), [the mechanical side](printing.md), [live status](status.md) |
+
+## Recently
+
+What changed, newest first. Each line is dated, the full account is on the page it links to, and
+a check fails the build if this list stops being recent.
+
+<ul class="recently">
+{%- for r in site.data.recently %}
+  <li><strong>{{ r.date | date: "%-d %b" }}.</strong> {{ r.text | markdownify | replace: "<p>", "" | replace: "</p>", "" | strip }}</li>
+{%- endfor %}
+</ul>
+
 The three badges below are graded by referees that sit outside the system they grade.
 
 [![Alerting alive](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
@@ -37,43 +71,11 @@ off-site probe of the public entrance, so they still report when the power or th
 is what failed. None of them lives inside the system it grades, which is the entire point of
 a referee.
 
-> **Three notes on that badge wall, because badges are where honesty usually goes to die.**
->
-> **The uptime numbers are not the goal.** The cluster has been wiped and rebuilt, and
-> patching reboots every node on a rolling basis. Powering nodes off mid-afternoon to see
-> what happens was the practice earlier on; I have not verified that any node was powered
-> off on purpose in the last 30 days. A scheduled fault injector also breaks
-> things, but see the corrections: it works on a sandbox and cannot move this figure. This is
-> a learning platform operated to production standards, not a product carrying an
-> availability commitment.
->
-> **The first badge says *scheduled jobs*, not *alerting*, because that is what it measures.**
-> It reports the worst status of every check in the account. A badge whose label is narrower
-> than its scope will eventually be believed. It also read `late` once while the alert
-> pipeline was provably healthy. My first explanation (some other check was overdue) was
-> wrong. The real cause was that the heartbeat check's expected period equalled the sender's
-> interval, five minutes against five minutes, with no headroom, so a ping a second late was
-> late by construction. Nothing was broken; the ruler was the same length as the thing
-> measured. **The monitoring was the least reliable component in the story**, and a false
-> positive gets the alarm muted, which manufactures the blindness of a false negative more
-> slowly. That is why there is more than one referee: one can be wrong, and a single monitor
-> gives you no way to find out.
->
-> **There is deliberately no long-window uptime figure.** The provider will render 90, 180
-> and 365 days, and the series reads as a steadily improving record. It is not. On 2026-10-09
-> I read the monitor at 98.97% for 90 days, 99.485% for 180 and 99.746% for 365. Multiply each
-> back out and every window holds the same 1,335 minutes of downtime: the monitor has less
-> history than the window, so the numerator is fixed and only the denominator grows. The 7-
-> and 30-day figures move independently, so those are measurements. The longer ones are
-> arithmetic wearing a measurement's clothes.
-
-The 30-day figure at the last generation was **{{ rf.uptimerobot_30d }}%**, which is roughly
-{{ 100 | minus: rf.uptimerobot_30d | times: 432 | round }} minutes of downtime in a 30-day
-window. The only outage I have on record in that window is five minutes on 2026-10-07 that
-both monitors recorded, and its cause is not established. That leaves most of the downtime
-unattributed: I have not worked out where the rest came from, and I will not claim it sits
-in any particular part of the system. During the window the fleet also went through
-patching reboot waves; whether they account for any of it I have not checked.
+**The uptime numbers are not the goal, and the 30-day one shows why.** The whole estate was
+down from 2026-10-14 to 2026-10-18, so that window carries roughly four and a half days of
+downtime until it scrolls out (about mid-November), and no one outage on the page explains
+it otherwise. [Three more notes on reading these badges, and the arithmetic of why there is no
+90-, 180- or 365-day figure, are on the status page](status.html#notes-on-the-badge-wall).
 
 ## Right now
 
@@ -140,6 +142,35 @@ not streaming and crash-looped on its first restart. Alerts for that class (a re
 streaming, a container crash-looping, an instance not ready) now exist. The account is in
 [the reliability page](reliability.md) and
 [the lessons page](lessons.md#11-three-wrong-claims-in-one-diagnosis).
+
+## Corrections, 2026-10-27
+
+A second read of this site against the estate, nine days after the first, found statements that
+had turned stale in the *pessimistic* direction (things that have since been fixed) and two that
+were false the whole time. They are retracted here rather than quietly edited:
+
+- **"Almost nothing goes through a pull request."** True until 2026-10-18; since then 112 of the
+  133 commits to the platform repository carry a pull request number. They are still merged by
+  the one person who wrote them, and the plan still cannot enforce review. See
+  [AI in development](ai-dev.md#who-reviews-honestly).
+- **"Secrets at rest are plaintext", "there is no secrets manager".** In git, no longer: since
+  2026-10-25 every Secret in the manifests is encrypted with SOPS and age. Inside the cluster
+  they are ordinary Kubernetes Secrets and encryption at rest is not switched on (read back
+  2026-10-27), and the old values are still in git history until they are rotated. See
+  [choices](choices.md#deferred--needed-eventually-not-yet).
+- **"Drift is checked on demand; neither runs."** A daily read-only diff of every plain manifest
+  against the live cluster has run since 2026-10-24, after the reopen-trigger written down for
+  exactly this fired. See [how a change reaches the cluster](platform.md#how-a-change-reaches-the-cluster).
+- **The operations agent page** described the agent as of 2026-10-09. It has since had its tool
+  arguments validated, an approver allowlist, an audit file, deployment from git, and a quality
+  loop that measures what it says. See [the agent](aiops.md).
+- **The embedded page** said a daily job keeps the bill of materials current in the tracker and
+  that devices report back. **Neither is true:** the upload has been refused every night since at
+  least 2026-09-24, and no device has reported since 2026-09-01. See [the embedded side](yocto.md#two-claims-on-this-page-that-are-false-today).
+- **"I have not worked out where the downtime came from."** It was the four days from
+  2026-10-14 to 2026-10-18, when the whole estate was down. See [the status page](status.html#notes-on-the-badge-wall).
+- **Fault injection** was described as running hourly on weekdays. It last fired on 2026-10-13. See
+  [reliability](reliability.md#fault-injection-is-paused-by-its-own-safety-gate).
 
 ## Corrections, 2026-10-09
 
@@ -243,18 +274,7 @@ The two dotted lines are the ones that matter. The agent's write path is deliber
 and allowlisted; the referees are deliberately outside everything they grade. *A monitor
 that dies with the thing it monitors is not a monitor.*
 
-## Where to start
-
-| You have | Read |
-|---|---|
-| **5 minutes** | This page, then [the measurement traps](devsecops.md#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert |
-| **20 minutes** | Add [reliability, audited](reliability.md), the single-fault inventory and the patching loop that never rebooted anything |
-| **One story** | [One incident, in full](incident.md), a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
-| **An hour** | Add [the delivery chain](platform.md) and [the operations agent](aiops.md); [AI in development](ai-dev.md) is the cloud half of the AI story |
-| **Code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples), four extracted, runnable, commented artifacts, one with a self-test that demonstrates its own bug |
-| **Tooling arguments** | [Why these tools, and what got rejected](choices.md) |
-| **Hiring** | [What I'd do differently](lessons.md) is probably the most informative page here |
-| **The rest** | [Quality and self-graded maturity](quality.md), [legal and regulatory posture](compliance.md), [the embedded side](yocto.md), [the mechanical side](printing.md), [live status](status.md) |
+## Why build it this way
 
 **Why build it this way instead of stopping at a tutorial:** a system nobody has to operate
 teaches a smaller skill than one that is running, with real incidents and a real pager. The
@@ -360,8 +380,9 @@ since. Renaming breaks every inbound link, so the name stayed.
   [the compliance page](compliance.md).
 - **Deliberate chaos, small by design.** Two Chaos Mesh schedules against a two-replica
   sandbox workload, described in the corrections. The safety controller that halts them is
-  real code in the off-cluster agent; I did not read its runtime on/off flag, so I do not
-  claim it is active.
+  real code in the off-cluster agent, and as of 2026-10-27 it is doing its job to the point of
+  excess: both schedules are paused because two warning-level alerts are firing, and they last
+  fired on 2026-10-13. [The account is on the reliability page](reliability.md#fault-injection-is-paused-by-its-own-safety-gate).
 - **An operations agent** that reads cluster state, correlates it and proposes remediations.
   See [AI, twice](#ai-twice) for what it may do alone.
 - **Automated assertions** that documentation, inventory and reality agree. The audit run on
@@ -423,6 +444,15 @@ The honest answer to "what does it do on its own":
 and everything else becomes a proposal. That is a smaller claim than the industry's favourite
 phrase, and the one that is true.
 
+**What changed on 2026-10-26, because it had been measured.** A review of the agent's first 96
+hourly summaries found "critical" in 79 of them with no critical alert firing in 69, and a
+data source that had been blind for fourteen days without one mention. The same review found that
+a model-supplied name was being placed into a command run as root. Both are fixed: arguments are
+validated, only named people can approve, every executed action is written to an audit file, the
+severity line is now written by code and not by the model, and every call is recorded so a monthly
+graded sample and a set of golden test cases can say whether a change helped. The account, with
+the numbers, is on [the agent's page](aiops.md#the-agent-since-2026-10-26).
+
 ---
 
 ## The habit the whole thing is built on
@@ -463,6 +493,7 @@ to be here did.
 |---|---|---|
 | Platform | k3s, containerd, embedded etcd, CoreDNS, Traefik, Helm, Ansible | The "retired laptops" part is literal |
 | Data and identity | Rook-Ceph (replica {{ st.replica_size }}), CloudNativePG, MinIO object store, Keycloak | Postgres on 16 and 18 during the soak |
+| Change and secrets | Git as the only way in (daily manifest-drift guard, [staged GitOps](platform.md#how-a-change-reaches-the-cluster)), SOPS + age for Secrets in git | Stage 3, rolling out from git on merge, is not built; no encryption at rest in the cluster |
 | Supply chain | cosign, SLSA provenance, Syft (CycloneDX 1.6), Trivy, Dependency-Track, DefectDojo, gitleaks, ZAP, Renovate, Dependabot, {{ ci.precommit_hooks }} pre-commit hooks | CodeQL's last push run failed on 2026-10-08, cause not read. SonarQube is advisory, not a gate. GitHub-native scanning is off |
 | Observability | Prometheus, Grafana, Loki, Alertmanager, Chaos Mesh, kured | Retention is a ceiling, history held is {{ ob.data_span_days }} days |
 | Applications | Java 17, Spring Boot 3.5, Flutter, OpenAPI, Schemathesis, k6 | Load is synthetic |
@@ -519,7 +550,7 @@ is **"this is what it looks like when the usual forcing function is absent"**, w
 why taking on real users would end it. Customers import the pressure, and the pressure is
 what closes this door.
 
-Rigor did not transfer to every domain at once: open items remain for a secrets manager and a hosted privacy policy ([gaps](reliability.md), [legal posture](compliance.md)).
+Rigor did not transfer to every domain at once: open items remain for rotating the secrets that sat in git in plaintext, encryption at rest in the cluster, and a hosted privacy policy ([gaps](reliability.md), [legal posture](compliance.md)).
 
 ---
 
@@ -540,7 +571,7 @@ patching with coordinated reboots, an incident practice with real postmortems. W
 missing is written down and mostly unglamorous.
 
 **Should it? Not yet.** Legal and regulatory sits well below its target in the
-[self-assessment](quality.md), secrets at rest are sub-baseline, the public entrance is one
+[self-assessment](quality.md), secrets are encrypted in git but not yet rotated or encrypted at rest in the cluster, the public entrance is one
 small machine and one relay, and product analytics is at zero. Nothing here is one weekend
 from being a business.
 

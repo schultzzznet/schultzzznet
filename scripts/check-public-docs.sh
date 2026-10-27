@@ -189,6 +189,20 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
     "Add or remove the matching entry in docs/_data/stats_methods.yml."
 fi
 
+# A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one
+# thing a reader trusts without reading the rest. (Also the landing page's dated "what changed" list.)
+if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ] && [ -f "$here/check-summaries.py" ]; then
+  if out=$(python3 "$here/check-summaries.py" --docs docs 2>&1); then
+    printf 'ok:   %s\n' "every page has a fresh In short block"
+  else
+    fail=1
+    echo "FAIL: every page has a fresh In short block"
+    echo "      Add reread:/summary: to the page's front matter and the include under its first heading, or re-read the page and move the date."
+    printf '      %s\n' "${out//$'\n'/$'\n      '}"
+    echo
+  fi
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo "Public docs guard FAILED — the above would be published to a public site."
   exit 1

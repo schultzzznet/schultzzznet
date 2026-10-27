@@ -1,5 +1,12 @@
 ---
 title: One incident, in full
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What happened:** on 20 August 2026 mains power to the building dropped for under a minute. Two of the three control-plane machines hard-crashed, and for 9 minutes 12 seconds the survivor was the only reachable member of the cluster's state store, one vote short of a quorum. By this platform's own taxonomy that is a SEV1."
+  - "**How it ended:** no data lost, no user impact, full recovery with no human action. **Nothing detected it, and nothing could have:** it was found because a person felt the lights go out and asked for a status check."
+  - "**Why it is published:** a summary of an incident is the easy part to write and the part that teaches least. This is a condensed rewrite of the private post-mortem with the machine names removed and nothing softened. Its sharpest line: the outage was the experiment the drills had not run, run for real by the electricity company."
+  - "**Since then:** state-store monitoring on 3 September, and the control plane rebuilt on a different set of three machines on 4 September. Item statuses were last checked on 9 October, and the body of the page was last read in full that day."
 ---
 
 {% assign s = site.data.stats %}
@@ -8,6 +15,8 @@ title: One incident, in full
 {% assign asof = s.generated_at | date: "%Y-%m-%d" %}
 
 # A nine-minute quorum loss that nothing detected
+
+{% include in-short.html %}
 
 ![open items](https://img.shields.io/badge/open%20items-{{ open_items }}%20as%20of%20{{ checked | replace: "-", "--" }}-orange)
 

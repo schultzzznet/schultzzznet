@@ -1,10 +1,18 @@
 ---
 title: The operations agent — what a local model is allowed to do
+reread: 2026-10-27
+summary:
+  - "**What it is:** a local model on a separate small machine that reads cluster state and *proposes* fixes. Nothing it says is executed directly: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
+  - "**What it may do alone:** two rules, both on-demand database backups, and only if auto-apply is switched on. It is not. Everything else is a proposal."
+  - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments are now validated, only approvers count, every executed action is audited, and a quality loop measures what it says."
+  - "**What is still weak:** its log-based proposals (five graded, none good), a small model that is not an engineer, one instance, and an approval channel that is a third-party chat service."
 ---
 
 # An AI ops agent with a narrow, audited write path
 
-{% assign skills = 6 %}{% assign rules = 5 %}{% assign restarts = 3 %}{% assign additive = 2 %}{% assign refused = 16 %}{% assign tests = 281 %}
+{% include in-short.html %}
+
+{% assign skills = 6 %}{% assign rules = 5 %}{% assign restarts = 3 %}{% assign additive = 2 %}{% assign refused = 16 %}{% assign tests = 690 %}
 {% capture rr %}{{ rules }} mapped, {{ refused }} refused{% endcapture %}
 ![model](https://img.shields.io/badge/model-local%2C%20on--prem-black?logo=ollama&logoColor=white)
 ![skills](https://img.shields.io/badge/skill%20vocabulary-{{ skills }}%20named%2C%20closed-2EA44F)
@@ -20,8 +28,10 @@ This is the run-time half of a two-part practice, the production edge. [The dev-
 half](ai-dev.html) is a cloud model as a reviewed engineering peer, deliberately a different
 model, in a different place, for a different reason.
 
-*Counts below are read from the agent's source as of 2026-10-09 and will move; they are
-typed here, not generated, which is the one weakness of this page.*
+*Counts below are read from the agent's source as of 2026-10-27 and will move; they are
+typed here, not generated, which is the one weakness of this page. The page was first
+written against the agent as it stood on 2026-10-09; the section
+[The agent since 2026-10-26](#the-agent-since-2026-10-26) is what changed.*
 
 ---
 
@@ -91,7 +101,7 @@ command. Both can only emit a skill name plus typed parameters, chosen from a **
 vocabulary of {{ skills }}**: scale, restart, drain, activate, rebalance, backup. **Every
 chat-triggered action, all {{ skills }} skills with no exceptions, is posted as a dry run and
 waits for an explicit human approval.** There is no unattended path from a conversation,
-however additive the request looks. An approval that nobody clicks expires after ten minutes.
+however additive the request looks. An approval that nobody clicks expires after ten minutes. Since 2026-10-26 only people on a named approver list can request or approve one; an empty list means nobody.
 
 ### Alert path
 
@@ -101,7 +111,7 @@ untrusted input, and routing it through an LLM before acting would add exactly t
 prompt-injection surface the rest of this design exists to avoid. A lookup is deterministic,
 testable, and cannot be talked into anything.
 
-As of 2026-10-09 the table holds **{{ rules }} rules, and {{ refused }} further alert types are explicitly
+As of 2026-10-27 the table holds **{{ rules }} rules, and {{ refused }} further alert types are explicitly
 declared un-actionable, each with a written reason**: a level-based alert that would loop
 forever if acted on, a symptom whose "fix" would erase the evidence, a physical fault no
 command can touch. Absence is an oversight; a name on that second list is a decision.
@@ -137,7 +147,7 @@ defaults to off and is documented as *leave it there*. Some capabilities should 
 editing configuration and thinking about it, not clicking a button while distracted.
 
 Every gated action shows the exact command, who asked for it, and a dry run of its effect
-before anyone can approve it, and every step is logged and attributed. An approval that does
+before anyone can approve it, and every executed action is appended to an audit file that survives a restart (since 2026-10-26; before that the log lived in memory). An approval that does
 not show you what you are approving is a rubber stamp.
 
 ### The refusal list is the load-bearing half
@@ -227,11 +237,14 @@ not self-healed inside its recovery budget (five minutes by default) escalates l
 the correct framing: the alarming thing is not the fault, it is that **the automatic
 recovery loop is not recovering.**
 
-As of 2026-10-09 there are two schedules, a pod kill and a packet-loss fault, each hourly on
-weekdays in the daytime, and the controller pauses and
-re-arms each one as the steady-state check changes, so whether they are armed is a reading
-of that moment and not a fact to type here. Their last fires were on 2026-10-08. The controller
-was armed in the infrastructure code on 2026-09-22.
+There are two schedules, a pod kill and a packet-loss fault, each hourly on weekdays in the
+daytime, and the controller pauses and re-arms each one as the steady-state check changes. As of
+2026-10-27 both are paused, and they last fired on 2026-10-13: the gate vetoes on any
+warning-level alert, and two have been firing since the previous morning. That is the controller
+doing what it is for, and a reason to read "armed" as a reading of one moment. The ten days before
+that, and the two latches that caused them, are on
+[the reliability page](reliability.html#fault-injection-is-paused-by-its-own-safety-gate).
+The controller was armed in the infrastructure code on 2026-09-22.
 
 **Schedules are discovered, never listed.** The controller enumerates fault schedules from
 the live cluster on every tick; it does not read a configured list of things to guard. This
@@ -250,8 +263,9 @@ The safety controller had **never been deployed to the machine whose only job wa
 it.** The deployment mechanism copied a directory rather than checking out the repository,
 so the host quietly kept an old build, and arming the controller would have been a no-op
 that reported success. It was armed for real only after that was found. The copy mechanism
-is still how the agent ships (a directory sync that deletes what is not in the source), which
-is why this lesson is in the present tense.
+stayed how the agent shipped until 2026-10-26, when it was replaced by a
+deploy from a merged commit with a daily drift check ([below](#the-agent-since-2026-10-26)).
+The lesson is in the past tense now, and the check that made it so is itself the lesson.
 
 The pattern is identical to [the reboot daemon that never rebooted](reliability.md) and the
 fault injector that had never fired: **configured, plausible, and inert.** The
@@ -282,7 +296,7 @@ correctness bug.
 
 Three layers, deliberately:
 
-- **Unit tests**: {{ tests }} test functions across the agent's suite as of 2026-10-09 (a
+- **Unit tests**: {{ tests }} test functions across the agent's suite as of 2026-10-27 (a
   static count of definitions, not a pass rate; parametrised cases make the collected count
   higher). They run offline, with no cluster and no model reachable: prompt-router
   regression, command parsing, and every guardrail asserted directly. Those are the
@@ -301,9 +315,70 @@ Three layers, deliberately:
 **Retraction, 2026-10-09.** This section used to say the agent "has run unsupervised for
 months" and that "additive remediations have executed and are logged". The first is true of
 the chat loop only. The second I cannot support: the unattended path has never been armed,
-and the agent's audit log lives in memory and does not survive a restart, so there is no
-trail to point to. Its chaos state is served read-only over HTTP for a dashboard, but that
+and the agent's audit log lived in memory and did not survive a restart, so there was no
+trail to point to. (An audit file exists since 2026-10-26; it is one day old.) Its chaos state is served read-only over HTTP for a dashboard, but that
 server is off by default, so its liveness is observable only where it has been enabled.
+
+---
+
+## The agent since 2026-10-26
+
+The first outside look at the agent's *output* (not its code) came on 2026-10-26, and it changed
+the agent. The account is short because the numbers are the point.
+
+**What the review of 96 hourly summaries found.** "Critical" appeared in 79 of them, with no
+critical alert firing in 69. Not one mentioned a data source that had been blind for fourteen
+days. Of the 25 summaries that reported out-of-memory kills, 16 did so when no such alert was
+active. And the logs kept only the first 200 characters of each post, so the review was
+possible at all only because the metrics store remembered what had been firing.
+
+**What the same review found in the code.** A model-supplied namespace was placed into a command
+run as root on a cluster host. That had been true since 2026-10-14 and is the sharpest finding the
+agent has had. It needed prompt injection and a way to plant text, so it was rated low in
+likelihood and critical in impact. Separately, every proposal since 2026-10-09 had been silently
+dropped, because the chat channel it was configured to post to did not exist.
+
+**What changed, with the date it landed:**
+
+- **Arguments are validated (2026-10-26).** Tool arguments are validated before anything runs, the approver list gates both requesting and approving, the rate limit is atomic,
+  every executed action is appended to an audit file, and the service definition no longer carries
+  chat tokens. Channel and approver identities come from a credentials directory that is not in git.
+- **It deploys from git, and git is checked (2026-10-26).** The deploy refuses uncommitted changes
+  and any commit not on the merged branch, exports that commit, and stamps it on the host. A daily
+  check compares the agent's code by checksum, the model server's environment, the declared models
+  and the agent's configuration keys. Its first measurement found eight files that differed, a
+  context-window setting that had never been applied (and would have been far too large for a model
+  of this size on this machine), and about twenty gigabytes of evaluation models that no file
+  declared. The same week an edit to the deploy playbook deleted a whole configuration step; neither
+  the syntax check nor CI could see it, and the agent kept working only because the sync excludes
+  that file. It was found by deploying, which is why the drift check exists.
+- **What it says is measured (2026-10-26).** Every model call is recorded: the facts the code
+  computed, what the model was given, what it said, its cost in tokens and seconds, and automatic
+  flags for the failure classes found so far (severity inflation, an outage claimed as happening, "all
+  healthy" next to a blind source, a headline about history). The status line is now written by
+  code, not by the model. About monthly, a person grades eight random posts as good, noisy, wrong or
+  missed; a daily check goes red when no sample has been graded for 35 days, so "sometimes" happens.
+  Golden cases, built from graded failures, are run against the live model before any prompt, rule
+  or model change is merged.
+
+**The first turn of that loop, measured** (four cases, two runs each: small, so read the direction,
+not the decimals): the old prompt passed 6 of 8; the new one, which carries the facts and four
+rules, passed 8 of 8, at about forty percent more thinking time. Switching the model's thinking off
+was tried and rejected: the model then wrote its reasoning into the post, was slower, and passed 3
+of 8. A first check flagged a correct sample as wrong, was refined after a person read it, and
+the earlier runs were re-scored with the refined check for both prompts so the comparison stayed
+fair. The human grade is the arbiter; the automatic flags only have to be conservative.
+
+**The first graded sample after the deploy** is the useful humility: the hourly summary was graded
+good, and all five of the log-based *proposals* were not (three wrong, two noisy, none good). The
+cause is that "no recent logs" fires for a service that simply logs a few lines an hour. The cheapest
+fix is in code (compare a service with its own usual rate), not in the prompt, and that is the next
+turn of the loop. A one-click thumbs vote under each post, from named approvers only, adds a trend
+that is explicitly not a grade of correctness.
+
+**What this does not show.** It shows the agent's *output* is now measured and its *input path* is
+safer. It does not show the model reasons well about incidents, which remains the claim this page
+has never made. The loop's first review is due by 2026-11-26.
 
 ---
 
@@ -312,9 +387,9 @@ server is off by default, so its liveness is observable only where it has been e
 - **It is one instance.** Losing it degrades autonomy, not availability, which is why it is
   ranked below the storage and registry gaps rather than above them.
 - **It proposes far more than it applies.** The unattended surface is intentionally the
-  boring end of the action space, and that is the design working, not a shortfall. I have no
-  count of proposals approved, rejected and expired, because the audit log is not persisted
-  yet.
+  boring end of the action space, and that is the design working, not a shortfall. Every call
+  and every executed action is recorded since 2026-10-26, so the counts of proposals approved,
+  rejected and expired now begin to exist; there are not yet enough days of them to publish.
 - **A small local model is not an engineer.** It is good at saying "these three facts are
   related" at 3am. It is not good at deciding whether the related facts justify an outage.
 - **None of it proves reachability or intent.** The agent reasons over the same signals a

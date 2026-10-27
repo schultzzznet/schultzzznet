@@ -1,10 +1,19 @@
 ---
 title: Testing, quality gates, and grading our own maturity
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What stops a merge:** nothing on the server. Branch protection is not enforceable on this plan, so the gates are CI workflows and hooks that one maintainer is bound to follow. Mutation testing and the dependency sweep are advisory, and the mutation job is red most nights."
+  - "**Two speeds, on purpose:** a fast lane on every push, and a nightly slow lane (dependency sweep, mutation testing) that never blocks a pull request. **The contract-testing story** is the instructive one: a property-based API tester produced 496 findings on 132 operations, mostly because no operation declared its error responses, so the number measured the specification's silence, not defects."
+  - "**Self-graded maturity (2026-09-09):** the infrastructure and operations half crossed the baseline; the product-facing half did not (analytics L0, UX L0 to L1, legal L1). That gap is parked on purpose, and the grade says so. The security row (L4) is contested: an outside review on 2026-10-18 graded it 3 of 5."
+  - "**Next:** the next self-grade is due in December 2026, or after the next top-priority gap closes. Old grades are never edited; a new one is added."
 ---
 
 {% assign s = site.data.stats -%}
 
 # What actually gates a merge, and how the platform scores itself
+
+{% include in-short.html %}
 
 ![gates](https://img.shields.io/badge/CI-{{ s.ci.workflows }}%20workflows%20%C2%B7%20blocking%20by%20convention-2088FF?logo=githubactions&logoColor=white)
 ![contract](https://img.shields.io/badge/API%20contract-132%20ops%20%C2%B7%20496%20findings%20first%20run-8A2BE2)
@@ -265,9 +274,18 @@ what the grade exists to surface.
 | 12 | Business continuity / FinOps / vendor risk | **L2** | L2 | ↑ |
 
 Read honestly, that table says: **the infrastructure and operations half crossed the
-baseline; the product-facing half has not.** Security is genuinely elite. Reliability moved a
+baseline; the product-facing half has not.** The supply-chain half of security is genuinely strong; whether the whole row is elite is contested (next paragraph). Reliability moved a
 full level between the 2026-06 and 2026-07 grades as backups, restore drills and host patching
 landed, and has not moved in the 2026-09 one.
+
+> **A second opinion on the security row, 2026-10-18.** An outside review of the whole estate
+> graded security and supply chain **3 of 5** on its own scale (not this ladder): the supply chain
+> is elite for a homelab, signed and attested and re-proven live, but the application-security and
+> in-cluster layers are baseline, with a report-only habit that has not been broken (the
+> code-analysis results go nowhere, several gates never graduated from reporting to blocking, and
+> the cluster has no admission layer or network policies). The L4 above is dated 2026-09-09 and has
+> not been revised; the December grade has to answer this. Both numbers are self-generated
+> (the reviewer is an AI model); the evidence behind each, not the digit, is the part to weigh.
 
 And then: **analytics is at zero.** Not "early": zero. Nothing measures whether anyone uses
 these applications or what they do in them. UX quality is barely off the floor: no

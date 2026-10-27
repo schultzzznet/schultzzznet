@@ -1,10 +1,20 @@
 ---
 title: The apps
+reread: 2026-10-27
+body_read: 2026-10-09
+summary:
+  - "**What they are:** three Flutter clients (Loc8 for location in invite-only groups, Warn for road hazards, Talk for messaging) and three Spring Boot services. They are the realistic load the platform proves itself against; the platform is the point."
+  - "**What they are not:** a product. None is in an app store, the Android builds are debug-signed, registration is closed, and the people in the screenshots are demo accounts."
+  - "**How they sign in:** the identity provider's own page with Authorization Code and PKCE, so the app never sees the password. One real bug here is worth reading: a failed token refresh was treated as a rejected token and signed people out for the wrong reason."
+  - "**Known gaps:** Loc8's geofence alerts are detected on the server and never shown; Warn's vote counting is naive; several settings rows do nothing; nothing tests the maps or real-time behaviour."
+---
 description: Three Flutter apps - location sharing, hazard warnings, messaging - what they do, how they sign in, what the screenshots show, and what is not finished.
 ---
 {% assign s = site.data.stats %}
 
 # The apps: the load the platform proves itself against
+
+{% include in-short.html %}
 
 ![Flutter](https://img.shields.io/badge/client-Flutter-02569B?logo=flutter&logoColor=white)
 ![Loc8](https://img.shields.io/badge/Loc8-{{ s.repo.app_loc8_version | replace: "+", "%2B" }}-1A5276)
@@ -23,12 +33,10 @@ a private homelab, so a visitor cannot install one and use it. "Create account" 
 identity provider's registration page, which the platform's state notes say has been
 switched off since 2026-09-29 (not re-checked today), so only I can make an account. The
 people in the screenshots are three demo accounts. The apps exist to exercise the platform,
-and one of the bugs they exposed is [lesson
-12](lessons.md#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
+and one of the bugs they exposed is [lesson 12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The repository holds five Flutter clients; these three are the ones this site describes.
 
-Versions are read from each app's committed `pubspec.yaml` by [the stats
-generator](status.md): Loc8 **{{ s.repo.app_loc8_version }}**, Warn
+Versions are read from each app's committed `pubspec.yaml` by [the stats generator](status.html): Loc8 **{{ s.repo.app_loc8_version }}**, Warn
 **{{ s.repo.app_warn_version }}**, Talk **{{ s.repo.app_talk_version }}**. That is what the
 repository declares, not a store release. Two of the apps' About dialogs carry a
 hard-coded version string that has fallen behind (see the end of this page), which is why the
@@ -118,7 +126,7 @@ identity provider's timeouts were not the cause: the apps ended a session on *an
 while refreshing a token, a dropped connection included. They now sign you out only when the
 server positively rejects the refresh token (an exact `invalid_grant`), and a cold start with
 no network keeps you in. The mechanism, and what I got wrong on the way, is in [lesson
-12](lessons.md#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
+12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The realm settings that go with it (token lifespans, event logging, the demo accounts) are
 code in the platform's provisioning playbook as of 2026-10-09, not something clicked into an
 admin console.
