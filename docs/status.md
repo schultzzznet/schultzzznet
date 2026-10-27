@@ -77,13 +77,15 @@ reader with five minutes should meet the map before the measurement theory.*
 > arithmetic wearing a measurement's clothes.
 
 **Where the 30-day shortfall comes from (added 2026-10-27).** On 2026-10-09 the page said most of
-the downtime in the 30-day window was unattributed. It is no longer: the whole estate was down from
-2026-10-14 to 2026-10-18, and four and a half days is about 15 percent of thirty. While that gap
+the downtime in the 30-day window was unattributed. It is no longer: I shut the whole estate down on
+purpose from 2026-10-14 to 2026-10-18, while I was away, and four and a half days is about 15 percent
+of thirty. While that gap
 is inside the window, the figure will read far below the seven-day one; it leaves the window in the
 middle of November. The thing worth saying about it is what the referees did and did not do. The
-off-site probe recorded it, as designed. The heartbeat badge recorded it. What did not happen is a
-message reaching a person, because both of them notify by email only; that is a known gap (see
-[the reliability page](reliability.html#the-estate-was-down-for-four-days)).
+off-site probe recorded it, as designed. The heartbeat badge recorded it. Neither can be told that a
+shutdown is planned, so both count it as downtime; a maintenance window is not built. Both notify by
+email only, which this event could not test, since I was the one who had switched it off (see
+[the reliability page](reliability.html#the-estate-was-shut-down-on-purpose-for-four-days)).
 
 {% assign order = "cluster,storage,databases,observability,supply_chain,ci,repo,hardware,referees,site" | split: "," %}
 {% assign titles = "The cluster,Storage,Databases,Observability,Supply chain,CI,The platform repository,Hardware repositories,The referees (snapshot),This site" | split: "," %}

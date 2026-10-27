@@ -5,7 +5,7 @@ body_read: 2026-10-09
 summary:
   - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and feeding a bill of materials into the same vulnerability tracking as the cluster."
   - "**The best story:** making a scanner tell the truth. The obvious implementation reports zero findings on an image that demonstrably has known vulnerabilities; getting from zero, to about a hundred raw matches, to a short list a person can act on is the engineering."
-  - "**Two claims on this page are false today:** the nightly job that keeps the tracker current has been refused every night since at least 24 September, and no device has reported back since 1 September. Both are corrected [just below](#two-claims-on-this-page-that-are-false-today)."
+  - "**Two claims on this page were false on 27 October:** the nightly upload to the tracker had been refused every night since at least 24 September (fixed that evening; the first scheduled run is the test), and no device has reported back since 1 September (still true). Both are corrected [just below](#two-claims-on-this-page-were-false-on-27-october)."
   - "**Still true, and used lately:** the A/B path now carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots."
 ---
 
@@ -37,20 +37,22 @@ it as a dated figure rather than refreshing it by guesswork.
 
 ---
 
-## Two claims on this page that are false today
+## Two claims on this page were false on 27 October
 
 *Added 2026-10-27, after an outside review of the estate and a re-check of both against the build
 host and the fleet service. The sections they sit in are left as written, with a pointer.*
 
-- **"A daily job keeps the bill of materials alive."** The job runs every night, and the last
-  step, uploading the result to the vulnerability tracker, fails: the tracker refuses the
-  credential (HTTP 401). That is true of every retained nightly log, 28 of 28 completed runs from
-  2026-09-24 to 2026-10-27, and the logs reach back no further. Nothing reads the job's exit code
-  (it is a user-level scheduled task, with no service unit and no alert), and its preflight probes
-  an unauthenticated endpoint, so a dead key passes it. The tracker therefore holds old data for
-  this image, and the argument below about it "picking up a newly published CVE overnight" is the
-  design, not the current behaviour. The cure is one existing command to mint a new key, plus a
-  preflight that uses it. It has not been done.
+- **"A daily job keeps the bill of materials alive."** On the morning of the 27th this was false:
+  the job ran every night, and its last step, uploading the result to the vulnerability tracker,
+  failed because the tracker refused the credential (HTTP 401). That was true of every retained
+  nightly log, 28 of 28 completed runs from 2026-09-24 to 2026-10-27, and the logs reach back no
+  further. Nothing reads the job's exit code (it is a user-level scheduled task, with no service
+  unit and no alert), and its preflight probed an unauthenticated endpoint, so a dead key passed it.
+  **Fixed that evening:** a new key was minted with the existing credentials script and installed on
+  the build host, and an upload run by hand was accepted (SBOM and VEX, both HTTP 200). The preflight
+  now authenticates with the key and stops the build up front if the tracker rejects it, so this
+  failure now costs seconds instead of a night. What is not proven is the scheduled path: the first
+  nightly with the new key runs at 03:30 on the 28th, and still nothing reads its exit code.
 - **"The device reports back."** The section describes an agent posting a heartbeat to the fleet
   service. A proof of that is described for 2026-07-14, and I cannot support the repeat claimed for
   2026-09-01 from the release's bill of materials, which lists no agent. Today no device has reported
@@ -131,7 +133,7 @@ nobody thinks to look.
 
 ### A daily job keeps the bill of materials alive
 
-*(As of 2026-10-27 the upload step of this job fails every night: see [above](#two-claims-on-this-page-that-are-false-today).)*
+*(The upload step of this job failed every night from at least 2026-09-24 until it was fixed on 2026-10-27: see [above](#two-claims-on-this-page-were-false-on-27-october).)*
 
 Once a day the build host pulls the long-term-support layer branches, rebuilds, refreshes the
 CVE database, regenerates the SBOM and VEX, and re-publishes. The layer pull matters: an LTS
@@ -352,7 +354,7 @@ scanner: configured, plausible, inert.
 
 ## The device reports back
 
-*(As of 2026-10-27 this section describes a capability that is not deployed: see [above](#two-claims-on-this-page-that-are-false-today).)*
+*(As of 2026-10-27 this section describes a capability that is not deployed: see [above](#two-claims-on-this-page-were-false-on-27-october).)*
 
 A fielded device that cannot be seen is a device you are guessing about. Each one runs a small
 agent (a couple of hundred lines, **standard library only, no dependencies**, which is itself
