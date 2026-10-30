@@ -2,6 +2,8 @@
 # Each entry is a date and one or two sentences (markdown allowed); the full account lives on the page it links to.
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
+- date: 2026-10-30
+  text: "Alerting and monitoring is now written down as one loop: alerts straight to chat, an hourly post composed by code, a morning digest, and a daily second reader that is a cloud model, with a person approving every action and grading a monthly sample. It also corrects two statements: a cloud model now sees a day's alert text, and the local model no longer writes the hourly post. [The loop](aiops.html#the-loop-two-models-one-human)."
 - date: 2026-10-27
   text: "The embedded side's nightly vulnerability upload, refused every night since at least 24 September, was fixed: a new key, and a preflight that now stops the build up front if the tracker rejects it. The first scheduled run since is the test. [The account](yocto.html#two-claims-on-this-page-were-false-on-27-october)."
 - date: 2026-10-27
@@ -24,5 +26,3 @@
   text: "Everything reaches the cluster through its floating address, not through one machine's name, after a nine-hour network loss on the primary node broke three CI jobs the day before."
 - date: 2026-10-19
   text: "Pull requests became the practice: 112 of the next 133 commits carry a number. They are still merged by the person who wrote them. [Who reviews, honestly](ai-dev.html#who-reviews-honestly)."
-- date: 2026-10-18
-  text: "The estate came back after a four-day shutdown I chose (14 to 18 October, while I was away). Its first cold start left catch-up jobs failed and unnoticed, and the uptime badges counted the shutdown as downtime. [The account](reliability.html#the-estate-was-shut-down-on-purpose-for-four-days)."

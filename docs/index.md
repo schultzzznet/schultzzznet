@@ -234,6 +234,7 @@ flowchart TB
   subgraph DEV["Development — off-cluster"]
     WS["workstation<br/>+ cloud LLM as reviewed peer"]
     CI["self-hosted runners<br/>lint · SAST · tests · scan<br/>build · sign · verify · rollout"]
+    RV["daily reader: cloud LLM<br/>grades the ops agent's posts<br/>no tools · drafts only"]
   end
 
   subgraph EDGE["Public edge — outside the cluster on purpose"]
@@ -265,6 +266,7 @@ flowchart TB
   SEC --> TRACK["work tracker<br/>auto-open · auto-close"]
   AGENT --> TRACK
   AGENT -.->|"narrow, allowlisted<br/>write path"| K3S
+  AGENT -.->|"its posts, read daily"| RV
   REF -.->|"grades from outside"| K3S
 
   style OFF fill:#f5f5f5
@@ -423,12 +425,22 @@ reviewer two things about this platform that were not true.
 
 **Run time: a separate, local model, with a narrow write path.** An operations agent
 off-cluster watches the cluster, deliberately not the cloud model, so the thing watching
-production has no dependency on someone else's API. The model runs locally, so cluster data
-is not sent to a model vendor; the agent is **not air-gapped**, as it posts to chat and syncs
-findings with a ticket tracker. Nothing the model says is executed directly:
+production has no dependency on someone else's API. The live work runs on a local model, so
+no cluster data goes to a model vendor *in the alert path*; the agent is **not air-gapped**, as
+it posts to chat and syncs findings with a ticket tracker. Nothing the model says is executed
+directly:
 [**the model proposes; a fixed, allowlisted guardrail layer disposes**](aiops.md). Every
 action except the two auto-apply backup rules below is a small closed vocabulary, shown as
 a dry run, and waits for a human's approval.
+
+**A reader between them (since 2026-10-28): the cloud model grades the local one.** Once a
+day a cloud model reads up to twelve of the agent's recent posts and drafts a grade for each,
+on whether it was right and whether it was usable. It is outside the alert path, has no
+tools, and its grades are drafts a person adopts or ignores; a guard that demands a
+*human* review counts only a human's. What it is sent is alert text and node names, trimmed,
+with the local model's wording: so the earlier statement on this page that no cluster data
+leaves the house was true until that date and is not now. Alerting, the hourly post and every
+approval work without it. [The whole loop, with the numbers](aiops.html#the-loop-two-models-one-human).
 
 The honest answer to "what does it do on its own":
 
