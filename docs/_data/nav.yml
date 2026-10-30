@@ -15,7 +15,7 @@
     - { title: The apps, url: /apps.html }
 - section: AI
   pages:
-    - { title: Operations agent, url: /aiops.html }
+    - { title: Alerting & ops agent, url: /aiops.html }
     - { title: AI in development, url: /ai-dev.html }
 - section: Hardware
   pages:

@@ -1,8 +1,9 @@
 ---
-title: The operations agent — what a local model is allowed to do
-reread: 2026-10-27
+title: Alerting and monitoring — two models, one human
+reread: 2026-10-30
 summary:
-  - "**What it is:** a local model on a separate small machine that reads cluster state and *proposes* fixes. Nothing it says is executed directly: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
+  - "**What it is:** alerts go straight to chat; a small local model on a separate machine answers questions, writes a morning digest and *proposes* fixes; a large cloud model reads the local one's posts once a day and grades them. Nothing either says is executed: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
+  - "**Where the people are:** a click on every action, a monthly graded sample of eight posts, and a guard that goes red after 35 days without one. The cloud model's grades are drafts and cannot satisfy that guard. The first graded sample is due by 2026-11-26."
   - "**What it may do alone:** two rules, both on-demand database backups, and only if auto-apply is switched on. It is not. Everything else is a proposal."
   - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments are now validated, only approvers count, every executed action is audited, and a quality loop measures what it says."
   - "**What is still weak:** its log-based proposals (five graded, none good), a small model that is not an engineer, one instance, and an approval channel that is a third-party chat service."
@@ -35,6 +36,73 @@ written against the agent as it stood on 2026-10-09; the section
 
 ---
 
+## The loop: two models, one human
+
+Alerting is not one thing, and the models are in only part of it. As read from the deploy
+configuration and the host on 2026-10-30:
+
+```mermaid
+flowchart LR
+  SRC["metrics · logs · workload state"] --> RULES["alert rules"]
+  RULES -->|"the moment one fires<br/>no model involved"| CH["chat channel"]
+  SRC --> POLL["hourly poll<br/>the post is composed by code"]
+  POLL -->|"only if something changed;<br/>repeated after 24 h"| CH
+  SRC --> DIG["07:00 digest<br/>written by the local model"]
+  DIG --> CH
+  CH --> P1["a person: approves or rejects<br/>every action, thumbs a post"]
+  POLL --> REC["every post recorded"]
+  REC -->|"daily, up to 12 posts"| CLOUD["cloud model<br/>grades them, no tools"]
+  CLOUD -.->|"drafts only"| P2
+  REC --> P2["a person, monthly:<br/>grades 8 random posts"]
+```
+
+- **Alerts** go from the alert rules to chat directly, as they fire and as they resolve. No model
+  is in that path; it is the part that must work when everything else does not.
+- **The hourly post** is composed by code from the findings: a line saying how urgent it is,
+  grouped logins, job ages, a one-line workload count. It is posted only when something
+  changed, and repeated after a day. Until 2026-10-28 a local model wrote its headline; it no
+  longer does, because it kept repeating what the code had already said. One real post went
+  from about 70 lines to 15.
+- **The local model** (a small one, on the same machine as the agent) answers questions asked in
+  chat, writes the 07:00 digest from a metrics snapshot and phrases proposals. It cannot run
+  anything. **The digest is not recorded in the quality loop below, so nobody has graded it**,
+  which makes it the weakest-measured thing the model still does.
+- **The cloud model** reads, once a day, up to twelve of the agent's recent posts and drafts a
+  grade for each: right or wrong, noisy or missed, and separately whether it was clear and
+  something a person could act on. It has no tools, so text inside a post can change a grade at
+  most. Its drafts go to a separate file on purpose: the guard that insists a person has graded
+  a sample counts only a person's grades, **so a model reading another model can never satisfy
+  it.** A person adopts a draft by grading the post, or ignores it. It costs roughly $0.12 to
+  $0.63 a day.
+- **The people** approve or reject every action (a named approver list; an empty list means
+  nobody), thumb posts up or down, and about monthly grade eight random posts. A guard goes
+  red after 35 days without a graded sample. No sample has been graded yet; the first is due by
+  2026-11-26.
+
+**What the second reader has shown so far.** Its first run, on 2026-10-28, graded twelve posts
+written before the layout change: it called eleven wrong and one noisy, and seven of the eleven carried
+no automatic flag, so the cheap checks had missed them. Five were invented causes. The posts were then redesigned, which is
+the intended use: a stronger model finds the failure once, and a rule or a line of code keeps it
+fixed. Separately, on five golden prompts run twice each (2026-10-27), the local model passed 8
+of 10 and two cloud models passed 10 of 10 each. Those cases test rule-following, not
+engineering judgement, so they do not show the cloud models to be better at running a cluster,
+and they do not rank one cloud model over the other.
+
+**The same discipline applied to the alerts themselves.** On 2026-10-29 a DNS-slowness alert was
+retuned to fire on a share of slow lookups (above 10 percent for ten minutes; the usual level is
+about 2) after a raw probe showed the packet loss sat on paths through one machine, not
+everywhere. Its cause is still open. A memory alert that fired on a figure including the kernel's file cache now
+compares the process's own memory; that change is merged and, as of 2026-10-30, not yet applied
+to the cluster. An alert that cries wolf teaches people to ignore the next one, which is the cost
+the quality loop exists to put a number on.
+
+**What this does not show.** It shows the output is measured and the input path is safer. It does
+not show that either model reasons well about an incident, and the cloud model's grades are a
+second opinion, not ground truth. The model-to-model step adds a third party that sees alert
+text; that is a choice I made on 2026-10-27, and it is the reason for the correction below.
+
+---
+
 ## It runs outside the cluster, deliberately
 
 > A monitor that dies with the thing it monitors is not a monitor.
@@ -44,10 +112,15 @@ machine, supervised by the host's own service manager, reaching the cluster over
 like any other client. When the cluster is unhealthy, which is the only time the agent
 matters, the agent is still up, still has its history, and can still say so.
 
-The model itself is **local**. No cluster state, no logs, no alert payloads and no
-configuration leave the house to be inferred on. That is a privacy property and a dependency
-property at once: the ops brain does not stop working because someone else's API is down or
-has changed its terms.
+The model that does the live work is **local**. Nothing in the alert path, the hourly post, the
+digest or an approval calls a vendor's API, so the ops brain does not stop working because
+someone else's API is down or has changed its terms. That is a dependency property, and it
+used to be a privacy claim as well. **Correction, 2026-10-30:** this page said no cluster
+state, logs or alert payloads left the house. That stopped being true on 2026-10-28, when the
+daily cloud reader began ([next section](#the-loop-two-models-one-human)): it is sent alert
+text and node names (trimmed to 300 characters each), the facts the code computed and the
+local model's wording, for up to twelve posts a day. It is not sent logs, credentials or
+manifests.
 
 ---
 

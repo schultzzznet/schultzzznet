@@ -3,7 +3,7 @@
 **Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
 
 - I run a Kubernetes platform at home: six bare-metal nodes built from retired laptops (the five I have audited date from 2011 to 2019), with identity, Postgres, storage, observability and a signed supply chain.
-- A frontier model helps me build it. A small local model, on a Mac outside the cluster, helps me operate it.
+- A frontier model helps me build it. A small local model, on a Mac outside the cluster, helps me operate it, and a large cloud model grades the small one's posts once a day, with a person approving every action.
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
 - The rule of the whole thing: assert the property, do not trust the report.
@@ -102,7 +102,7 @@ I rate it SLSA Build L2 myself; nobody has audited that. **Secrets:** every Secr
 encrypted with SOPS and age since 2026-10-25; the old values are not yet rotated and the cluster does
 not encrypt them at rest.
 
-**AI.** The ops agent answers in Slack, queries Prometheus, and proposes actions such as a node
+**AI.** Alerting is a loop with two models and a person: alerts go straight to Slack, an hourly post is composed by code, a small local model answers questions and writes a morning digest, and a cloud model grades the agent's posts once a day (drafts only, no tools; it is sent alert text, so the claim that nothing leaves the house is retired, see [the loop](https://schultzzznet.github.io/schultzzznet/aiops.html#the-loop-two-models-one-human)). The ops agent answers in Slack, queries Prometheus, and proposes actions such as a node
 drain or a scale, which a human approves with a button. It does not act alone. Since 2026-10-26 its
 arguments are validated, only named approvers count, and what it says is recorded and graded
 (a first review found "critical" in 79 of 96 summaries, with no critical alert firing in 69 of them). An orchestrator
