@@ -90,10 +90,13 @@ and they do not rank one cloud model over the other.
 
 **The same discipline applied to the alerts themselves.** On 2026-10-29 a DNS-slowness alert was
 retuned to fire on a share of slow lookups (above 10 percent for ten minutes; the usual level is
-about 2) after a raw probe showed the packet loss sat on paths through one machine, not
-everywhere. Its cause is still open. A memory alert that fired on a figure including the kernel's file cache now
-compares the process's own memory; that change is merged and, as of 2026-10-30, not yet applied
-to the cluster. An alert that cries wolf teaches people to ignore the next one, which is the cost
+about 2) after a raw probe showed the packet loss was not everywhere. Measured over four hours on
+2026-10-30, the two oldest machines lose about 7 percent of lookups sent to the service address and the
+other four lose under 0.3, while direct queries to the DNS pods from the same two machines are almost
+clean. A kernel upgrade on one of them made no difference (7.9 against 7.3 percent), which retired my
+first theory. Its cause is still open. A memory alert that fired on a figure including the kernel's file
+cache now compares the process's own memory; that change was applied to the cluster the same day, and the
+daily drift check that had been failing because it was merged but not applied went green. An alert that cries wolf teaches people to ignore the next one, which is the cost
 the quality loop exists to put a number on.
 
 **What this does not show.** It shows the output is measured and the input path is safer. It does
