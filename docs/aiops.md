@@ -22,10 +22,10 @@ summary:
 ![failclosed](https://img.shields.io/badge/chaos%20safety-fail--closed-critical)
 
 There is a lot of "AI for ops" that is a chat window in front of a dashboard. This one has a
-write path to a production cluster, which makes the interesting question not *what can it
+write path to a live cluster, which makes the interesting question not *what can it
 do* but **what is it allowed to do without asking.**
 
-This is the run-time half of a two-part practice, the production edge. [The dev-time
+This is the run-time half of a two-part practice. [The dev-time
 half](ai-dev.html) is a cloud model as a reviewed engineering peer, deliberately a different
 model, in a different place, for a different reason.
 

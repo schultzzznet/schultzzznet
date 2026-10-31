@@ -425,7 +425,7 @@ reviewer two things about this platform that were not true.
 
 **Run time: a separate, local model, with a narrow write path.** An operations agent
 off-cluster watches the cluster, deliberately not the cloud model, so the thing watching
-production has no dependency on someone else's API. The live work runs on a local model, so
+the cluster has no dependency on someone else's API. The live work runs on a local model, so
 no cluster data goes to a model vendor *in the alert path*; the agent is **not air-gapped**, as
 it posts to chat and syncs findings with a ticket tracker. Nothing the model says is executed
 directly:
@@ -593,10 +593,12 @@ applications were chosen to be a demanding, realistic load, and none is a produc
 waiting for. A platform without something worth deploying on it is infrastructure looking for
 a reason, and that gap is not solved by more engineering.
 
-**Want to? No, and that is a choice.** The platform is portable and the instance is not. The
+**Want to? Not yet, and that is a choice.** The platform is portable and the instance is not. The
 *pattern* can travel: the contract, the pipeline, the assertions, the gap register as a
-habit. This cluster should stay what it is, doing what nothing in production is allowed to
-do: get powered off on a whim, wiped, deliberately broken. The moment something here matters
+habit. Without a killer app this cluster stays a laboratory, doing what nothing in production
+is allowed to do: get powered off on a whim, wiped, deliberately broken. On the day one is
+chosen the direction changes on purpose: production becomes the main line and the experiments
+move to a branch. The moment something here matters
 to someone else, two nodes can no longer be switched off to see what happens, and the loop
 that produced every finding here stops. **Let the pattern travel, and keep the laboratory a
 laboratory.**
