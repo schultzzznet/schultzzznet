@@ -186,8 +186,7 @@ the platform already has a plainer tool that rebuilds the cluster from git and c
 The rejection carries its own reopen condition, written down rather than implied: **a second
 maintainer arriving, or configuration observed drifting in practice.** The second half has
 arguably been met twice since: the delivery pipeline found pin drift on 2026-09-29, and on
-2026-10-03 git and the live cluster disagreed about a DNS deployment. The rejection has not
-been revisited yet, and I would rather say so here than let it sit. A decision without a
+2026-10-03 git and the live cluster disagreed about a DNS deployment. It was reopened on 24 October 2026, in stages: drift against git is now detected daily, secrets are in git, and rolling out from git on merge (Flux by default) will be decided by 1 December 2026 from the drift data. A decision without a
 stated trigger to revisit it is just procrastination wearing a decision's clothes, and a
 trigger that fires without anyone looking is not much better.
 

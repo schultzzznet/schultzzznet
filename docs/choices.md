@@ -3,7 +3,7 @@ title: Why these tools, and what got rejected
 reread: 2026-10-27
 body_read: 2026-10-09
 summary:
-  - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred* (not needed yet), *rejected on principle* (a standing constraint, here: no cloud-only services), and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
+  - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred* (not needed yet), *rejected on principle* (a standing constraint, here: no cloud-only analysis or scanning services; the cloud AI models are a deliberate exception), and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
   - "**A trigger has fired:** the GitOps row. A reconciler was rejected in August on the condition that manifests were ever seen drifting from git. They were, at a cost each time, and on 24 October the decision was reopened: detect first, secrets second, Flux by default for the declarative half. [The account is on the delivery-chain page](platform.html#how-a-change-reaches-the-cluster)."
   - "**Secrets moved out of the deferred list, halfway:** encrypted in git since 25 October (SOPS and age); rotation and encryption at rest in the cluster are not done."
   - "**Still deferred or open:** admission-time policy (the highest-leverage next security step), network policies, tracing, a service mesh. Several choices on this page are contested, and one is a live risk."
@@ -184,7 +184,7 @@ deliberate.
 
 A standing constraint: **no third-party analysis service gets source, telemetry or
 repository access beyond the git host itself.** The code is on GitHub and always has been;
-what the constraint rules out is handing it to a SaaS scanner or agent on top of that.
+what the constraint rules out is handing it to a SaaS scanner on top of that. The cloud AI models are the deliberate exception: they read the code at development time and a day's alert text at run time, on purpose ([AI in development](ai-dev.md), [operations](aiops.md)).
 Several of the products below are genuinely excellent. That is not the deciding factor, and
 the list exists to make the constraint explicit rather than to disparage them.
 
@@ -201,7 +201,7 @@ self-host it.
 | **Wiz · Sysdig · Datadog** (runtime / cloud security) | Agent-based and cloud-only. The open equivalent was deferred until there was something to triage the output — which now exists. |
 | **Snyk · Black Duck** (commercial SCA) | Covered by open tooling, which additionally re-analyses *already-shipped* inventories against new advisories. |
 
-> **A cloud-only tool can inspire something built or self-hosted here. It can never be
+> **A cloud-only scanner or analysis service can inspire something built or self-hosted here. It can never be
 > adopted.** That is a design input, not a limitation to apologise for — but it does mean
 > accepting that some capabilities arrive later and rougher than they would with a credit card.
 
@@ -210,8 +210,8 @@ self-host it.
 ## Rejected on right-sizing — good software, wrong problem
 
 The hardest list to be honest about, because these are self-hostable, well-built and
-genuinely standard. Adopting a tool because it is what serious platforms use is
-cargo-culting; the question is whether the problem is *observed here*. Each row names what
+genuinely standard. Trying any of them to learn it is free; keeping one running because it is what serious platforms use is
+cargo-culting. The question for keeping is whether the problem is *observed here*. Each row names what
 would change the answer. Only the ArgoCD / Flux trigger was written down before 9 October
 2026; I stated the KEDA, VPA and Redis ones that day, from the reasons already given. They
 are decisions from that date, not older ones, and the VPA one is the weakest of the four.

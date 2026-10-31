@@ -2,7 +2,7 @@
 title: The estate
 reread: 2026-10-27
 summary:
-  - "**What it is:** six retired machines running bare-metal Kubernetes with replicated storage, thirteen Postgres clusters, a signed supply chain, scheduled fault injection and a local-model ops agent. It is running, not planned. **There is no organic user base:** the load is synthetic, and what is real is what the platform did in response to itself."
+  - "**What it is:** a training system, on purpose. The current Kubernetes stack on six retired machines (the oldest from 2011), with AI on every side, to learn as much as possible, hands-on, and to be ready for the day a killer app appears. It is running, with real apps and **no paying customers yet**: the load is synthetic; the incidents are not."
   - "**What the site is for:** the habit of asserting the property instead of trusting the report. Most findings here are controls that were configured, green and inert, found by checking, dated, and retracted in public."
   - "**Since 18 October:** changes go through pull requests, git became the only way a change may reach the cluster (drift is checked daily), no plaintext Secret is left in the manifests, the ops agent was hardened and put under measurement, and an outside review of the whole estate was published."
   - "**Not finished, plainly:** no admission control or network policies, secrets are encrypted in git but not at rest in the cluster, no device reports back (the embedded side's nightly vulnerability upload was broken from at least 24 September to 27 October; fixed, not yet proven by a scheduled run), and the fault-injection schedules have not fired since 13 October (their own safety gate keeps pausing them)."
@@ -20,7 +20,20 @@ summary:
 {% assign rf = s.referees %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# Retired laptops running production-grade Kubernetes with HA storage, a signed supply chain, deliberate fault injection, inline AI from commit to cluster, and a discipline that treats a green status line as a question, not an answer.
+# A training system, on purpose: the latest platform technology on the weakest hardware I could put to use, AI on every side, real apps on a real running system, to learn as much as possible before the day a killer app needs it.
+
+**What it is for.** Training: principles, technologies and everything around them, learned as
+deeply and as hands-on as possible, on a system that is actually running. Real apps behind real
+identity, real incidents, a real public entrance, and no paying customers yet. **The hardware is
+the handicap, chosen on purpose:** retired laptops and small desktops (the ones audited date from 2011
+to 2019), running the current stack. If it runs here, it runs anywhere, and any other hardware is an upgrade. **AI is
+everywhere, also on purpose:** a frontier cloud model helps build it, a small local model helps
+run it, and a cloud model grades the local one's posts, with a person approving every action.
+
+**Why: two things at once.** Learn as much as possible until the day a killer app appears, and be
+ready to take that opportunity when it does. Until then everything here is learning, and nothing
+is protected for uptime's sake. On that day the direction changes on purpose: production becomes
+the main line and the experiments move to a branch.
 
 **None of this is a plan or a diagram of an intention. It is running.** {{ c.nodes }} machines,
 live services behind real identity flows, and scheduled chains that fire without anyone
@@ -28,7 +41,7 @@ watching. Which ones I have seen fire is dated further down; the restore drill a
 alert-to-agent chain I have not re-verified this month. A frontier model helped **build** it; a
 local model helps **run** it.
 
-**There is no organic user base.** The load is synthetic: a generator hitting the public path
+**There are no paying customers yet, and no organic users.** The load is synthetic: a generator hitting the public path
 from one address. What is real is what the platform did in response to itself (see
 [the corrections](#corrections-2026-10-09)), and the figures below are measured, not remembered.
 
@@ -225,7 +238,7 @@ Both are true at once. The applications run around the clock behind real identit
 is a place to **take chances**. These pages describe *a* way through, written down with the
 alternatives passed over, and each rejection names the condition that would change the
 answer, because a rejection without a reopen-trigger is just an opinion. The damage would
-be getting stuck, the point where production's ugly face takes over and nothing can be learned.
+be getting stuck: settling into caution before there is a reason to, so that nothing more is learned. The reason, when it comes, is a killer app; on that day production becomes the main line on purpose.
 
 ## The whole thing, on one screen
 
@@ -293,7 +306,7 @@ simulating.
 
 | | |
 |---|---|
-| **Hardware** | {{ c.nodes }} machines, all retired or second-hand: laptops and small desktops. It was nine once; two were retired for [reasons written down before they left](lessons.md#2-nine-nodes-was-two-too-many), the two all-in-ones followed them, and one small desktop joined. Bought new, this cluster would be indefensible; the point is that it wasn't. |
+| **Hardware** | {{ c.nodes }} machines, all retired or second-hand: laptops and small desktops. It was nine once; two were retired for [reasons written down before they left](lessons.md#2-nine-nodes-was-two-too-many), the two all-in-ones followed them, and one small desktop joined. Old on purpose: the handicap is the point, because if it runs here it runs on anything better. It also cost next to nothing. |
 | **Software licences** | **Zero.** Every tool is open source, a community edition, or a free tier. That is a standing constraint, and a filter: a tool that cannot be self-hosted for nothing does not get evaluated on features. |
 | **Power** | Measured per package with the CPUs' own energy counters, not a spec sheet. Fixing the frequency governor on the two busiest nodes cut **13.1 W continuously, about 115 kWh/year** (13.1 W × 8,760 h = 114.8 kWh; an earlier version of this page said 120, which rounded up). Measured at the time, not re-measured since. |
 | **Time** | Evenings and weekends, over months. The up-front cost was real: replicating storage on hardware that didn't deserve it, giving up packing density for failure isolation, {{ rp.adrs }} decision records, refusing shortcuts that would have worked in the short run. |
@@ -324,7 +337,7 @@ counts, as of {{ gen_date }}: platform {{ rp.commits }}, embedded Linux {{ hw.yo
 mechanical {{ hw.printing_commits }}, mower {{ hw.mower_commits }}, rover platform
 {{ hw.rover_platform_commits }}, video rover {{ hw.video_rover_commits }}, i.MX8
 {{ hw.imx8_commits }}. They share the registry, signing keys and vulnerability tracker.
-**The second and third products were mostly assembly, not invention**, because the seams
+**The second and third projects were mostly assembly, not invention**, because the seams
 (a heartbeat contract, an SBOM format, an identity token) were made explicit the first time.
 
 The satellite is the interesting proof that **an application does not have to live in the
@@ -411,7 +424,7 @@ the shape and the reasoning.
 
 ## AI, twice
 
-Two separate AI deployments, held to the same bar as everything else:
+AI on every side, on purpose, in three roles: a cloud model that helps build it, a small local model that helps run it, and a cloud model that grades the local one. Each is held to the same bar as everything else:
 **assert the property, do not trust the report.**
 
 **Development time: a cloud model, in the loop.** Every repository,
@@ -559,9 +572,11 @@ Under real pressure the order inverts: find product-market fit first, ship what 
 pay for the engineering later if there is a later. Anyone reading the table above and
 thinking *"sure, but I have a deadline"* is describing the actual problem, and this site is
 not evidence against them. So the honest reading is not "this is how it should be done". It
-is **"this is what it looks like when the usual forcing function is absent"**, which is also
-why taking on real users would end it. Customers import the pressure, and the pressure is
-what closes this door.
+is **"this is what it looks like when the usual forcing function is absent"**. Customers
+import the pressure, and that is why the order here is deliberate: learn it the expensive way
+while nothing forces the shortcut, so that on the day a killer app arrives the platform, the
+patterns and the habits are already in place, and a shortcut is a choice rather than the only
+option.
 
 Rigor did not transfer to every domain at once: open items remain for rotating the secrets that sat in git in plaintext, encryption at rest in the cluster, and a hosted privacy policy ([gaps](reliability.md), [legal posture](compliance.md)).
 
@@ -591,7 +606,8 @@ from being a business.
 **And the plainest reason is the least often admitted: there is no killer app.** The
 applications were chosen to be a demanding, realistic load, and none is a product anyone is
 waiting for. A platform without something worth deploying on it is infrastructure looking for
-a reason, and that gap is not solved by more engineering.
+a reason, and that gap is not solved by more engineering. Being ready when one appears is the
+other half of what the training is for.
 
 **Want to? Not yet, and that is a choice.** The platform is portable and the instance is not. The
 *pattern* can travel: the contract, the pipeline, the assertions, the gap register as a

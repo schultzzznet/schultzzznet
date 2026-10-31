@@ -2,6 +2,20 @@
 
 **Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
 
+## What this is for
+
+**A training system, on purpose.** I train principles, technologies and everything around them, as deep and as hands-on
+as possible, on a **true running system with real live apps**: real identity, real incidents, a real public entrance, and
+**no paying customers, yet**.
+
+- **The latest stack on the weakest hardware I could put to use.** The handicap is chosen: retired laptops and small
+  desktops, to make it as hard as possible. If it runs here, it runs on any hardware; anything else is an upgrade.
+- **AI all over.** On-prem and cloud, small local models and frontier models, simple setups and elaborate ones, at
+  development time and at run time, each measured rather than trusted.
+- **Two purposes at once.** Learn the maximum until the day a killer app appears, and be ready to grab that opportunity when
+  it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
+  changes on purpose, and production becomes the main line.
+
 - I run a Kubernetes platform at home: six bare-metal nodes built from retired laptops (the five I have audited date from 2011 to 2019), with identity, Postgres, storage, observability and a signed supply chain.
 - A frontier model helps me build it. A small local model, on a Mac outside the cluster, helps me operate it, and a large cloud model grades the small one's posts once a day, with a person approving every action.
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
@@ -26,6 +40,41 @@ Those three badges are live, and they are graded from outside the system they gr
 for the scheduled jobs, and an off-site probe of the public entrance. They are depressed on purpose
 by reboots and fault injection, so they are not an availability promise. Everything else on this
 page is text, and I have stopped badging tool names: a badge that prints "Kubernetes" proves nothing.
+
+## Objectives and key results, Q4 2026
+
+Set 2026-10-31, scored here in early January, misses included. Each key result is scored 0.0 to 1.0; around 0.7 is a good
+quarter, and 1.0 everywhere would mean the targets were too easy. Running OKRs honestly is itself one of the things being
+trained, so they point at work and dates that already exist rather than keeping numbers of their own.
+
+**1. Learn as much as possible, hands-on, on the running system.**
+
+- Three of the next tools learned to their own test: tracing (OpenTelemetry and Tempo), an AI evaluation framework, and a
+  GitOps controller.
+- The choice between a pull controller and push-on-merge made by 1 December, from what was measured.
+- Each one written up here with its measured result.
+
+**2. Prove it on the weakest hardware: break it on purpose, watch it heal.**
+
+- The cause of the 5, 10 and 15 second request stalls named by measurement, and DNS lookup loss below 0.5 % on every
+  machine (about 7 % on the two oldest today).
+- Fault injection firing on its schedule again, for at least four consecutive weeks (its own safety gate has kept it
+  paused since 13 October).
+- One drill that powers a machine off, run end to end.
+
+**3. AI all over, measured, not trusted.**
+
+- The first person-graded sample of the operations agent's posts by 26 November, then one a month.
+- The cloud reviewer's verdicts compared with the person's grades on the same posts, and the agreement published.
+- Every kind of AI post recorded and checked (the morning digest too, since 30 October), with the flagged share published
+  each month.
+
+**4. Be ready for the killer-app day.**
+
+- Two more of the seven launch gates closed or explicitly accepted: no default passwords anywhere, and real-time
+  connections authenticated.
+- Every secret that was ever in git in plaintext rotated.
+- A rebuild from empty machines to running apps, from git, timed and published.
 
 ## The numbers
 
@@ -55,9 +104,11 @@ cluster. What each figure counts, and the command behind it, is on the
 
 ## What this is, and is not
 
-- **Is:** a learning platform operated to production standards. Real applications behind real
-  identity, a CI/CD pipeline that deploys the apps, scheduled database backups,
+- **Is:** a training system, run to production standards on purpose. Real applications behind real
+  identity, no paying customers yet, a CI/CD pipeline that deploys the apps, scheduled database backups,
   and a habit of checking every claim by something other than the thing making it.
+- **Is:** preparation. When a killer app appears, the platform, the patterns and the habits should already be in place;
+  on that day the direction changes, and production becomes the main line.
 - **Is not:** a product with an availability commitment, or long-lived. The cluster was rebuilt
   on 2026-09-04, and k3s has been the only platform since the previous Docker Swarm cluster was
   decommissioned on 2026-06-09. "Months of uptime" would not be true.

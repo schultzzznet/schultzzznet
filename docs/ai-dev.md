@@ -16,8 +16,8 @@ summary:
 ![review](https://img.shields.io/badge/PR%20review-AI%20request%20wired%2C%20not%20delivering-orange?logo=github&logoColor=white)
 ![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured%20(as%20of%202026--10--27)-orange)
 
-[The run-time half of this story](aiops.md) — the **production edge** — is a small local
-model with a narrow write path to a production cluster. This is the other half, the
+[The run-time half of this story](aiops.md) — the **run-time edge** — is a small local
+model with a narrow write path to the live cluster, whose posts a cloud model grades once a day. This is the other half, the
 **development edge**: the cloud model used to *build* the estate in the first place — which
 repository, which line, which architecture call. It gets exactly one exemption from the
 rules below: none.
@@ -156,11 +156,12 @@ expect and check for.
 
 - **Nothing it proposes reaches production without a human accountable for it.** The human is
   the one who reads and pushes, not a review click.
-- **It has no path to production that skips the gates.** [The pipeline](platform.md) does not
+- **It has no path to the cluster that skips the gates.** [The pipeline](platform.md) does not
   know or care who authored a diff.
 - **It is a different model, in a different place, for a different reason** than
   [the one that watches the cluster](aiops.md). Development-time judgement and a live write
-  path to production are not the same risk, and they are not given to the same system.
+  path to the cluster are not the same risk, and they are not given to the same system. Using both,
+  a frontier cloud model and a small local one, is also on purpose: the aim is to learn AI at both ends.
 
 ---
 

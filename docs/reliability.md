@@ -143,7 +143,7 @@ storage side.
 
 ## Scheduling by fact, not by hope
 
-Machines spanning a decade of hardware generations do not schedule safely under a single
+Machines spanning a decade of hardware generations (chosen as a handicap, on purpose: if it runs here, it runs anywhere) do not schedule safely under a single
 "a node is a node" model, so nodes carry labels for disk speed and CPU class, and workloads
 are steered toward suitable nodes with a *soft* preference, never a hard requirement: the ideal
 node being full or cordoned should degrade placement, not block it.
