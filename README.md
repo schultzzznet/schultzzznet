@@ -5,8 +5,8 @@
 ## What this is for
 
 **A training system, on purpose.** I train principles, technologies and everything around them, as deep and as hands-on
-as possible, on a **true running system with real live apps**: real identity, real incidents, a real public entrance, and
-**no paying customers, yet**.
+as possible, on a **running system**: since 2026-11-10 a new cluster with one deployed reference app, and no public entrance, no users and
+**no paying customers, yet**. Previous platform (retired 2026-11-10): it had real identity flows, real incidents and a public entrance.
 
 - **The latest stack on the weakest hardware I could put to use.** The handicap is chosen: retired laptops and small
   desktops, to make it as hard as possible. If it runs here, it runs on any hardware; anything else is an upgrade.
@@ -16,35 +16,39 @@ as possible, on a **true running system with real live apps**: real identity, re
   it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
   changes on purpose, and production becomes the main line.
 
-- I run a Kubernetes platform at home: six bare-metal nodes built from retired laptops (the five I have audited date from 2011 to 2019), with identity, Postgres, storage, observability and a signed supply chain.
-- A frontier model helps me build it. A small local model, on a Mac outside the cluster, helps me operate it, and a large cloud model grades the small one's posts once a day, with a person approving every action.
+- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). It is about a day old, so no uptime is claimed. Monitoring is not Ready and alerts to a person, replicated storage and a public name are not there yet. The previous platform ended on 2026-11-10 and its facts sit in dated notes on the site.
+- A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to the previous platform and is not part of this one (see the AI paragraph below).
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
 - The rule of the whole thing: assert the property, do not trust the report.
 
-> **In short, as of 2026-10-27.** Running, with no organic users: the load is synthetic. **Since 18 October:**
-> changes go through pull requests, git is the only way a change may reach the cluster (drift is checked
-> daily), no plaintext Secret is left in git, the ops agent was hardened and put under measurement, and the
-> estate was reviewed from the outside four times. **Not finished:** no admission control or network
-> policies, secrets are not yet rotated or encrypted at rest in the cluster, the embedded side's nightly
-> vulnerability upload failed every night from at least 24 September until it was fixed on 27 October, and fault injection has not fired
-> since 13 October (its own safety gate keeps pausing it). Start with
-> [*Recently*](https://schultzzznet.github.io/schultzzznet/#recently), or
-> [*Where to start*](https://schultzzznet.github.io/schultzzznet/#where-to-start).
+> **Not measured yet (2026-11-11):** alert rules, dashboards, metric history, SBOM projects, alerts reaching a person, and electricity cost.
+>
+> **In short, as of 2026-11-11.** A new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
+> paying customers, no users and no load. **Proven 2026-11-10, with limits:** admission policies are Ready and refused an off-list image once;
+> one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10 (a few megabytes, not real size,
+> and only one backup machine). **Failed:** the default-deny network probe, because a new pod is open for one to three seconds.
+> **Not live:** monitoring and alerts (merged 2026-11-11, not Ready, never run), replicated storage, durable identity, an off-site backup copy, a public name. Figures
+> that cannot be measured yet say "not measured yet". The previous platform is described in dated notes. Start with
+> [*How we work*](https://schultzzznet.github.io/schultzzznet/how-we-work.html), the
+> [*status*](https://schultzzznet.github.io/schultzzznet/status.html) or
+> [*Recently*](https://schultzzznet.github.io/schultzzznet/#recently).
 
 [![Scheduled jobs](https://img.shields.io/endpoint?url=https%3A%2F%2Fhealthchecks.io%2Fbadge%2F3f30fa97-f736-45eb-befc-7e77b7%2Fj_HAzc4M.shields&label=scheduled%20jobs&logo=prometheus&logoColor=white)](https://healthchecks.io)
 [![Public endpoint 7d](https://img.shields.io/uptimerobot/ratio/7/m803634462-26ba093afb66ea071e032353?label=public%20endpoint%207d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 [![Public endpoint 30d](https://img.shields.io/uptimerobot/ratio/30/m803634462-26ba093afb66ea071e032353?label=30d&logo=uptimerobot&logoColor=white)](https://stats.uptimerobot.com/uA0nWd408c)
 
-Those three badges are live, and they are graded from outside the system they grade: a heartbeat
-for the scheduled jobs, and an off-site probe of the public entrance. They are depressed on purpose
-by reboots and fault injection, so they are not an availability promise. Everything else on this
+Previous platform (retired 2026-11-10): those three badges were live and are retired with it (the public entrance is gone); the paragraph is kept as history. They were graded from outside the system they grade: a heartbeat
+for the scheduled jobs, and an off-site probe of the public entrance. They were depressed on purpose
+by reboots and fault injection, so they were not an availability promise. Everything else on this
 page is text, and I have stopped badging tool names: a badge that prints "Kubernetes" proves nothing.
 
 ## Objectives and key results, Q4 2026
 
+*Set before the platform change of 2026-11-10; the key results that name the previous cluster (retired 2026-11-10) are scored as written and will say so in January. Figures in them were measured on the previous platform.*
+
 Set 2026-10-31, scored here in early January, misses included. Each key result is scored 0.0 to 1.0; around 0.7 is a good
-quarter, and 1.0 everywhere would mean the targets were too easy. Running OKRs honestly is itself one of the things being
+quarter, and 1.0 everywhere would mean the targets were too easy. Running OKRs with misses shown is itself one of the things being
 trained, so they point at work and dates that already exist rather than keeping numbers of their own.
 
 **1. Learn as much as possible, hands-on, on the running system.**
@@ -88,18 +92,20 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 186 |
-| Postgres clusters / instances | 13 / 34 |
-| Clusters with a synchronous standby right now | 8 of 13 |
-| Backup objects (completed in the last 24 hours) | 348 (13) |
-| Alert rules loaded | 227 |
-| Scrape targets up | 124 of 124 |
-| Commits to the platform repository | 1943 |
-| Decision records | 41 |
-| Test definitions (counted, not run) | 1147 |
-| CI workflows | 39 |
+| Pods running | 28 |
+| Kustomizations ready | 13 of 18 |
+| Admission policies ready | 2 of 2 |
+| Tenants with default-deny (structural count) | 4 of 5 |
+| Database instances ready | 3 of 3 |
+| Backup objects completed in the last 24 hours | 1 |
+| Latest restore drill on the home site | 2026-11-10, pass |
+| Alert rules | not measured yet |
+| Decision records | 8 |
+| Run records (pass of total) | 26 of 35 |
+| Test definitions (counted, not run) | 58 |
+| CI workflows | 9 |
 
-*Measured 2026-10-27T06:10:37Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-11T05:59:42Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 ## What this is, and is not
@@ -109,26 +115,23 @@ cluster. What each figure counts, and the command behind it, is on the
   and a habit of checking every claim by something other than the thing making it.
 - **Is:** preparation. When a killer app appears, the platform, the patterns and the habits should already be in place;
   on that day the direction changes, and production becomes the main line.
-- **Is not:** a product with an availability commitment, or long-lived. The cluster was rebuilt
-  on 2026-09-04, and k3s has been the only platform since the previous Docker Swarm cluster was
-  decommissioned on 2026-06-09. "Months of uptime" would not be true.
-- **Is not highly available throughout.** The platform's own failure-domain review, dated
-  2026-09-09 and not re-measured since (the whole estate was also down from 2026-10-14 to
-  2026-10-18), counted 7 of 13 as highly available. The ones that are not: the public entrance, the physical layer (one switch, one power
-  feed), the image registry, the steward, and the single-instance metrics and log stores.
-- **Is not zero-loss everywhere.** Block storage is replica-3. As of 2026-10-09, the table above shows 8 of 13
-  Postgres clusters with a synchronous standby. Those are the 8 three-instance clusters,
-  configured to commit once any 1 of 2 standbys has the write. The 5 two-instance clusters are
-  asynchronous by design.
-- **Is not a user base.** Self-registration was switched off on 2026-09-29, per the platform's state notes (not
-  re-checked today), so only I can create an account. The apps are deliberately modest demos that exercise every layer.
+- **Is not:** a product with an availability commitment, or long-lived. The current cluster was built
+  on 2026-11-10 and 11, after the previous k3s cluster was torn down on 2026-11-10 (it had followed a Docker Swarm cluster
+  decommissioned on 2026-06-09). "Months of uptime" would not be true.
+- **Is not highly available throughout.** The new cluster has three control-plane servers, but storage is node-local and
+  the database has one backup machine, so a node loss is not yet survivable everywhere. The failure-domain review of 2026-09-09
+  belonged to the previous platform and is not carried over.
+- **Is not zero-loss.** The one database cluster has three instances and a nightly backup; a restore drill passed on 2026-11-10
+  on a database of a few megabytes. A scheduled-backup restore and an off-site copy are untested. The previous platform's
+  synchronous-commit figures are not carried over.
+- **Is not a user base.** There are no users on the new cluster; durable identity is not live. The apps are deliberately modest demos that exercise every layer.
 
-> **Corrections, 2026-10-27.** Five statements on the site had turned stale in the pessimistic direction
+> **Previous platform (retired 2026-11-10): corrections, 2026-10-27.** Five statements on the site had turned stale in the pessimistic direction
 > (pull requests, secrets in git, drift checking, the ops agent, a runner count), two on the embedded page
 > were false throughout, and the uptime shortfall now has a cause. They are listed, with dates, on
 > [the estate page](https://schultzzznet.github.io/schultzzznet/#corrections-2026-10-27).
 >
-> **Retractions, 2026-10-09.** Earlier versions of this profile said "no single points of
+> **Previous platform (retired 2026-11-10): retractions, 2026-10-09.** Earlier versions of this profile said "no single points of
 > failure", "RPO 0, proven" and "Docker Swarm compatible", and that the AI runs inside the
 > cluster. None of those was true when I checked. The worst was the second: the PostgreSQL 18
 > cutover on 2026-09-16 silently dropped synchronous commit, so until it was restored on
@@ -139,21 +142,21 @@ cluster. What each figure counts, and the command behind it, is on the
 
 ## The parts, briefly
 
-**Platform.** k3s on six nodes, Ceph replica-3 block storage, CloudNativePG, Keycloak, Traefik,
-Prometheus, Loki, Grafana and Alertmanager, largely managed by Ansible (a few steps, such as creating identity realms, are still by hand). Apps are Spring Boot and
+**Platform.** K3s on six nodes built by playbook and reconciled from git, node-local storage, an operator-managed PostgreSQL cluster
+with backups to an S3-compatible store on a small always-on Mac, admission policies and default-deny network rules (one probe failed, see above). Monitoring was merged on 2026-11-11 and Flux is applying it, but it is not Ready (its first live run failed on a missing-namespace defect in the node exporter manifests; a one-line fix is in review) and it has never run. Previous platform (retired 2026-11-10): it ran Ceph, MinIO, Prometheus, Loki, Grafana and Alertmanager; that is history. Apps are Spring Boot and
 Flutter. It is standard Kubernetes, but I have not tested it on a managed distribution, so I do
 not claim it would move unchanged.
 
-**Scaling.** CPU-based autoscalers are live. Scaling on request rate is not built.
+**Scaling.** Previous platform (retired 2026-11-10): CPU-based autoscalers existed; not re-measured on the new one. Scaling on request rate is not built.
 
-**Supply chain.** First-party images are signed with cosign using a local key, so this is
+**Supply chain (Previous platform (retired 2026-11-10), as of 2026-10-27).** First-party images are signed with cosign using a local key, so this is
 signing, not keyless Sigstore. As of 2026-10-27, 6 of the 7 first-party images running verify
 against the release key, and the tracker has accepted 71 SBOMs. Acceptance is not analysis.
 I rate it SLSA Build L2 myself; nobody has audited that. **Secrets:** every Secret in git has been
 encrypted with SOPS and age since 2026-10-25; the old values are not yet rotated and the cluster does
 not encrypt them at rest.
 
-**AI.** Alerting is a loop with two models and a person: alerts go straight to Slack, an hourly post is composed by code, a small local model answers questions and writes a morning digest, and a cloud model grades the agent's posts once a day (drafts only, no tools; it is sent alert text, so the claim that nothing leaves the house is retired, see [the loop](https://schultzzznet.github.io/schultzzznet/aiops.html#the-loop-two-models-one-human)). The ops agent answers in Slack, queries Prometheus, and proposes actions such as a node
+**AI (Previous platform (retired 2026-11-10), as of 2026-10-30; the agent is not part of the new cluster).** Alerting was a loop with two models and a person: alerts go straight to Slack, an hourly post is composed by code, a small local model answers questions and writes a morning digest, and a cloud model grades the agent's posts once a day (drafts only, no tools; it is sent alert text, so the claim that nothing leaves the house is retired, see [the loop](https://schultzzznet.github.io/schultzzznet/aiops.html#the-loop-two-models-one-human)). The ops agent answers in Slack, queries Prometheus, and proposes actions such as a node
 drain or a scale, which a human approves with a button. It does not act alone. Since 2026-10-26 its
 arguments are validated, only named approvers count, and what it says is recorded and graded
 (a first review found "critical" in 79 of 96 summaries, with no critical alert firing in 69 of them). An orchestrator
@@ -188,7 +191,7 @@ system. Each exists because something looked correct and was not.
 |---|---|
 | [`trivy-kernel-ab-split.sh`](examples/trivy-kernel-ab-split.sh) | Host CVE counts that can never reach zero, and the regex that files a superseded kernel as live. Has a `--self-test` that demonstrates the bug. |
 | [`duty-cycle-alert.yaml`](examples/duty-cycle-alert.yaml) | Why a `for:` alert cannot see a signal that sawtooths across its threshold, and the two-line fix. |
-| [`kured-args.yaml`](examples/kured-args.yaml) | A reboot daemon that logged "nothing to do" hourly for weeks while 16,002 patched-but-not-running findings piled up. |
+| [`kured-args.yaml`](examples/kured-args.yaml) | A reboot daemon that logged "nothing to do" hourly for weeks while 16,002 patched-but-not-running findings piled up (previous platform, retired 2026-11-10). |
 | [`systemd-oneshot-timer.md`](examples/systemd-oneshot-timer.md) | The `RemainAfterExit` trap that makes a timer fire once per boot. |
 
 ## Licence and security

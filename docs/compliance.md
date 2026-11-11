@@ -1,12 +1,13 @@
 ---
 title: Legal, licensing, and the regulatory posture nobody publishes for a home project
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**What it is:** the less flattering questions, asked of a home-built platform: if a regulator, an app-store reviewer or a licence audit arrived tomorrow, what would hold up. Graded against a stated target, in public, including where it falls short."
-  - "**The EU Cyber Resilience Act:** partly met by construction, not by design; a clause-by-clause mapping has not been written. **GDPR:** three apps hold real personal data (no outside users yet); erasure was shipped and verified on 2 July 2026. A draft privacy label that was false was caught before any submission."
-  - "**Licensing:** MIT for code and CC BY 4.0 for writing on this site, a security policy with private reporting, and the AGPL-licensed dependencies scoped so that they are not triggered."
-  - "**Open items, unchanged since 9 October:** the clause mapping, terms of service and a hosted privacy policy for the three apps, a licence decision for the hardware repositories, and signature enforcement at admission."
+  - "**What it is:** the less flattering questions asked of a home-built platform, graded against a stated target in public, including where it falls short. The platform was wiped on 2026-11-10 and rebuilt; every old measurement below is labelled previous platform."
+  - "**The EU Cyber Resilience Act:** the clause-by-clause mapping is still not written. On the new platform (2026-11-11) signature enforcement is configured on first-party images (a refusal is shown only on a test cluster, not yet on the home site), but no automatic OS patching exists and no vulnerability tracker runs. **GDPR:** erasure was verified on 2026-07-02 on databases that are now wiped."
+  - "**Licensing:** MIT for code and CC BY 4.0 for writing on this site. The licence table was written for the old stack; the new stack has not been checked against it yet."
+  - "**Open items:** the clause mapping, terms of service and a hosted privacy policy, a hardware licence decision, an OS patching mechanism, and a fix for the 1 to 3 second start gap in default-deny."
+
 ---
 
 # CRA, GDPR, app-store rules, and what a licence actually obligates
@@ -14,17 +15,14 @@ summary:
 {% include in-short.html %}
 
 {% assign s = site.data.stats %}
-{% assign gen_day = s.generated_at | slice: 0, 10 %}
-{% assign signed = s.supply_chain.first_party_signed_verified | append: " of " | append: s.supply_chain.images_first_party | append: " first-party images verify" | url_encode | replace: "-", "--" | replace: "+", "%20" %}
 ![cra](https://img.shields.io/badge/EU%20CRA-clause%20mapping%20not%20written-orange)
 ![gdpr](https://img.shields.io/badge/GDPR%20erasure-shipped%20and%20verified%202026--07--02-2EA44F)
 ![privacy](https://img.shields.io/badge/privacy%20label-false%20draft%20caught%20before%20any%20submission-orange)
 ![licence](https://img.shields.io/badge/licence-MIT%20code%20%C2%B7%20CC%20BY%204.0%20prose%20(this%20site)-blue)
-![signing](https://img.shields.io/badge/signing-{{ signed }}-005571)
-![agpl](https://img.shields.io/badge/AGPL%20dependencies-scoped%2C%20not%20triggered-005571)
+![signing](https://img.shields.io/badge/signing-enforcement%20configured%2C%20refusal%20shown%20on%20a%20test%20cluster%20only%20(2026--11--11)-005571)
+![agpl](https://img.shields.io/badge/licence%20table-new%20stack%20not%20yet%20checked-orange)
 
-*Status as of 2026-10-09 (the summary above was re-checked on 2026-10-27 and the posture is unchanged; the body was last read in full on 2026-10-09). Where a figure comes from the estate it is read off the running
-system by [the stats generator](status.md), measured at {{ s.generated_at }}.*
+*Status as of 2026-11-11. The platform this page described was wiped on 2026-11-10 and a new cluster was built on 2026-11-10 and 2026-11-11, so it is about a day old: nothing here implies it has stayed up. Statements about the new platform carry a date and say whether they are proven by a record or a live check. Statements about the old one sit under a "previous platform" label with their own date. Generated figures elsewhere on the site are described by [the stats generator](status.md).*
 
 Most write-ups of a home-built platform stop at the architecture diagram. This one also asks
 the less flattering questions: if this had to face a regulator, an app store review, or a
@@ -53,28 +51,29 @@ column is my own grading, not a conformity assessment.
 |---|---|---|
 | **A clause-by-clause conformity mapping** | **Open** | **Not written.** Having controls and being able to *demonstrate* conformity against the regulation's own article numbering are different documents. |
 | **Coordinated disclosure** | Partial | This public repository published a [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) on 2026-10-09: scope (the site and its scripts; the private estate is explicitly not offered for testing), what is most wanted (a leak, above all), a reporting route and honest expectations (no SLA, no bounty). It names GitHub's private vulnerability reporting first, with an email fallback; Private reporting was switched on and confirmed through the repository's API on 2026-10-09; the email, a dedicated role address (`ciso@`), is the fallback. |
-| **Integrity and provenance** | Partial | {{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} first-party images verify against the release key (measured {{ gen_day }}). Provenance is attached at build. Nothing enforces signatures at admission, and the {{ s.supply_chain.images_third_party }} third-party images are upstream's, not signed by me. |
-| **Secure defaults** | Partial | The public edge is default-deny and rate-limited. Inside the cluster it is not; see the measured posture below. |
-| A bill of materials | Partial | {{ s.supply_chain.sbom_projects }} SBOM uploads returned HTTP 200 in the latest nightly runs. That is acceptance of an upload, not a count read from the tracker and not analysis. The embedded repository says its release is snapshotted to the tracker; I have not re-measured that. |
-| A vulnerability-handling process | Partial | Build-time image scanning (last scheduled run succeeded 2026-09-29). As of 2026-10-09, 0 CVEs against the running kernels on {{ s.cluster.nodes }} nodes. Whether the tracking tools re-analyse on fresh data I did not measure; their APIs sit behind credentials I did not use, so I quote no severity counts. |
-| A security-update mechanism | Done, as designed | Automatic OS patching, coordinated reboots, declarative platform-version rollout. Not re-measured for this page. |
-| An incident process | Done, as designed | A severity taxonomy and a mandatory blameless postmortem for anything that clears the bar; [one of them in full](incident.md). |
+| **Integrity and provenance** | Partial | **New platform, 2026-11-11:** first-party images are signed in CI, and signature enforcement is configured and Ready on the live cluster (checked 2026-11-11); the running Warn image passes it. A refusal of an unsigned or wrong-key image was shown on a local test cluster on 2026-11-07, **not yet on the home site**. On the home site a vendor image that was not on the list was refused on 2026-11-10, which tests the list, not signing. Vendor images are held to a closed list by digest, not by signature, which is weaker and still open. How many running first-party images verify: not measured yet. *Previous platform, 2026-10-09:* nothing enforced signatures at admission. |
+| **Secure defaults** | Partial | **New platform, 2026-11-11:** the restricted pod security level is enforced on 4 of 13 namespaces, and tenant namespaces have default-deny network rules (4 tenants have them). Default-deny has a recorded gap: a new pod has no policy for about 1 to 3 seconds after it starts. That test is recorded as a **fail** (2026-11-10). See the measured posture below. |
+| A bill of materials | Open | **No tracker runs on the new platform (2026-11-11); one is planned.** The uploads recorded on the previous platform (2026-10-09) went to a tracker that is wiped. Nothing is measured here yet. |
+| A vulnerability-handling process | Partial | **New platform (2026-11-11):** no image vulnerability scanning is recorded in its CI checks and no tracker runs; kernel versions on the new nodes are not recorded, so no kernel CVE figure exists (not measured yet, 2026-11-11). *Previous platform, 2026-10-09:* 0 CVEs against the running kernels on 6 nodes, and no severity counts, because the tracking tools sat behind credentials I did not use. |
+| A security-update mechanism | **Open** | **Not done on the new platform (2026-11-11):** no automatic OS patching and no coordinated reboots exist yet. Platform versions roll out through Git, but that is not an update mechanism for the operating system. *Previous platform:* this row said "Done, as designed" and was not re-measured; the mechanism was torn down with the old cluster. |
+| An incident process | Done, as designed (unchanged) | A severity taxonomy and a mandatory blameless postmortem for anything that clears the bar; [one of them in full](incident.md). |
 
 The honest remainder is a mapping exercise plus the open rows, named as exactly that. I have
 stopped putting a percentage on it.
 
 ### The measured posture behind "secure defaults"
 
-Counted read-only from the cluster on 2026-10-09, as counts only:
+**New platform, counted read-only from the cluster on 2026-11-11** (about a day after it was built):
 
-- **{{ s.cluster.containers }} containers** run, of which **29 are privileged**, across 3 namespaces.
-- **15 pods** use the host network.
-- **116 containers** declare no resource limits.
-- **0 NetworkPolicies** exist; nothing restricts pod-to-pod traffic.
-- Pod Security labels are set on **1 of {{ s.cluster.namespaces }} namespaces**.
+- **27 NetworkPolicies** exist, in the four tenant namespaces, the flux namespace and the system namespace.
+- **6 of 13 namespaces** carry Pod Security labels: the restricted level is enforced on 4 of them, baseline on the ingress namespace, and the Flux namespace only warns.
+- **Limits are enforced by a resource quota and a limit range** in each of the four tenants, so a container there cannot run without limits.
+- **Privileged and host-network pods are not counted on the new cluster yet** (not measured yet).
+- The default-deny start gap (1 to 3 seconds for a new pod) is recorded as a failed result on 2026-11-10; the steady state held.
 
-Some of that is justified (storage and node agents need host access). But the old sentence
-was an absolute, and the numbers say otherwise. It is a tracked gap, not a finished control.
+*Previous platform, counted 2026-10-09 (retired 2026-11-10):* 228 containers, of which 29 were privileged, across 3 namespaces; 15 pods on the host network; 116 containers with no resource limits; 0 NetworkPolicies; Pod Security labels on 1 of 22 namespaces.
+
+Some host access is justified (node agents need it), so "not counted" is a gap in the measurement, not a clean bill. It is a tracked gap, not a finished control.
 
 ---
 
@@ -86,7 +85,7 @@ but the data-subject rights are built and verified on the live system now, not l
 
 | Right | Status |
 |---|---|
-| **Erasure** (the right to be forgotten) | **Shipped 2026-07-02, and verified against the live cluster with real cross-user data that day, which surfaced and fixed three genuine bugs.** On 2026-07-02 the cascade removed the user's rows from each database those three apps use, and from the identity provider; the one application that can't fully delete a shared record anonymises it and removes the identity behind it. The deletion endpoint exists in these three apps. The fleet and mower backends have no such endpoint, and I have not graded whether they hold personal data. I have not re-run a deletion since, because it is destructive. |
+| **Erasure** (the right to be forgotten) | **Shipped 2026-07-02, and verified against the then-live cluster with real cross-user data that day, which surfaced and fixed three genuine bugs. Those databases were wiped on 2026-11-10, so the verification is previous-platform evidence.** The cascade code is unchanged, but it has not been run on the new platform (2026-11-11), where only the Warn reference app is deployed. The new identity provider also runs, in development mode with in-memory storage, so it holds no durable identity data and erasure has nothing durable to reach there. On 2026-07-02 the cascade removed the user's rows from each database those three apps use, and from the identity provider; the one application that can't fully delete a shared record anonymises it and removes the identity behind it. The deletion endpoint exists in these three apps. The fleet and mower backends have no such endpoint, and I have not graded whether they hold personal data. I have not re-run a deletion since, because it is destructive. |
 | **Portability** (take your data with you) | Open. Designed, not yet built. |
 | **Transparency** (a real privacy notice) | Partial. One app has the policy text; none is hosted yet. Same gap as the item below. |
 | **Retention enforcement** | The written policy promises old location history is purged. **No automated job enforces that promise yet.** A policy that exists only on paper is not a control. |
@@ -133,23 +132,24 @@ to other people" are legally different acts under some of them.
 
 | Licence family | Representative components | Running it for yourself | If it became a paid hosted service |
 |---|---|---|---|
-| **Permissive** (Apache/MIT/BSD) | The orchestrator, the identity provider, the database operator, the storage operator, the metrics stack, the signing tooling | Attribution only | Attribution only |
-| **AGPL** | The dashboarding tool, the log aggregator, the object store | **None**; internal use is not distribution | **Triggered by offering the component itself over a network to third parties.** It attaches to *those components*, not to the applications built beside them, which do not inherit it. |
-| **LGPL** | The storage engine, the code-quality server | None | Fine while dynamically linked or run as a separate service |
+| **Permissive** (Apache/MIT/BSD) | The orchestrator, the identity provider, the database operator, the storage operator (previous platform), the metrics stack (previous platform), the signing tooling | Attribution only | Attribution only |
+| **AGPL** (previous platform) | The dashboarding tool, the log aggregator, the object store: none of these runs now | **None**; internal use is not distribution | **Triggered by offering the component itself over a network to third parties.** It attaches to *those components*, not to the applications built beside them, which do not inherit it. |
+| **LGPL** (previous platform) | The storage engine, the code-quality server: neither runs now | None | Fine while dynamically linked or run as a separate service |
 
-A hypothetical commercial product on this stack would isolate or swap the handful of
+**Status, 2026-11-11:** this table was written for the old stack, which was wiped on 2026-11-10. The new platform's back-up store is a different project, and its licence class has **not been checked** for this table yet: the platform's own tool list declares it AGPL-licensed, which, if it holds, puts it in the AGPL row, but I have not read the licence file. Until that is done, read the rows as history, not as a statement about what runs today.
+
+A hypothetical commercial product on the old stack would isolate or swap the handful of
 network-triggering components, not rewrite the platform. These licence classes are as
 declared upstream. I have **not** re-read the licence files for this table, which is the very
 check the next two findings come from.
 
 **Two findings from actually checking, rather than trusting the label:**
 
-- **The object-storage project's upstream repository was archived in April 2026** (GitHub
-  reports it archived, last push 2026-04-24). It still runs here as the only object store and
-  the database backup target, from a private copy. That is a supply-chain fact, not a licence
-  problem, and the reason a Ceph-native object-storage path is a live candidate. There is
-  still none in place. A component's licence can be fine while its maintenance health quietly
-  stops being fine.
+- **Previous platform: the object-storage project's upstream repository was archived in April 2026** (GitHub
+  reported it archived, last push 2026-04-24). It ran there as the only object store and
+  the database backup target, from a private copy, until the cluster was wiped on 2026-11-10. That is a supply-chain fact, not a licence
+  problem. A component's licence can be fine while its maintenance health quietly
+  stops being fine. The new back-up store is a different project; its maintenance health is not checked either (2026-11-11).
 - **An internal tooling document had the identity provider's licence wrong**, labelled as the
   more restrictive copyleft family when it is permissive. Caught by reading the actual licence
   file.
@@ -175,7 +175,8 @@ of being caught early. That is the reason this page is in public.
 - A conformity mapping against the CRA's article numbering.
 - A licence decision for the hardware repositories.
 - Terms of Service and a hosted privacy policy for all three apps; automated retention.
-- Signature enforcement at admission, and the in-cluster defaults above.
+- Vendor images verified by signature, not only by digest list; an OS patching mechanism; a software-bill-of-materials tracker.
+- Closing the 1 to 3 second default-deny start gap, and a licence check of the new stack's components.
 
 ## Read next
 

@@ -1,82 +1,79 @@
 ---
 title: DevSecOps — the whole chain, and what it actually proves
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**What it is:** the whole chain from commit to running pod to a continuously re-evaluated inventory, and for each control what it actually *proves* as opposed to what it is marketed to prove."
-  - "**The most useful part is §6, the measurement traps:** seven controls that were configured, green and inert, each found by checking rather than reading. None of them errored."
-  - "**What the gates are:** eight, seven on pull requests; only a *critical* finding with an available fix blocks an image, and the code-analysis and API-contract gates report without blocking. Signatures are verified in the pipeline, not at the cluster's boundary."
-  - "**Since 18 October:** every Secret in git is encrypted, sixteen guards run daily and report through the alerting stack (counted from the guard runner on 27 October), SSH on the nodes is key-only, and an outside attack-path review found no direct path from the internet to cluster-admin."
-  - "**Still not there:** no admission policy, no network policies (none exist, read 27 October), encryption at rest is off, the old secret values are not yet rotated, and the embedded side's nightly vulnerability upload, broken from 24 September, was fixed on 27 October and has not yet run on its schedule."
+  - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The platform was rebuilt on 2026-11-10; this page is rewritten for it, and the old material is kept under a labelled previous-platform heading (§8)."
+  - "**Gates now (2026-11-11):** pre-commit with a secret scan over the whole history, check scripts that each plant their own failure, a local-cluster gate, and a pull-request objectives check that runs from the base commit. Contract fuzzing found eight faults in the reference app when it was added (around 2026-11-07 and 11-08), since fixed; one more, a repeated `radius` parameter accepted, was open on 2026-11-11."
+  - "**Live and checked today:** two admission policies in Deny mode, default-deny network policy in the four tenant namespaces, restricted Pod Security on six of thirteen namespaces. First-party images are signed with a CI key only the main branch can use."
+  - "**Not proven:** the default-deny probe failed on 2026-11-10 (a one to three second gap at pod start), encryption at rest is configured but not read back, the Flux artifact is unsigned, and vendor images are trusted by pinned digest, not by vendor signature."
+  - "**Not there yet:** no host scan, no SBOM job, no monitoring running (merged on 2026-11-11 and being applied, but not Ready and never run), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
 ---
-
-{% assign s = site.data.stats -%}
-{% assign asof = s.generated_at | date: "%Y-%m-%d" -%}
-# DevSecOps, end to end
 
 {% include in-short.html %}
 
-![sbom](https://img.shields.io/badge/SBOM%20uploads%20accepted-{{ s.supply_chain.sbom_projects }}%20for%20{{ s.supply_chain.images_running }}%20running%20images-blueviolet)
-![signed](https://img.shields.io/badge/first--party%20images%20signed%20and%20verified-{{ s.supply_chain.first_party_signed_verified }}%20of%20{{ s.supply_chain.images_first_party }}-2E2E5F?logo=sigstore&logoColor=white)
-![exposure](https://img.shields.io/badge/exposure%20tiers%20%282026--10--09%29-4%20public%20%C2%B7%2022%20LAN%20%C2%B7%2042%20internal-326CE5)
-![privileged](https://img.shields.io/badge/privileged%20images%20%282026--10--09%29-8-orange)
-![gates](https://img.shields.io/badge/gates%20on%20pull%20requests-7%20of%208-24A1C1?logo=github&logoColor=white)
-![edge](https://img.shields.io/badge/public%20edge-default--deny-critical)
+![gates](https://img.shields.io/badge/pre--commit%20hook%20ids%20%282026--11--11%29-62-24A1C1?logo=github&logoColor=white)
+![self-tests](https://img.shields.io/badge/check%20scripts%20with%20a%20self--test%20%282026--11--11%29-30-2E2E5F)
+![admission](https://img.shields.io/badge/admission%20policies%20%282026--11--11%29-2%20of%202%20Deny-326CE5?logo=kubernetes&logoColor=white)
+![netpol](https://img.shields.io/badge/default--deny%20probe%20%282026--11--10%29-FAIL%3A%201%20to%203%20s%20gap-critical)
+![encryption](https://img.shields.io/badge/encryption%20at%20rest-configured%2C%20not%20read%20back-orange)
 
 Security controls are easy to install and hard to keep honest. This page walks the whole
-chain, commit to running pod to continuously re-evaluated inventory, and at each stage says
-what the control *actually proves* rather than what it is marketed to prove.
+chain, commit to running pod, and at each stage says what the control *actually proves*
+rather than what it is marketed to prove.
 
-**What the numbers mean.** The "now" figures (badges, counts of images and runners) are
-rendered from the [status page](status.md) and were measured at {{ s.generated_at }}. The
-exposure tiers and the privileged count are not in that file; they are from a classifier run
-against the live cluster on 2026-10-09 and are dated where they appear. Everything else
-is an incident or a one-off measurement, and carries its own date or says it cannot be
-re-measured. An earlier version of this page said every number was measured on the live
-system. That was not true of the page, and the sentence is gone.
+**What changed, and how to read this page.** On 2026-11-10 the platform this page used to
+describe was torn down, and a new cluster was brought up that night and on 2026-11-11 (three
+control-plane servers and three laptop agents). Sections 1 to 5 and 7 describe the new
+platform. Every claim there carries a date and one of four words: **proven** (seen working on a live run, with a date), **built** (in place, not yet seen working),
+**planned**, or **open** (defined once on [how we work](how-we-work.html)). The cluster is about a day old, so nothing here says anything about
+how it behaves over weeks. Figures that are not measured yet say so; none is carried over from
+the old platform. The old platform's gates, scanning, exposure and host material is in §8, in
+full, dated, and labelled as history. Section 6, the measurement traps, is kept in place
+because its lessons did not depend on the platform.
 
-> **Corrections, 2026-10-09.** Four things this page claimed were wrong when audited.
-> The badge row said *every* image was signed and verified: it is the first-party images,
-> {{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running, and the cluster does not enforce the signature at admission.
-> The gate table said all gates run in the cloud: none does. It marked two advisory gates as
-> blocking (CodeQL, API contract) and listed two languages where there are three. And "one self-hosted runner" was
-> out of date (§10).
+> **Not running: monitoring.** The monitoring tenant was merged into the main
+> branch on 2026-11-11 once its two secret files were added, and Flux is applying it. It is not
+> Ready: its first live run failed on a missing-namespace defect in the node exporter manifests,
+> and a one-line fix is in review. It has never run, so there are no alert rules or dashboards to count. Anything that
+> would need them says "not measured yet".
 
 ---
 
 ## 1. The gates before a commit becomes an image
 
-All {{ s.ci.runs_on_self_hosted }} CI jobs across {{ s.ci.workflows }} workflow files run on
-self-hosted runners; {{ s.ci.runs_on_github_hosted }} run on GitHub-hosted ones (counted from the
-workflow files, as of {{ asof }}). Seven of the eight gates below trigger on pull requests,
-and all but the secret scan are path-filtered, so they do not run on every change.
+Status of this section: the gates exist and ran on 2026-11-10 and 2026-11-11. What each one
+proves is stated per row; "proven" means seen to fail on purpose.
 
-| Gate | Triggers | Catches | Blocking |
+| Gate | Where it runs | Catches | Status |
 |---|---|---|---|
-| **CodeQL** | pull request | SAST across Java/Kotlin, JavaScript/TypeScript and Python | no: the analysis step is `continue-on-error` |
-| **Secret scanning** | pull request | credentials committed by accident | yes |
-| **Trivy + Syft** | pull request | image CVEs, and the SBOM itself | yes (critical with a fix only, see §10) |
-| **DAST baseline** | pull request | live-app web findings | advisory |
-| **API contract tests** | pull request | schema drift against the published OpenAPI | no: report-first; only failing to boot the target fails the job |
-| **Exposure contract** | push to the main branch, daily, on demand | *what is reachable from the internet*, see §5 | yes |
-| **Rate-limit contract** | pull request | the auth endpoint's throttle still throttles | yes |
-| **Infra validation** | pull request | manifests, playbooks, shell, YAML | yes |
+| **Pre-commit** (62 hook ids, 2026-11-11) | on the author's machine | a secret in the working tree, and a **secret scan over the whole history**, plus the check scripts below | built; each hook's self-test is proven below |
+| **Check scripts** (30 scripts in the scripts folder define a `--self-test`, 2026-11-11; 20 of them are named `check-*`, the rest are build, lint and gate helpers) | pre-commit and the pull-request workflow | each one a rule of the repository (an objective is cited, a pin has a marker, a manifest has the right shape) | proven: each self-test plants the failure and must see it caught |
+| **The kind gate** | pull request | the warn gate on a throwaway local cluster: the site applied there, then the checks against it | built, passed once: green on 2026-11-10 after two red attempts, each a flake of the gate itself and fixed since; not shown to pass every time |
+| **The aggregate ci-gate** | pull request | one check that is green only when the others are | built; deliberately **not** a required check yet, fix open (see below) |
+| **The objectives line** | pull request, by a workflow that runs from the base commit | a pull request that does not say which objectives it touches | proven: the workflow reads the base commit, so a pull request cannot change the script that judges it |
+| **Contract fuzzing against the OpenAPI** | against the reference app | responses that break the published schema | proven: when the fuzz was added (around 2026-11-07 and 11-08) it found eight faults, since fixed. A ninth, a repeated `radius` parameter accepted, was still open on 2026-11-11 |
 
-"Yes" means the job fails the workflow. Whether a failed check actually stops a merge depends
-on a repository ruleset, and I found two files that disagree about whether one exists, so I
-do not claim it. CodeQL runs as advisory because the result upload is refused on a private
-repository without GitHub's paid scanning, and GitHub-native code scanning is off. At least the last two
-push runs (2026-10-08 and 2026-10-09) failed; the first failed in the Java/Kotlin job, and I have not looked up why.
+**A test counts only once it has been seen to fail on purpose.** That is the rule behind the
+self-tests. The controller that provisions the home CI runners goes further: its self-test is
+gated by 221 mutants, each a small deliberate breakage of the controller, and the gate passes
+only if every mutant makes the self-test fail (as stated in the runner runbook of 2026-11-09; not recounted since).
 
-The exposure contract is the one that encodes a real regression: the path-traversal bypass in
-§5, found on 2026-07-17. I have not mined run history to say how often it or the rate-limit
-contract has fired since. Both are worth having for the same reason: they assert a *property of
-the running system* rather than a property of the source.
+**The aggregate gate is deliberately not a required check yet; the fix is open.** It exists so that one place says
+"everything that ran, passed". Which checks block a merge is set on the checks themselves, so the
+aggregate adds a summary, not a second lock. That is deliberate, with the fix open, not a claim that it protects
+the main branch by itself.
+
+**What is not in the new set.** The static code analysis of the old pipeline, the web-app
+baseline scan, the exposure contract and the rate-limit contract are not part of it. The last
+two asserted properties of a public edge, and the new platform has no public entrance on
+2026-11-11 (one LAN-only ingress for the reference app), so there is nothing for them to assert (§8.4). Image vulnerability scanning and
+SBOM generation in pull requests are **planned**, not built.
 
 None of these gates check who, or what, authored the commit. **A change proposed by
-[the cloud model used as a development peer](index.md) walks through the identical table**,
-same SAST, same secret scan, same signing, and a human reviewer is still accountable for
-what it produced. AI-assisted is not a bypass lane.
+[the cloud model used as a development peer](index.md) walks through the identical gates**,
+and a human reviewer is still accountable for what it produced. AI-assisted is not a bypass
+lane.
 
 ---
 
@@ -85,166 +82,124 @@ what it produced. AI-assisted is not a bypass lane.
 ```mermaid
 flowchart LR
   S["source"] --> B["build image<br/>version + git-SHA tag"]
-  B --> P["provenance attestation"]
-  B --> M["SBOM attestation"]
-  P --> G["sign"]
-  M --> G
+  B --> P["provenance statement"]
+  B --> G["sign with the CI key"]
+  P --> G
   G --> V["VERIFY the signature"]
   V --> R[("registry")]
-  R --> K["rollout"]
+  R --> A["admission<br/>checks the signature again"]
+  A --> K["pod starts"]
 ```
 
-Two decisions carry most of the weight:
+Two decisions carry most of the weight.
 
-**The tag carries the release version and the git SHA, never a floating `latest`.** A
-floating tag lets a rollout pull a cached older layer and report success, so "what is
-running" stops being answerable at exactly the moment you need the answer. None of the image references found on pods on 2026-10-09 used `latest` or no tag at all (0 of 68; the classifier counts image references on pods, so 68 here against 67 distinct images in the status counts).
+**Provenance: built, not verified at admission.** CI attaches a provenance statement, but admission does not check it (record of 2026-11-07), so nothing on the cluster relies on it yet.
 
 **The signature is verified, not merely produced.** Signing without a verification step is
-ceremony. The verify step is the control; the signing step is just its input.
+ceremony. The pipeline verifies right after signing, and the cluster verifies again when the
+pod is created (§3). The verify step is the control; the signing step is its input.
+
+**The signing key is reachable only from the main branch.** First-party images are signed with a
+CI key stored as a secret of a GitHub environment that only the main branch may use, so a
+pull request, including one from a stranger, cannot reach a signing key. The key was rotated on
+2026-11-08. The key's custody is an open item. Status:
+**built; the rotation is recorded, and the main-only restriction is configuration I have read
+rather than attacked.** "How many running first-party images verify" is **not measured yet**.
+
+**Tags carry the version and the commit, never a floating `latest`.** A floating tag lets a
+rollout pull a cached older layer and report success, so "what is running" stops being
+answerable at the moment you need the answer. Upstream (vendor) images are pinned by digest
+from a closed list instead (§3).
 
 ---
 
-## 3. What gets scanned — derived from the cluster, never typed
+## 3. Admission: the cluster refuses what the pipeline did not build
 
-The nightly SBOM job used to hold a **hand-typed list** of applications to scan. Two live
-applications, both running two replicas, were not on it. They had no SBOM and no
-vulnerability record, and nothing reported a problem: the job printed success every night
-for exactly the apps it had been told about.
+Status: **proven** on 2026-11-11 (live and Ready when read). Two policies, both
+in Deny mode, both with failure policy Fail, so if the engine cannot decide, the pod is
+refused rather than let through.
 
-It was the third instance of one failure class on this platform, a hand-kept list that
-went stale without a sound. The other two: an application sat in `ImagePullBackOff` for
-**12 days** because a build list never named it, and another was missing from both ship lists
-while running healthy.
-
-So the lists were deleted. Scope is now **derived at run time**:
-
-| Job | Scope | Source of truth |
+| Policy | Refuses | Status |
 |---|---|---|
-| application scan | the apps I build | every Deployment in the application namespace |
-| platform scan | everything else | every image on every pod, init containers included |
+| **Image signature** | a pod whose first-party image is not signed by the CI key | proven on a throwaway local cluster on 2026-11-07 for three cases: signed passes, signed by another key is refused, unsigned is refused |
+| **Closed vendor list** | a vendor image that is not on the list, or is listed but not pinned by digest | one off-list image was refused on the real site on 2026-11-10; that is a line in the history of the day, not a gate record |
 
-Deploying something enrols it. An empty derivation is a **hard failure**, not an empty
-loop. The old mode failed by being quietly smaller than anyone believed, which is the mode
-worth killing.
+How a namespace comes under the rules: **namespaces opt in by label**, which the tenant
+template sets. The admission engine's own namespace and the operators' namespaces never opt in,
+because a policy that refuses its own engine's pods can lock the cluster out of repairing
+itself.
 
-The result of pointing that at reality for the first time, on the first run (2026-08-19):
-
-> **62 distinct images ran on the cluster. 56 of them were third-party. None of them had an
-> SBOM.** The public identity provider
-> had no vulnerability record at all. Nor did the databases, the object store, the metrics
-> and log stores, the storage layer, or the vulnerability tracker itself.
-
-Today ({{ asof }}) the status page counts {{ s.supply_chain.images_running }} distinct running
-images, {{ s.supply_chain.images_third_party }} of them third-party, and the trackers have accepted
-{{ s.supply_chain.sbom_projects }} SBOM uploads. That number is larger than the image count
-because it also holds images that have since stopped running. It proves acceptance, not analysis.
-
-Dependency bumping was already automated, so nothing was *stale*. But a bump only proves a
-newer version exists. It never says what is exploitable **now**. That was the gap.
-
-**And no exclusion list was introduced to replace it.** Scanning everything is cheap: the
-platform scan takes about eleven minutes (10m49s to 11m00s, 2026-10-07 to 2026-10-09) and the
-application scan about two.
-A "don't scan these" list is the identical bug pointed the other way, and it drifts in the
-direction that flatters.
+What I have not yet recorded: the refusal of a listed image that is *not* pinned, and the
+refusal of an image signed by *another key*, on the real site. Both are written as procedures and
+neither has been run and written down (**open**). The local-cluster proof is not the same
+claim as a proof on the site that matters.
 
 ---
 
-## 4. Prioritising without lying: two axes, both derived
+## 4. Network policy, Pod Security and quota
 
-Scanning everything is cheap. *Triaging* everything is not. So every project in the
-vulnerability tracker is tagged from live cluster objects, on two axes — because either one
-alone ranks things wrongly:
+**Network policy** (read 2026-11-11): 27 policies. Each of the four tenant namespaces has a
+default-deny policy plus the allows it needs. The engine is the network controller built into
+K3s.
 
-| Tag | Derived from |
-|---|---|
-| `exposure:public` | behind an ingress route on the public allowlist |
-| `exposure:lan` | behind any ingress, or a node-port / load-balancer service |
-| `exposure:internal` | cluster-internal service only |
-| `privileged` | a privileged container, or host network / PID / IPC |
+> **The default-deny probe failed on 2026-11-10.** The probe starts a pod and tries to reach
+> what should be denied. For a window of one to three seconds at pod start the traffic got
+> through, before the policy took effect. Status: **FAIL, open.** Two further things are not
+> tested at all: ingress from outside the namespace, and limits on DNS egress.
 
-Spread as of 2026-10-09, from the classifier run against the live cluster: **4 public
-(the three first-party apps and the identity provider), 22 LAN-only, 42 internal, across 68
-image references; 8 privileged.** The public count has not changed since the earlier measurement of
-4 / 19 / 39 across 62 images; the rest grew with the estate.
+**Pod Security** (read 2026-11-11): a restricted level is set on 6 of the 13 namespaces. Four tenant
+namespaces *enforce* restricted. One namespace enforces baseline and audits restricted. The
+reconciler's namespace only warns. The rest, which hold the engines and operators, carry no
+label. Status: **proven** (2026-11-11) as a count, **open** as a boundary: I counted labels; I did not try to
+start a privileged pod in each.
 
-Why both axes, in one example each:
-
-- **Reachability alone** would call a storage driver sidecar harmless — nothing can reach
-  it. It is privileged with host mounts, so a compromise is total.
-- **Privilege alone** would call the dashboard stack harmless — it is unprivileged. It
-  holds credentials for every data source behind a login.
-
-A tempting split was explicitly rejected: **"delivery tooling versus observability
-tooling."** That is an *availability* taxonomy — it answers which capability stops working
-when a component dies — and it does not transfer to security. The log store is
-"observability" and holds logs, which routinely contain tokens. The alert router makes
-outbound webhook calls. Meanwhile the storage sidecars are unreachable and all-powerful.
-
-> **Tags order triage. They never justify suppression.** `exposure:internal` means *less
-> reachable*, not *not affected* — everything internal becomes reachable the moment anything
-> external is.
+**Quota** (read 2026-11-11): 5 quota objects. A quota refused the database replicas, first on CPU limits and then on memory requests, because the namespace's totals were set for the application alone. The first
+fix was a hand patch, and it did not hold: Flux reverted every hand patch within minutes, as it should. Only a change
+in git held. That is the intended behaviour, learned the slow way.
 
 ---
 
-## 5. Exposure is asserted, not assumed
+## 5. Secrets and the supply chain, honestly
 
-The public edge is **default-deny**: a short allowlist of application path prefixes, and
-everything else returns 404. Internal surfaces — health/metrics endpoints, API schema
-endpoints, the operator consoles, the whole monitoring stack — are unreachable from the
-internet by rule, not by obscurity.
+**Secrets in git** (status: **built and in use**, 2026-11-11). Secrets are encrypted with SOPS
+and age before they are committed. They are applied in per-namespace units, because a single
+unit deadlocked on first apply: the decryption key had to arrive before anything that needed
+it. Values enter by files, never typed on a command line and never passed as an argument, so
+they stay out of shell history and process lists.
 
-Two findings from doing this properly:
+- **Recovery of the encrypted values from the recovery key has not been tested. Open.** An off-machine copy
+  and a tested restore are planned.
+- **Rotation of the old values is open.** The values from the previous platform remain in the
+  previous repository's history until rotated.
+- **Encryption at rest** is configured in the API server's configuration. It has not been
+  read back from the live API server, so the status is **built**.
 
-**The allowlist alone was bypassable.** Prefix matching runs against the *raw* path, but the
-downstream router resolves `../` afterwards. So a request to an allowed prefix followed by
-traversal reached an internal console — verified as a real bypass (found and fixed 2026-07-17). The
-fix is a URL-decoding traversal rejection ordered *before* the allowlist, which covers the
-encoded variants too. Order matters; a correct rule in the wrong position is not a control.
+**Supply chain, what the digest does and does not prove.** Vendor images are admitted by digest
+from a closed list. The digest was read from the registry on a pull request and reviewed. So the
+cluster trusts *the digest as pinned on a reviewed pull request*. It does **not** prove the bytes
+came untampered from the vendor, because no vendor signature is checked. That is an **open gap**.
+The Flux artifact that carries the manifests to the cluster is also **unsigned. Open.**
 
-```haproxy
-# The order of these two blocks IS the control. Reversed, the second one is decoration.
+**Dependency updates.** Renovate is configured: a cooldown of 3 days after release, and patch updates merge
+themselves once every check is green; majors wait 14 days; the security tools and the
+admission and signing engines also wait 14 days and carry `needs-owner`, so they never merge
+themselves; risky areas (workflows, check scripts, hooks, the
+contract) carry a `needs-owner` label and never merge themselves; Kubernetes moves one minor
+at a time; at most 3 pull requests are open. Status: **configured, not yet seen acting.** The
+app install it waits for is pending, so every pin is frozen on 2026-11-11.
 
-# 1. Reject traversal FIRST. HAProxy matches the RAW path; the router downstream
-#    resolves `../` afterwards — so `/app-one/../internal` matches `path_beg /app-one`
-#    here and still reaches an internal console. url_dec makes one rule cover `../`,
-#    `%2e%2e` and the `..%2f` encoded-slash trick.
-http-request deny deny_status 400 if { path,url_dec -m sub .. }
-
-# 2. Internal surfaces that sit UNDER an allowed prefix. url_dec again, so
-#    %-encoding cannot dodge the match. Still reachable LAN-direct.
-http-request deny deny_status 404 if { path,url_dec -m sub /actuator }
-http-request deny deny_status 404 if { path,url_dec -m sub /swagger-ui }
-http-request deny deny_status 404 if { path,url_dec -m sub /v3/api-docs }
-
-# 3. Only now, the default-deny allowlist.
-acl public_paths path_beg -i /keycloak /app-one /app-two /app-three
-http-request deny deny_status 404 if !public_paths
-```
-
-`/actuator` is worth singling out. `/actuator/health` is mild and `/actuator/info` is
-harmless, but `/actuator/prometheus` returned 622 lines when I looked (the count moves with the
-app version; I have not re-measured it), and their `uri=` labels enumerate the entire API
-surface, every path parameter, every route, which is at least as disclosive as leaving the
-API schema endpoint open. The blanket deny is right and health/info are
-collateral.
-
-**Two places now state what is public, so they are checked against each other.** The edge
-configuration *enforces* the allowlist; the scanner's classifier *labels* by it. A verifier
-fails the build if they disagree — otherwise projects would be tagged with an exposure they
-do not have, silently, in the reassuring direction.
-
-The authentication path additionally tracks the **failed** request rate rather than the
-total, so a credential-stuffing flood is cut off while legitimate token traffic is never
-throttled.
+**Where CI runs** (2026-11-11). Jobs that hold a key run on GitHub-hosted runners again, inside a
+$20 budget. Heavy jobs that need no secret run on a virtual machine per job on a machine at
+home.
 
 ---
 
 ## 6. Measurement traps found by checking
 
-Each of these produced *confident, wrong* numbers. The dated figures are receipts from the
-time; I cannot re-measure them, because they need credentials for the tracker.
+Each of these produced *confident, wrong* numbers. They were found on the previous platform,
+on a vulnerability tracker that **no longer runs** (it went with the old cluster on
+2026-11-10). The lessons did not depend on the tracker, so they stay. The dated figures are
+receipts from the time; I cannot re-measure them.
 
 **Most of every SBOM was unmatchable filler.** The generator's file cataloger emitted a
 component per file: bare paths, no package identifier. A vulnerability tracker matches on
@@ -297,17 +252,191 @@ application dependencies only, without weakening what it guards against.
 
 ---
 
-## 7. Below the application: hosts, kernels, and what "patched" means
+## 7. What this does not do
+
+Stated plainly, because a control you misunderstand is worse than one you lack. All as of
+2026-11-11.
+
+- **A scanner match is a hypothesis, not a vulnerability.** And there is no scanner in pull
+  requests yet (planned).
+- **The pull-request gate is narrower than a green check suggests.** It checks the repository's
+  rules, the site on a local cluster, and who is accountable for a change. It does not scan
+  images or dependencies for known vulnerabilities, it has no static code analysis, and the
+  aggregate check is deliberately not required. A change that introduces a vulnerable
+  dependency merges clean. That is a gap, not coverage.
+- **No host scan and no reboot coordination exist on the new platform. Open.** The host layer
+  applies, by playbook, a firewall profile, key-only SSH and a timer for disk wear. It does not
+  patch kernels, scan them or schedule reboots. §8.5 describes what the old platform did.
+- **No SBOM job runs.** A weekly scan from the live pods is **planned**.
+- **Runtime behaviour is not monitored for exploitation**, and monitoring is not running (see the note at the top).
+- **The default-deny gap, the unsigned Flux artifact, the vendor-digest trust and the
+  unread encryption at rest** are open, each described above.
+- **Closing a tracked finding does not verify a fix.** There is no tracker on the new platform.
+  The principle stands for whichever one comes next.
+
+---
+
+## 8. The previous platform (retired 2026-11-10)
+
+Everything in this section describes the platform that was torn down on 2026-11-10, written
+as of the dates in each part (2026-10-09 to 2026-10-27). **None of it is current.** It is kept
+because findings and lessons should not vanish with the machines they came from. Hand-typed
+counts below are the last values measured on that platform, not live figures.
+
+### 8.1 The previous platform's gates, until 2026-11-10
+
+Every CI job ran on self-hosted runners inside the LAN, across the workflow files of the
+platform repository. Seven of the eight gates triggered on pull requests, and all but the secret
+scan were path-filtered.
+
+| Gate | Triggers | Catches | Blocking |
+|---|---|---|---|
+| **CodeQL** | pull request | SAST across Java/Kotlin, JavaScript/TypeScript and Python | no: the analysis step is `continue-on-error` |
+| **Secret scanning** | pull request | credentials committed by accident | yes |
+| **Trivy + Syft** | pull request | image CVEs, and the SBOM itself | yes (critical with a fix only) |
+| **DAST baseline** | pull request | live-app web findings | advisory |
+| **API contract tests** | pull request | schema drift against the published OpenAPI | no: report-first; only failing to boot the target fails the job |
+| **Exposure contract** | push to the main branch, daily, on demand | *what is reachable from the internet*, see §8.4 | yes |
+| **Rate-limit contract** | pull request | the auth endpoint's throttle still throttles | yes |
+| **Infra validation** | pull request | manifests, playbooks, shell, YAML | yes |
+
+"Yes" meant the job failed the workflow. Whether a failed check actually stopped a merge
+depended on a repository ruleset, and two files disagreed about whether one existed, so I did
+not claim it. CodeQL ran as advisory because the result upload is refused on a private
+repository without GitHub's paid scanning. The exposure contract encoded a real regression:
+the path-traversal bypass in §8.4, found on 2026-07-17.
+
+Other limits of that platform on 2026-10-27, for the record: only a *critical* finding with a
+fix failed the image job, and the dependency-level scan ran nightly rather than per pull
+request; nothing was enforced at admission (no policy engine, no network policies, one namespace
+of twenty-two with a Pod Security label); encryption at rest was off; the deploy path had no cloud
+fallback because the cluster sat behind a carrier-grade NAT boundary and GitHub-hosted runners
+had been refused after an Actions billing block, with fifteen runner instances on four machines.
+
+### 8.2 What gets scanned: derived from the cluster, never typed
+
+The nightly SBOM job used to hold a **hand-typed list** of applications to scan. Two live
+applications, both running two replicas, were not on it. They had no SBOM and no
+vulnerability record, and nothing reported a problem: the job printed success every night
+for exactly the apps it had been told about.
+
+It was the third instance of one failure class on that platform, a hand-kept list that
+went stale without a sound. The other two: an application sat in `ImagePullBackOff` for
+**12 days** because a build list never named it, and another was missing from both ship lists
+while running healthy.
+
+So the lists were deleted. Scope was then **derived at run time**: every Deployment in the
+application namespace for the apps I build, and every image on every pod, init containers
+included, for everything else. Deploying something enrolled it. An empty derivation was a
+**hard failure**, not an empty loop. The old mode failed by being quietly smaller than anyone
+believed, which is the mode worth killing. That principle carries to the new platform: when
+the scan returns (planned), its scope is derived from the live pods.
+
+The result of pointing that at reality for the first time, on the first run (2026-08-19):
+
+> **62 distinct images ran on the cluster. 56 of them were third-party. None of them had an
+> SBOM.** The public identity provider
+> had no vulnerability record at all. Nor did the databases, the object store, the metrics
+> and log stores, the storage layer, or the vulnerability tracker itself.
+
+By 2026-10-27 the status page counted 67 distinct running images. The tracker's accepted SBOM
+uploads proved acceptance, not analysis.
+
+**And no exclusion list was introduced to replace it.** Scanning everything was cheap: the
+platform scan took about eleven minutes (10m49s to 11m00s, 2026-10-07 to 2026-10-09) and the
+application scan about two. A "don't scan these" list is the identical bug pointed the other
+way, and it drifts in the direction that flatters.
+
+### 8.3 Prioritising without lying: two axes, both derived
+
+Every project in the vulnerability tracker was tagged from live cluster objects, on two axes,
+because either one alone ranks things wrongly:
+
+| Tag | Derived from |
+|---|---|
+| `exposure:public` | behind an ingress route on the public allowlist |
+| `exposure:lan` | behind any ingress, or a node-port / load-balancer service |
+| `exposure:internal` | cluster-internal service only |
+| `privileged` | a privileged container, or host network / PID / IPC |
+
+Spread as of 2026-10-09, from the classifier run against the live cluster: **4 public
+(the three first-party apps and the identity provider), 22 LAN-only, 42 internal, across 68
+image references; 8 privileged.**
+
+Why both axes, in one example each:
+
+- **Reachability alone** would call a storage driver sidecar harmless: nothing can reach
+  it. It is privileged with host mounts, so a compromise is total.
+- **Privilege alone** would call the dashboard stack harmless: it is unprivileged. It
+  holds credentials for every data source behind a login.
+
+A tempting split was explicitly rejected: **"delivery tooling versus observability
+tooling."** That is an *availability* taxonomy, and it does not transfer to security. The log
+store is "observability" and holds logs, which routinely contain tokens. The alert router makes
+outbound webhook calls. Meanwhile the storage sidecars are unreachable and all-powerful.
+
+> **Tags order triage. They never justify suppression.** `exposure:internal` means *less
+> reachable*, not *not affected*: everything internal becomes reachable the moment anything
+> external is.
+
+### 8.4 Exposure was asserted, not assumed (public edge, until 2026-11-10)
+
+**On the new platform there is no public entrance (2026-11-11), and the public-path contract is
+empty.** What follows is the old edge, kept for its lessons.
+
+The old public edge was **default-deny**: a short allowlist of application path prefixes, and
+everything else returned 404. Internal surfaces (health and metrics endpoints, API schema
+endpoints, the operator consoles, the whole monitoring stack) were unreachable from the
+internet by rule, not by obscurity.
+
+**The allowlist alone was bypassable.** Prefix matching ran against the *raw* path, but the
+downstream router resolved `../` afterwards. So a request to an allowed prefix followed by
+traversal reached an internal console, verified as a real bypass (found and fixed 2026-07-17).
+The fix was a URL-decoding traversal rejection ordered *before* the allowlist, which covers the
+encoded variants too. Order matters; a correct rule in the wrong position is not a control.
+
+```haproxy
+# The order of these two blocks IS the control. Reversed, the second one is decoration.
+
+# 1. Reject traversal FIRST. HAProxy matches the RAW path; the router downstream
+#    resolves `../` afterwards — so `/app-one/../internal` matches `path_beg /app-one`
+#    here and still reaches an internal console. url_dec makes one rule cover `../`,
+#    `%2e%2e` and the `..%2f` encoded-slash trick.
+http-request deny deny_status 400 if { path,url_dec -m sub .. }
+
+# 2. Internal surfaces that sit UNDER an allowed prefix. url_dec again, so
+#    %-encoding cannot dodge the match. Still reachable LAN-direct.
+http-request deny deny_status 404 if { path,url_dec -m sub /actuator }
+http-request deny deny_status 404 if { path,url_dec -m sub /swagger-ui }
+http-request deny deny_status 404 if { path,url_dec -m sub /v3/api-docs }
+
+# 3. Only now, the default-deny allowlist.
+acl public_paths path_beg -i /keycloak /app-one /app-two /app-three
+http-request deny deny_status 404 if !public_paths
+```
+
+`/actuator` is worth singling out. `/actuator/health` is mild and `/actuator/info` is
+harmless, but `/actuator/prometheus` returned 622 lines when I looked (the count moved with the
+app version; I did not re-measure it), and their `uri=` labels enumerate the entire API
+surface, every path parameter, every route, which is at least as disclosive as leaving the
+API schema endpoint open.
+
+**Two places stated what was public, so they were checked against each other.** The edge
+configuration *enforced* the allowlist; the scanner's classifier *labelled* by it. A verifier
+failed the build if they disagreed, otherwise projects would be tagged with an exposure they
+did not have, silently, in the reassuring direction.
+
+### 8.5 Below the application: hosts, kernels, and what "patched" means (as of 2026-10-09)
+
+**On the new platform no host scan and no reboot coordination exist (open, §7).** This is what
+the old platform did, measured on 2026-10-09.
 
 Every node's root filesystem is inventoried and tracked continuously, alongside the
 container images. This was the one layer an otherwise strong supply-chain posture did not
 cover: an unpatched kernel or TLS library *on the machine* had zero visibility while every
-image running on it was scanned nightly.
+image running on it was scanned nightly. OS patching was automatic and reboots were coordinated, one node at a time, drained first, held back while defined alert conditions were firing.
 
-OS patching is automatic and reboots are coordinated: one node at a time, drained first,
-held back while defined alert conditions are firing.
-
-### Measuring it is where it gets subtle
+#### Measuring it is where it gets subtle
 
 Host vulnerability counts are dominated by kernel packages, and one kernel source inflates
 into several binary packages. Worse, a patched machine keeps its previous kernel installed
@@ -330,9 +459,9 @@ trick, because the obvious version of it is wrong:
 # WRONG — and it looks right:
 #   ^linux-[a-z-]*[0-9]+\.[0-9]+\.[0-9]+-[0-9]+
 #
-# Hardware-enablement kernels are named linux-hwe-6.14-headers-6.14.0-35.
+# Hardware-enablement kernels are named linux-hwe-X.Y-headers-X.Y.0-N.
 # `[a-z-]*` eats "hwe-", the pattern then demands a full version and hits
-# "6.14-headers" instead, and cannot backtrack past it. Those packages fall
+# "X.Y-headers" instead, and cannot backtrack past it. Those packages fall
 # through as NON-kernel and get filed against the booted kernel — so a
 # SUPERSEDED kernel's CVEs are reported as live exposure.
 
@@ -355,10 +484,11 @@ if [ "$(( booted + fallback ))" -ne "$total" ]; then
 fi
 ```
 
+
 > The full script, with a `--self-test` that demonstrates the regex bug rather than asserting
 > it, is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/trivy-kernel-ab-split.sh).
 
-### And then: patched is not running
+#### And then: patched is not running
 
 The automation had two halves. The patching half worked. The rebooting half read the wrong
 path: inside its container, the location it checked resolved to its own empty directory
@@ -394,10 +524,11 @@ to distrust the log line, is to compare the claim with the fact: the daemon's la
 lines, then `ls -l /var/run/reboot-required` and `uname -r` against the installed kernels on
 the node itself.
 
-**Today, as of 2026-10-09** (the exporter's gauges, read that morning): 0 findings against the
+
+**As of 2026-10-09** (the exporter's gauges, read that morning): 0 findings against the
 running kernel on all 6 nodes, 898 against retained fallback kernels (structural, never zero),
-1 non-kernel finding, and every node scanned within the last 2.5 hours. The cluster was
-rebuilt (its oldest node is {{ s.cluster.age_days }} days old), so the nine machines of the incident are not the six nodes of today.
+1 non-kernel finding, and every node scanned within the last 2.5 hours. Those nodes no longer
+exist.
 
 > A vulnerability is closed when the fixed code is **executing**, not when the package is
 > installed. Those are different measurements and only one of them is the control.
@@ -405,99 +536,46 @@ rebuilt (its oldest node is {{ s.cluster.age_days }} days old), so the nine mach
 The [reliability page](reliability.md) carries the full incident and the procedural change it
 forced.
 
----
-
-## 8. From finding to tracked work, without a human retyping either side
+### 8.6 From finding to tracked work, without a human retyping either side (history)
 
 Every prior section answers *is something wrong*. None of them answer the next question:
 does anything happen about it, or does it sit in a dashboard nobody opens?
 
-A scheduled agent, the one described on [its own page](aiops.md), is configured to poll both
-vulnerability trackers every 30 minutes and keep a matching set of tickets open in the work
-tracker: a new Critical or High finding opens one, a finding that disappears (a dependency
-bump merged, an image rebuilt, the next scan confirms it is gone) closes it automatically.
-No one retypes a CVE ID into a ticket, and no one remembers to close one either. I could not
-find that agent running in the cluster on 2026-10-09, so I cannot say whether it is polling
-today.
+On the old platform, a scheduled agent, the one described on [its own page](aiops.md), was
+configured to poll both vulnerability trackers every 30 minutes and keep a matching set of
+tickets open in the work tracker: a new Critical or High finding opened one, a finding that
+disappeared closed it automatically. I could not find that agent running in the cluster on
+2026-10-09, so I cannot say it was polling. **None of this exists on the new platform.**
 
 **The interesting decision was how the two systems talk, not that they do.** The
-straightforward design has the tracker push a webhook when a ticket closes — and the house
+straightforward design has the tracker push a webhook when a ticket closes, and the house
 is behind carrier-grade NAT with no inbound path from the internet, the same constraint that
-shapes [the delivery chain](platform.md). A push-based design would have been a dead end
-before it started. Polling *outward* from inside the house needs nothing open to the
-internet in either direction, which turned the constraint that blocks the obvious design into
-the reason the actual one is simpler.
+shapes [the delivery chain](platform.md). Polling *outward* from inside the house needs nothing
+open to the internet in either direction. **That pull principle is now the cluster's own**: the
+reconciler pulls from git, nothing pushes in.
 
 Scope was chosen deliberately, not exhaustively. The embedded image's firmware findings and
-the first-party applications' dependency findings are tracked: **166 open tickets** across
-both when last counted. That count is undated and the tickets are not readable from the
-cluster, so treat it as history, not a gauge. The far larger pool of third-party platform-image findings is not: an automated
-dependency bumper is already the fixer there, and a human triaging a four-figure ticket count
-for CVEs they cannot act on faster than that bumper would be manufactured work, not caught
-work.
+the first-party applications' dependency findings were tracked: **166 open tickets** when last
+counted (undated; history, not a gauge). The far larger pool of third-party platform-image
+findings was not: an automated dependency bumper was already the fixer there.
 
 > The first live run mis-set a filter and tracked *every* severity instead of two. Ninety-eight
 > low-and-medium tickets existed for about an hour before the fix landed and they were closed in
 > bulk. Caught by reading the actual count against the expected one, not by the run reporting
-> success — which it did, the whole time.
+> success, which it did, the whole time.
 
----
+### 8.7 Chaos, and a safety controller that has teeth (history)
 
-## 9. Chaos, and a safety controller that has teeth
-
-Faults are injected on a schedule, against a real target chosen for being *genuinely*
-unreliable rather than synthetically degraded. A safety controller halts injection when the
-system is not in steady state, and escalates when an injected fault does not self-heal
+Faults were injected on a schedule, against a real target chosen for being *genuinely*
+unreliable rather than synthetically degraded. A safety controller halted injection when the
+system was not in steady state, and escalated when an injected fault did not self-heal
 inside its recovery budget.
 
-The controller was itself the source of the best lesson on this platform: it had never been
+The controller was itself the source of the best lesson on that platform: it had never been
 deployed to the machine whose only job was to hold it. Arming it would have been a no-op
-that reported success. **"Armed" and "has fired" are different claims** — the field that
-distinguishes them is *when did this last run*, and it was on no dashboard.
-
----
-
-## 10. What this does not do
-
-Stated plainly, because a control you misunderstand is worse than one you lack:
-
-- **A scanner match is a hypothesis, not a vulnerability.** Reachability is not proven by
-  any of the above.
-- **Runtime behaviour is not monitored** for exploitation; this is build- and
-  inventory-time analysis plus network-level exposure control.
-- **The pull-request gate is narrower than a green check suggests.** Only *critical*
-  severity with an available fix fails the job; high, medium and low are report-only, and
-  the dependency-level scan runs nightly rather than per pull request. A change introducing
-  a vulnerable dependency merges clean and surfaces afterwards. That is a deliberate
-  throughput trade-off, and it is tracked as an open gap rather than presented as coverage.
-  CodeQL and the API contract tests do not block at all (§1).
-- **Secrets are encrypted in git but not rotated, and not encrypted at rest.** There is
-  still no vault or external secrets operator, by choice: since 2026-10-25 every Secret in the
-  manifests is encrypted with SOPS and age, and a check fails any new plaintext one. That closes
-  the class of placeholder-credential defects that came from secrets in plain text in git. It
-  does not close the old values, which stay in git history until rotated (open, and the
-  object-store root credential comes first because it is also the backup credential in three
-  namespaces), and inside the cluster the Secrets are ordinary Kubernetes Secrets with
-  encryption at rest switched off (read back 2026-10-27).
-- **The deploy path has no cloud fallback.** Every CI and deploy job runs on a self-hosted
-  runner inside the LAN, because nothing in the cloud can reach the cluster behind a
-  carrier-grade NAT boundary, and GitHub-hosted runners have been refused since an Actions
-  billing block. Fifteen runner instances are registered on four machines (read 2026-10-27): four builders
-  and three release-gate instances on one Mac, and eight Linux instances on three machines, one of
-  which is a desktop that is powered off when idle and woken on demand (offline when I read it). One Mac still runs every deploy.
-- **Nothing is enforced at admission.** Signatures are verified in CI and by a cluster check
-  ({{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} running first-party images verify, as of {{ asof }}), but no policy engine refuses an
-  unsigned image, and across the cluster's {{ s.cluster.namespaces }} namespaces there are no
-  NetworkPolicies and one Pod Security label (2026-10-09 audit; read again on 2026-10-27: still none, and still one namespace of twenty-two labelled). The mirrored and
-  third-party images are not signed by this pipeline at all. GitHub-native code scanning,
-  dependency alerts and secret scanning are off on the platform repository.
-- **Satellite repositories bypass the release policy gate**, by design of the small
-  contract. Their own CI is the only thing between a commit and a rollout — and
-  [the contract does not require them to have one](platform.md).
-- **Closing a tracked finding does not verify a fix.** It records that a human decided to
-  stop tracking it — a real remediation, or a judgement call. The tracker takes that
-  decision on trust; nothing re-scans to confirm the underlying issue is actually gone
-  before honouring it.
+that reported success. **"Armed" and "has fired" are different claims**: the field that
+distinguishes them is *when did this last run*, and it was on no dashboard. No chaos
+injection runs on the new platform on 2026-11-11.
 
 ---
 

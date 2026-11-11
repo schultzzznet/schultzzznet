@@ -27,7 +27,24 @@ MAX_AGE_DAYS = 45          # a summary older than this has not been re-checked; 
 MAX_BODY_AGE_DAYS = 60     # the body is longer than the summary, so it is allowed to go longer between full reads
 RECENT_MAX_AGE_DAYS = 45
 MIN_ITEMS, MAX_ITEMS, MAX_ITEM_CHARS = 3, 6, 420
-DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_DATE_SHAPE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+class _Date:
+    """DATE.match(s) is true only for a real calendar day: 2026-13-45 has the shape of a date and used to crash the check."""
+
+    @staticmethod
+    def match(s):
+        if not isinstance(s, str) or not _DATE_SHAPE.match(s):
+            return None
+        try:
+            dt.date.fromisoformat(s)
+        except ValueError:
+            return None
+        return True
+
+
+DATE = _Date()
 
 
 def front_matter(text):
@@ -115,8 +132,15 @@ def check_recently(docs, today, problems):
     if not os.path.exists(path):
         problems.append("docs/_data/recently.yml is missing (the landing page's dated list of what changed)")
         return
-    entries, cur = [], None
+    entries, cur, folding = [], None, None
     for raw in open(path, encoding="utf-8").read().split("\n"):
+        if folding is not None:
+            # a folded or literal block (`text: >-`): indented lines belong to the value
+            if raw.startswith("    ") or not raw.strip():
+                folding.append(raw.strip())
+                continue
+            cur[folding_key] = " ".join(x for x in folding if x)
+            folding = None
         if raw.startswith("#") or not raw.strip():
             continue
         m = re.match(r"^-\s*date:\s*(\S+)\s*$", raw)
@@ -126,7 +150,14 @@ def check_recently(docs, today, problems):
             continue
         m = re.match(r"^\s+(text|link):\s*(.*)$", raw)
         if m and cur is not None:
-            cur[m.group(1)] = m.group(2).strip().strip("\"'")
+            val = m.group(2).strip()
+            if val in (">-", ">", "|", "|-"):
+                folding, folding_key = [], m.group(1)
+            else:
+                cur[m.group(1)] = val.strip("\"'")
+    if folding is not None:
+        cur[folding_key] = " ".join(x for x in folding if x)
+    # The cap is enforced, not a comment: the landing page lists recent things, not all things.
     if not (3 <= len(entries) <= 12):
         problems.append(f"recently.yml: expected 3 to 12 entries, found {len(entries)}")
     dates = []

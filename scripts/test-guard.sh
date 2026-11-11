@@ -23,12 +23,14 @@ plant() { # <text>   appended to an existing, already-listed page, so only the c
   printf '%s\n' "$1" >> "$tmp/site/docs/lessons.md"
 }
 
-must_fail() { # <label> <rule that must be the one to fire>
+last_out=""
+must_fail() { # <label> <rule that must be the one to fire>   (the output is kept in last_out for further checks)
   local out
   if out=$(cd "$tmp/site" && "$guard" 2>&1); then
     echo "FAIL: the guard PASSED with a planted fault: $1"
     exit 1
   fi
+  last_out="$out"
   if [[ "$out" != *"FAIL: $2"* ]]; then
     echo "FAIL: the guard refused '$1' but not by the rule '$2':"
     printf '%s\n' "$out"
@@ -74,6 +76,34 @@ plant 'the databases run PostgreSQL 18 and the cluster has Ceph replica-3'
 must_pass "major versions and non-version numbers"
 
 scratch
+plant 'GitOps by Flux 2.4.1 with Kyverno 1.12 and cert-manager 1.15'
+must_fail "Flux, Kyverno and cert-manager versions" "infrastructure software versions"
+
+scratch
+plant 'the host layer is rehearsed on Lima 1.0.2 and secrets use SOPS 3.9'
+must_fail "Lima and SOPS versions" "infrastructure software versions"
+
+scratch
+plant 'Cilium 1.16, Postgres 16.4, Docker 27.3, Podman 5.2, RAUC 1.12'
+must_fail "network, database and container software versions" "infrastructure software versions"
+
+scratch
+plant 'we use Flux, Kyverno and Lima, and the data is 3 years old, at age 12'
+must_pass "tool names with no version, and ordinary numbers"
+
+scratch
+plant 'see the Schultz Cluster repo'
+must_fail "platform repo name with a space" "private platform repo name in published files"
+
+scratch
+plant 'see schultz-cluster and SchultzCluster'
+must_fail "platform repo name hyphenated and without the article" "private platform repo name in published files"
+
+scratch
+plant 'a cluster of six nodes, Schultz said'
+must_pass "the word cluster alone, and a surname"
+
+scratch
 plant 'key lives in infra/.credentials/cosign.key'
 must_fail "credential path" "credential paths"
 
@@ -87,42 +117,63 @@ must_fail "page missing from the nav" "docs/printing.md is not in docs/_data/nav
 
 # --- the fast reader's block: on every page, and not allowed to go stale ---
 # Each case damages one page's front matter (or the landing page's "Recently" list) in the scratch copy and must be
-# refused BY the summary rule, so a fault cannot hide behind another check failing at the same time.
-summary_fault() { # <label> <file under docs/> <python that edits the text held in t, using re>
+# refused BY the summary rule, so a fault cannot hide behind another check failing at the same time. A case may also name
+# the message the refusal must carry, and a fault that changes nothing stops the suite: a vacuous case proves nothing.
+summary_fault() { # <label> <file under docs/> <python that edits the text held in t, using re and dt> [message the refusal must carry]
   scratch
   (cd "$tmp/site" && python3 - "docs/$2" "$3" <<'PY'
-import re, sys
+import datetime as dt, re, sys
 path, code = sys.argv[1], sys.argv[2]
 t = open(path).read()
-env = {"t": t, "re": re}
+env = {"t": t, "re": re, "dt": dt}
 exec(code, env)
+if env["t"] == t:
+    sys.exit("test-guard: the planted fault changed nothing in " + path + ": " + code)
 open(path, "w").write(env["t"])
 PY
   )
   must_fail "$1" "every page has a fresh In short block"
+  if [ -n "${4:-}" ] && [[ "$last_out" != *"$4"* ]]; then
+    echo "FAIL: '$1' was refused, but the summary check did not say: $4"
+    printf '%s\n' "$last_out"
+    exit 1
+  fi
 }
 summary_fault "a page with no summary" lessons.md \
-  't = re.sub(r"summary:\n(?:  - .*\n)+", "", t, count=1)'
+  't = re.sub(r"summary:\n(?:  - .*\n)+", "", t, count=1)' "must be a list of"
 summary_fault "a page that does not include the block" lessons.md \
-  't = t.replace("{% include in-short.html %}", "")'
+  't = t.replace("{% include in-short.html %}", "")' "does not include the block"
 summary_fault "a summary reread date long past" lessons.md \
-  't = re.sub(r"^reread: .*$", "reread: 2020-01-01", t, count=1, flags=re.M)'
+  't = re.sub(r"^reread: .*$", "reread: 2020-01-01", t, count=1, flags=re.M)' "days old"
 summary_fault "a summary reread date in the future" lessons.md \
-  't = re.sub(r"^reread: .*$", "reread: 2099-01-01", t, count=1, flags=re.M)'
+  't = re.sub(r"^reread: .*$", "reread: 2099-01-01", t, count=1, flags=re.M)' "in the future"
 summary_fault "a body_read date older than the limit" choices.md \
-  't = re.sub(r"^body_read: .*$", "body_read: 2020-01-01", t, count=1, flags=re.M)'
+  't = re.sub(r"^body_read: .*$", "body_read: 2020-01-01", t, count=1, flags=re.M)' "body_read 2020-01-01 is"
+# body_read later than reread: reread moves to the day BEFORE body_read, so the case holds whatever dates the page carries.
 summary_fault "a body_read date later than the summary's" choices.md \
-  't = re.sub(r"^body_read: .*$", "body_read: 2026-10-28", t, count=1, flags=re.M)'
+  'b = re.search(r"^body_read: (\S+)$", t, re.M).group(1); r = (dt.date.fromisoformat(b) - dt.timedelta(days=1)).isoformat(); t = re.sub(r"^reread: .*$", "reread: " + r, t, count=1, flags=re.M)' \
+  "is later than reread"
 summary_fault "a summary of seven items" lessons.md \
-  't = t.replace("summary:\n", "summary:\n" + "  - \"padding\"\n" * 4, 1)'
+  't = t.replace("summary:\n", "summary:\n" + "  - \"padding\"\n" * 4, 1)' "must be a list of"
 summary_fault "a summary item that is a wall of text" lessons.md \
-  't = t.replace("summary:\n", "summary:\n  - \"" + "word " * 120 + "\"\n", 1)'
+  't = t.replace("summary:\n", "summary:\n  - \"" + "word " * 120 + "\"\n", 1)' "a summary is short"
 summary_fault "Liquid in a summary" lessons.md \
-  't = t.replace("summary:\n", "summary:\n  - \"{{ site.data.stats.cluster.nodes }} nodes\"\n", 1)'
+  't = t.replace("summary:\n", "summary:\n  - \"{{ site.data.stats.cluster.nodes }} nodes\"\n", 1)' "contains Liquid"
+summary_fault "a Liquid tag in a summary" lessons.md \
+  't = t.replace("summary:\n", "summary:\n  - \"{% if true %}x{% endif %}\"\n", 1)' "contains Liquid"
 summary_fault "a Recently list gone stale" _data/recently.yml \
-  't = re.sub(r"date: \d{4}-\d{2}-\d{2}", "date: 2020-01-01", t)'
+  't = re.sub(r"date: \d{4}-\d{2}-\d{2}", "date: 2020-01-01", t)' "stopped being recent"
+# Out of order: the SECOND date line is made one day newer than the first, whatever dates the list carries. A list with
+# fewer than two entries, or an edit that changes nothing, stops the suite instead of passing vacuously.
 summary_fault "a Recently list out of order" _data/recently.yml \
-  't = t.replace("date: 2026-10-26", "date: 2026-10-28", 1)'
+  'ds = list(re.finditer(r"^- date: (\S+)$", t, re.M)); assert len(ds) >= 2, "recently.yml has fewer than two entries"; bump = (dt.date.fromisoformat(ds[0].group(1)) + dt.timedelta(days=1)).isoformat(); t = t[:ds[1].start(1)] + bump + t[ds[1].end(1):]' \
+  "newest first"
+# The cap of 12 entries is enforced in check-summaries.py: the first entry is copied in front of the list until there are 13.
+summary_fault "a Recently list of thirteen entries" _data/recently.yml \
+  'blocks = re.split(r"(?m)^(?=- date:)", t); head, entries = blocks[0], blocks[1:]; t = head + entries[0] * max(1, 13 - len(entries)) + "".join(entries)' \
+  "expected 3 to 12 entries"
+summary_fault "a Recently entry with a malformed date" _data/recently.yml \
+  't = re.sub(r"^- date: \S+$", "- date: 2026-13-45", t, count=1, flags=re.M)' "bad date"
 echo "  pass  the In short check refused every planted fault"
 
 # --- the machine-generated stats page: freshness, completeness, and the newer leak shapes ---
@@ -321,6 +372,151 @@ must_fail "10.x address outside 10.0-10.9 and 10.40-10.49" "private LAN addresse
 scratch
 plant 'the node at 10.123.0.1'
 must_fail "10.123 address" "private LAN addresses"
+
+# --- the stats schema changes: values of an accepted kind, and no page may name a key that is gone ---
+# The key every case below edits is cluster.nodes_ready; it must stay in stats.yml, stats_methods.yml and the README table.
+set_nodes_ready() { # <raw YAML value>   rewrites the value of cluster.nodes_ready in the scratch stats.yml
+  python3 - "$tmp/site/docs/_data/stats.yml" "$1" <<'PY'
+import re, sys
+path, val = sys.argv[1], sys.argv[2]
+t = open(path).read()
+new, n = re.subn(r"(?m)^  nodes_ready:.*$", "  nodes_ready: " + val, t, count=1)
+if n != 1:
+    sys.exit("test-guard: cluster.nodes_ready is not in stats.yml: the cases that edit it need it")
+open(path, "w").write(new)
+PY
+}
+values_rule="stats values are of an accepted kind"
+refs_rule="no page references a stats key that does not exist"
+
+scratch
+set_nodes_ready '"about six"'
+must_fail "a stats value that is text where a number is expected" "$values_rule"
+[[ "$last_out" == *"string where a number"* ]] || { echo "FAIL: the refusal did not name the text value"; printf '%s\n' "$last_out"; exit 1; }
+
+scratch
+python3 - "$tmp/site/docs/_data/stats.yml" <<'PY'
+import re, sys
+p = sys.argv[1]
+t = open(p).read()
+new, n = re.subn(r"(?m)^  alert_rules:.*$", "  alert_rules: 42", t, count=1)
+if n != 1:
+    sys.exit("test-guard: observability.alert_rules is not in stats.yml")
+open(p, "w").write(new)
+PY
+must_fail "a number in a monitoring figure while monitoring is not live" "$values_rule"
+
+scratch
+set_nodes_ready '"6"'
+must_fail "a number written as a quoted string" "$values_rule"
+
+scratch
+set_nodes_ready '-3'
+must_fail "a negative stats value" "$values_rule"
+
+scratch
+set_nodes_ready '"2026-13-45"'
+must_fail "a malformed date in stats.yml (month 13)" "$values_rule"
+
+scratch
+set_nodes_ready '"2026-1-5"'
+must_fail "a malformed date in stats.yml (not zero padded)" "$values_rule"
+
+scratch
+set_nodes_ready '2026-11-10'
+must_fail "an unquoted date in stats.yml" "$values_rule"
+
+scratch
+set_nodes_ready '"not measured yet"'
+must_pass "a stat whose value is the exact string 'not measured yet'"
+
+scratch
+set_nodes_ready '"2026-11-10"'
+must_pass "a stat whose value is a quoted real date"
+
+scratch
+set_nodes_ready '"Not Measured Yet"'
+must_fail "'not measured yet' in another spelling (the string is exact)" "$values_rule"
+
+# A missing key renders as empty text in Jekyll and the build stays green; check-stats-refs.py is what turns it red.
+scratch
+plant 'The cluster has {{ site.data.stats.cluster.no_such_key }} nodes.'
+must_fail "a Liquid reference to a key that is not in stats.yml" "$refs_rule"
+[[ "$last_out" == *"docs/lessons.md:"* ]] || { echo "FAIL: the refusal did not carry file:line"; printf '%s\n' "$last_out"; exit 1; }
+
+scratch
+plant '{% assign zz = site.data.stats.cluster %}Nodes: {{ zz.no_such_key }}'
+must_fail "a reference to a missing key through an alias" "$refs_rule"
+
+scratch
+plant '{% assign top = site.data.stats %}{% assign grp = top.cluster %}{% assign n = grp.no_such_key | plus: 1 %}'
+must_fail "a reference to a missing key through a chain of aliases" "$refs_rule"
+
+scratch
+plant '{{ site.data.stats.no_such_group.nodes }}'
+must_fail "a reference to a group that is not in stats.yml" "$refs_rule"
+
+scratch
+printf '%s\n' '{{ site.data.stats.cluster.no_such_key }}' >> "$tmp/site/README.md"
+must_fail "a reference to a missing key in the README" "$refs_rule"
+
+scratch
+sed -i.bak '/^  nodes_ready:/d' "$tmp/site/docs/_data/stats.yml"
+plant '{{ site.data.stats.cluster.nodes_ready }} nodes are Ready'
+must_fail "a page naming a key that was deleted from stats.yml" "$refs_rule"
+
+scratch
+plant '{% assign zz = site.data.stats.cluster %}{{ zz.nodes_ready }} Ready, {{ page.title }}, {% raw %}{{ site.data.stats.cluster.gone }}{% endraw %}'
+must_pass "references to existing keys, unrelated Liquid, and a key shown inside a raw block"
+
+echo "  ...  the reference checker's own self-test"
+(cd "$tmp/site" && python3 scripts/check-stats-refs.py --self-test >/dev/null) || {
+  echo "FAIL: check-stats-refs.py --self-test failed"; (cd "$tmp/site" && python3 scripts/check-stats-refs.py --self-test); exit 1; }
+echo "  pass  check-stats-refs.py proves it can fail"
+
+# --- machine-name shapes found later, and the current private repository's name ---
+# The repository name is assembled here so this public script does not spell it out either.
+new_repo="the""Schultz""Cluster"
+
+scratch
+plant 'the runner is theubuntuone'
+must_fail "a home CI host name (theubuntu shape)" "fleet hostnames"
+
+scratch
+plant 'the standby is TheUbuntuTwo'
+must_fail "a home CI host name in capitals" "fleet hostnames"
+
+scratch
+plant 'the standby is thedebian3'
+must_fail "a home CI host name (thedebian shape)" "fleet hostnames"
+
+scratch
+plant 'rehearsed on k3s-rehearsal-1'
+must_fail "a rehearsal VM name (k3s-rehearsal shape)" "fleet hostnames"
+
+scratch
+plant 'the Ubuntu hosts and the Debian host rehearse K3s in a VM'
+must_pass "role words that only resemble the machine-name shapes"
+
+scratch
+printf 'repo: %s\n' "$new_repo" > "$tmp/site/docs/_data/planted.yml"
+must_fail "the new private repo name in generated data" "private repo names in generated data"
+
+scratch
+plant "See $new_repo for the platform."
+must_fail "the new private repo name in a page" "private platform repo name in published files"
+
+scratch
+plant "image path registry-example/$(printf '%s' "$new_repo" | tr '[:upper:]' '[:lower:]')/app"
+must_fail "the new private repo name in lower case in an image path" "private platform repo name in published files"
+
+scratch
+printf '%s\n' "See $new_repo." >> "$tmp/site/README.md"
+must_fail "the new private repo name in the README" "private platform repo name in published files"
+
+scratch
+plant 'See theMowerRetrofit and the-docker-swarm-ai for the history.'
+must_pass "the previous platform's repository named in prose, as history"
 
 # --- the README stats block: replaced between the markers, left alone without them ---
 

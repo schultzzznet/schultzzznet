@@ -1,17 +1,44 @@
 ---
 title: Alerting and monitoring — two models, one human
-reread: 2026-10-30
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
+  - "**Previous platform (retired 2026-11-10):** this page describes the operations agent and alerting loop as measured up to 2026-10-30. No alert is known to reach a person today (open). The new cluster's monitoring was merged on 2026-11-11 and is being applied, but it is not Ready and has never run (open)."
   - "**What it is:** alerts go straight to chat; a small local model on a separate machine answers questions, writes a morning digest and *proposes* fixes; a large cloud model reads the local one's posts once a day and grades them. Nothing either says is executed: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
-  - "**Where the people are:** a click on every action, a monthly graded sample of eight posts, and a guard that goes red after 35 days without one. The cloud model's grades are drafts and cannot satisfy that guard. The first graded sample is due by 2026-11-26."
+  - "**Where the people are:** a click on every action, a monthly graded sample of eight posts, and a guard that goes red after 35 days without one. The cloud model's grades are drafts and cannot satisfy that guard. The first graded sample cannot be produced without alerts to read (2026-11-11)."
   - "**What it may do alone:** two rules, both on-demand database backups, and only if auto-apply is switched on. It is not. Everything else is a proposal."
   - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments are now validated, only approvers count, every executed action is audited, and a quality loop measures what it says."
-  - "**What is still weak:** its log-based proposals (five graded, none good), a small model that is not an engineer, one instance, and an approval channel that is a third-party chat service."
+  - "**Open (2026-11-11):** no alert is known to reach a person (see the banner). Weak when last measured: log-based proposals (five graded, none good), a small model that is not an engineer, one instance."
 ---
 
 # An AI ops agent with a narrow, audited write path
 
 {% include in-short.html %}
+
+> **Previous platform (retired 2026-11-10).** Everything on this page describes the operations agent
+> and its alerting loop **as built and measured on the previous platform, up to 2026-10-30.** The
+> loop depended on that cluster's alert rules, metrics and chat routing. The previous platform was
+> retired on 2026-11-10 and none of those exist on the new one.
+>
+> - **No alert reaches a person from the new cluster** (open, 2026-11-11). Its monitoring (rules,
+>   configuration and 12 unit tests under the real rule tool) was merged into the platform
+>   repository on 2026-11-11 with its secrets encrypted, and the reconciler is applying it. It is
+>   not Ready: its first live run failed on a missing namespace in the node exporter manifests,
+>   and a one-line fix is in review. It has never run.
+> - **The agent process and its local model** ran on the previous platform. They were retired with
+>   it, or are unknown, as of 2026-11-11 (not checked). The new
+>   platform gives them no inputs: the objective for AI in production (eight rules: approval
+>   before change, a closed action list, facts written by code, blind sources reported as unknown,
+>   a monthly graded sample, and so on) has 0 of 8 built as of 2026-11-11.
+> - **No alert is known to reach a person from anywhere today.** A liveness check for the home CI
+>   runner was shown to raise and clear an alert on 2026-11-10 (about three minutes after the
+>   controller was stopped), but it posted to the previous cluster's alert manager, which was torn
+>   down that day. Its target on the new platform is not set (open), and delivery to a phone was
+>   never seen.
+> - **Policy on the new platform:** no agent holds a standing cluster credential. The new
+>   objectives plan this; the rules for it are not built (2026-11-11).
+> - The numbers below are dated measurements (2026-10-26 to 2026-10-29) of the previous platform.
+>   They stay true as such and say nothing about the new one.
 
 {% assign skills = 6 %}{% assign rules = 5 %}{% assign restarts = 3 %}{% assign additive = 2 %}{% assign refused = 16 %}{% assign tests = 690 %}
 {% capture rr %}{{ rules }} mapped, {{ refused }} refused{% endcapture %}
@@ -38,8 +65,8 @@ written against the agent as it stood on 2026-10-09; the section
 
 ## The loop: two models, one human
 
-Alerting is not one thing, and the models are in only part of it. As read from the deploy
-configuration and the host on 2026-10-30:
+Alerting is not one thing, and the models are in only part of it. *Previous platform.* As read
+from the deploy configuration and the host on 2026-10-30:
 
 ```mermaid
 flowchart LR
@@ -76,8 +103,9 @@ flowchart LR
   $0.63 a day.
 - **The people** approve or reject every action (a named approver list; an empty list means
   nobody), thumb posts up or down, and about monthly grade eight random posts. A guard goes
-  red after 35 days without a graded sample. No sample has been graded yet; the first is due by
-  2026-11-26.
+  red after 35 days without a graded sample. No sample had been graded as of 2026-10-30; the
+  first was due by 2026-11-26, and as of 2026-11-11 it cannot be produced, because there are no
+  alerts for the agent to post about.
 
 **What the second reader has shown so far.** Its first run, on 2026-10-28, graded twelve posts
 written before the layout change: it called eleven wrong and one noisy, and seven of the eleven carried
@@ -94,7 +122,8 @@ about 2) after a raw probe showed the packet loss was not everywhere. Measured o
 2026-10-30, the two oldest machines lose about 7 percent of lookups sent to the service address and the
 other four lose under 0.3, while direct queries to the DNS pods from the same two machines are almost
 clean. A kernel upgrade on one of them made no difference (7.9 against 7.3 percent), which retired my
-first theory. Its cause is still open. A memory alert that fired on a figure including the kernel's file
+first theory. Its cause was still open when the platform was torn down. That was measured on the previous
+network and has **not been re-measured** on the new one, (not measured yet, 2026-11-11). A memory alert that fired on a figure including the kernel's file
 cache now compares the process's own memory; that change was applied to the cluster the same day, and the
 daily drift check that had been failing because it was merged but not applied went green. An alert that cries wolf teaches people to ignore the next one, which is the cost
 the quality loop exists to put a number on.
@@ -108,9 +137,11 @@ text; that is a choice I made on 2026-10-27, and it is the reason for the correc
 
 ## It runs outside the cluster, deliberately
 
+*Previous platform (retired 2026-11-10), as last read 2026-10-30.*
+
 > A monitor that dies with the thing it monitors is not a monitor.
 
-The agent does not run as a workload on the cluster it watches. It runs on a separate small
+The agent did not run as a workload on the cluster it watched. It ran on a separate small
 machine, supervised by the host's own service manager, reaching the cluster over the network
 like any other client. When the cluster is unhealthy, which is the only time the agent
 matters, the agent is still up, still has its history, and can still say so.
@@ -127,7 +158,9 @@ manifests.
 
 ---
 
-## What it reads
+## What it read
+
+*Previous platform, up to 2026-10-30. None of these inputs exist on the new cluster (2026-11-11).*
 
 ```mermaid
 flowchart LR
@@ -145,14 +178,14 @@ flowchart LR
   AG --> REP["digest + escalation"]
 ```
 
-Correlation across those sources is the intent: a pod restart is noise; a pod restart *plus*
+Correlation across those sources was the intent: a pod restart is noise; a pod restart *plus*
 a node's disk latency climbing *plus* a recent merged change is a hypothesis worth a human's
-attention. Whether the local model actually does that well is a claim I have not measured.
+attention. Whether the local model actually did that well is a claim I never measured.
 
-Two things I had listed here and have taken out as of 2026-10-09. Vulnerability findings are
-synced to a ticket tracker and announced in chat, but nothing in the code feeds them into the
-correlation. The cluster's API audit trail is in the log store, but I found no agent code
-that queries it. Specialist collectors feed the rest, and the job is a short list, not a
+Two things I had listed here and took out as of 2026-10-09. Vulnerability findings were
+synced to a ticket tracker and announced in chat, but nothing in the code fed them into the
+correlation. The cluster's API audit trail was in the log store, but I found no agent code
+that queried it. Specialist collectors fed the rest, and the job was a short list, not a
 longer dashboard.
 
 ---
@@ -181,7 +214,9 @@ however additive the request looks. An approval that nobody clicks expires after
 
 ### Alert path
 
-A firing alert triggers a lookup, and the model is not in this loop at all. A small,
+*Previous platform, as last read 2026-10-30.*
+
+A firing alert triggered a lookup, and the model was not in this loop at all. A small,
 hand-written table maps specific alerts to one of the same {{ skills }} skills. An alert is
 untrusted input, and routing it through an LLM before acting would add exactly the
 prompt-injection surface the rest of this design exists to avoid. A lookup is deterministic,
@@ -291,7 +326,9 @@ action.
 
 ## The chaos safety controller, and fail-closed as a default
 
-Scheduled fault injection runs against a staging target on the platform: call it the
+*Previous platform, as last read 2026-10-30. None of this runs on the new cluster (2026-11-11).*
+
+Scheduled fault injection ran against a staging target on the platform: call it the
 resident **provocateur**. Its entire job is manufacturing exactly the kind of trouble
 everything else on this site is built to survive. The controller that guards it is the part
 worth copying.
@@ -313,9 +350,9 @@ not self-healed inside its recovery budget (five minutes by default) escalates l
 the correct framing: the alarming thing is not the fault, it is that **the automatic
 recovery loop is not recovering.**
 
-There are two schedules, a pod kill and a packet-loss fault, each hourly on weekdays in the
-daytime, and the controller pauses and re-arms each one as the steady-state check changes. As of
-2026-10-27 both are paused, and they last fired on 2026-10-13: the gate vetoes on any
+*Previous platform: the schedules and the fault-injection tooling were removed with the previous cluster on 2026-11-10. The design lesson below, fail-closed, is what stays.* There were two schedules, a pod kill and a packet-loss fault, each hourly on weekdays in the
+daytime, and the controller paused and re-armed each one as the steady-state check changed. As of
+2026-10-27 both were paused, and they last fired on 2026-10-13: the gate vetoes on any
 warning-level alert, and two have been firing since the previous morning. That is the controller
 doing what it is for, and a reason to read "armed" as a reading of one moment. The ten days before
 that, and the two latches that caused them, are on
@@ -454,11 +491,13 @@ that is explicitly not a grade of correctness.
 
 **What this does not show.** It shows the agent's *output* is now measured and its *input path* is
 safer. It does not show the model reasons well about incidents, which remains the claim this page
-has never made. The loop's first review is due by 2026-11-26.
+has never made. The loop's first review was due by 2026-11-26; as of 2026-11-11 it cannot happen, because there are no alerts for the agent to read.
 
 ---
 
 ## Honest limits
+
+*Written for the previous platform, as last read 2026-10-30; the first two apply only if the agent is brought back. The last bullet describes the setup as it was: the approval channel is not checked on 2026-11-11.*
 
 - **It is one instance.** Losing it degrades autonomy, not availability, which is why it is
   ranked below the storage and registry gaps rather than above them.
@@ -477,6 +516,8 @@ has never made. The loop's first review is due by 2026-11-26.
 ---
 
 ## Read next
+
+The delivery pages linked here also describe the previous platform unless they say otherwise.
 
 - **[High availability, audited](reliability.md)**: the single-fault inventory and the drain
   that removed its own control surface.

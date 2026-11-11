@@ -1,27 +1,33 @@
 ---
 title: What I'd do differently
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
   - "**What it is:** the list of things that were wrong on the way, several still visible in the system. The rule for an entry is that it cost something and the cost can be described: regret without a number attached is just modesty."
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
-  - "**New on 27 October:** lesson 13, what four outside reviews in fourteen days found, with the caveat that the reviewer is an AI model of the same family that helps build the estate, so the dates matter more than the grades."
+  - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. Old-platform figures stay under dated labels; the new platform was about 14 hours old on 2026-11-11 and nothing here claims uptime."
+  - "**New on 11 November:** sequels to lessons 3, 5, 8 and 13, and a new lesson 14 on the first night of the new platform. Reviewers are AI models of the same family that helps build the estate, so the dates matter more than the grades."
 ---
 
 # What I'd do differently
 
 {% include in-short.html %}
 
-{% assign s = site.data.stats %}
-![decisions](https://img.shields.io/badge/decision%20records-{{ s.repo.adrs }}-1A5276)
+![decisions](https://img.shields.io/badge/decision%20records-41%20in%20the%20old%20repository%2C%208%20in%20the%20new%20one-1A5276)
 ![reversed](https://img.shields.io/badge/reversed%20on%20evidence-9-orange)
-![nodes](https://img.shields.io/badge/nodes%20now-{{ s.cluster.nodes }}-326CE5)
+![nodes](https://img.shields.io/badge/nodes%20now-6%20as%20of%202026--11--11-326CE5)
 
 Every other page here describes something that works. This one is the list of things that
 were wrong on the way, several of which are still visible in the system today. It is the
 page I would want to read about someone else's platform, and the one most projects don't
 write — a "what we learned" section that names no mistakes is marketing.
+
+*Update, 2026-11-11: the platform described below was retired on 2026-11-10 and rebuilt as a
+new cluster on the same six machines. Lessons 1 to 13 are dated history of the previous
+platform and are left as written, apart from labelled notes. The sequels and lesson 14 describe
+the new platform, each with a date and a status word (proven, built-not-proven, planned, open).
+The cluster was about 14 hours old at 06:50 on 2026-11-11; nothing here implies it has run for long.*
 
 *Retraction, 2026-10-09: this page used to carry a badge saying the cluster had been fully
 rebuilt twice. I cannot back that number: the git history suggests more than two such
@@ -35,8 +41,9 @@ be describable. Regret without a number attached is just modesty.
 
 ## 1. Starting on the wrong orchestrator — and why I'd do it again
 
-The platform's repository is still called `the-docker-swarm-ai`. It has run Kubernetes for
-most of its life. That name is a fossil of the first real architectural decision, and the
+The previous platform's repository is still called `the-docker-swarm-ai`. It ran Kubernetes
+for most of its life. (Since 2026-11-10 the platform lives in another repository and this one
+is the record.) That name is a fossil of the first real architectural decision, and the
 wrong one.
 
 **What happened:** the whole estate was built on Docker Swarm first. Swarm is genuinely
@@ -89,7 +96,7 @@ was overdue.
 > A node you keep because it exists is not free. It costs a slot in every loop that iterates
 > over the fleet, forever.
 
-### Update: this one got acted on — the cluster is now {{ s.cluster.nodes }}
+### Update: this one got acted on — the cluster was brought down to six
 
 **Both machines are out.** The paragraphs above were written while they were still running,
 and are left exactly as they were so the prediction can be checked against the outcome
@@ -119,8 +126,8 @@ was fictional, and it survived months of being written down as real.**
 **Second update, 2026-09-04 — the number moved again, past where the lesson said to stop.**
 The advice above was "stop at seven". The fleet did not: a faster machine joined as a third
 control-plane member, and both all-in-ones were then retired behind it, leaving **six**
-({{ s.cluster.nodes }} nodes, {{ s.cluster.control_plane }} of them control-plane, as of
-{{ s.generated_at | date: "%Y-%m-%d" }}). So it
+(six nodes, three of them control-plane, as of 2026-09-04; the new cluster since 2026-11-10 has
+the same shape, 6 nodes with 3 control-plane, kubectl, 2026-11-11). So it
 landed one below the recommendation, by a route the lesson never considered — *replacing*
 capacity rather than only removing it. Worth saying plainly, because the tidy version of this
 story would be "the lesson said seven and we got seven". The count was never the point. "I
@@ -136,6 +143,14 @@ held all four times.
 
 ## 3. Storage: right call, wrong sequencing
 
+**Stated gap, 2026-11-10 (status: deferred, not built; the database restore of lesson 14 shows
+backup and restore through the object store, not storage durability).** The new platform runs with
+the single-node provisioner as its **only** storage class (one class, kubectl, 2026-11-11). That is
+the opposite of the "pattern worth stealing" below. It is a stated, deferred gap, not a reversed
+decision: replicated block storage is the planned fix and is not built. Replication is left to the
+database layer, and it is recorded as straining the recover objective, because a lost machine
+takes its volumes with it. What follows is the previous platform's lesson, kept as written.
+
 Replicated block storage (three nodes at the time) was the correct decision and I would make it
 again. The **sequencing** was wrong.
 
@@ -147,7 +162,7 @@ the ambiguous half-state this platform is otherwise built to avoid.
 **The fix that mattered** was not the migration itself but making the wrong thing impossible
 afterwards: the single-node storage provisioner is now **switched off entirely**, so an
 unqualified volume claim fails loudly instead of silently pinning itself to one machine's
-disk. That is the pattern worth stealing — *remove the unsafe default rather than
+disk. That was the pattern worth stealing on the previous platform — *remove the unsafe default rather than
 documenting it.*
 
 **What I'd do differently:** storage first, before anything stateful. It is the one layer
@@ -176,13 +191,14 @@ of a node loss.
 > actually have is `hosts − replicas`, and at zero the system is serving, not healing.
 
 **Note, 2026-10-09:** the section above went stale when a fourth host joined in early
-September, and I did not come back to it. Checked this morning with `ceph osd tree`, read-only: four
-hosts and {{ s.storage.osds }} OSDs, with {{ s.storage.replica_size }}-way replication, so a
-lost host now has somewhere to re-replicate to. That is the arithmetic. Whether it *does* is
-a separate claim: storage health reads `{{ s.storage.health }}` with
-{{ s.storage.health_warnings }} warnings as of {{ s.generated_at | date: "%Y-%m-%d" }}, and I
-have not drilled a node loss since the fourth host arrived, so "self-heals" is still
-unasserted here.
+September, and I did not come back to it. Previous platform, typed by hand because that storage no longer exists:
+checked on 2026-10-09 with `ceph osd tree`, read-only, four
+hosts and four OSDs, with three-way replication, so a
+lost host had somewhere to re-replicate to. That is the arithmetic. Whether it *did* is
+a separate claim: storage health read `warn` with
+four warnings on 2026-10-27, and I
+had not drilled a node loss since the fourth host arrived, so "self-heals" was never
+asserted here. That storage was retired on 2026-11-10 together with the question.
 
 ---
 
@@ -206,10 +222,22 @@ it recurs. Every one of these was deployed, green, and doing nothing:
 
 **What I'd do differently:** treat "deployed" and "observed to have acted" as two different
 states in the tracker from the very first automation, not as a lesson learned seven times
-(and more since: see sections 9 to 11).
+(and more since: see sections 9 to 11 and the sequel below).
 Every scheduled thing should ship with a `last-fired` signal *and* an alert on its absence —
 and the alert on absence has to be written **before** the thing is called done, because
 afterwards there is never a reason to go back and add it.
+
+**Sequel, 2026-11-10 (proven, all three happened on the first day of the new platform).**
+The habit came back in new clothes.
+
+- The host layer's own first health check expected HTTP 200 from the cluster API. The API
+  correctly answers 401 to an anonymous caller. The check was wrong, not the cluster, and it
+  failed the first run until the expectation was fixed.
+- A tenant quota I patched by hand to let a database start was reverted by the reconciler that
+  owns it, minutes later. The hand patch was a claim about desired state that the system did
+  not share. The figure belongs in the repository, not in the cluster.
+- The default-deny network probe was recorded as a FAIL, and left as a FAIL (lesson 14, story 4).
+  A red result written down is the opposite of a green line that asked nothing.
 
 ---
 
@@ -265,7 +293,17 @@ Shorter list, and the reason the rest was survivable:
   more than once (see the retraction at the top about the count). That is only tolerable because it is an afternoon, and it is an afternoon because
   everything is a derivative of a git repository. **Being wrong stopped being expensive**,
   which is what made it possible to be wrong usefully.
-- **Writing down decisions with their alternatives.** {{ s.repo.adrs }} decision records as of {{ s.generated_at | date: "%Y-%m-%d" }}, several of
+  **Twice proven, 2026-11-10:** the old cluster was taken down in stages (a pause with a base
+  backup of every database, a drain, storage down, uninstall) with no failed task (the stage 2 drain timed out on four app pods and the node objects were
+  deleted anyway), and the new
+  cluster came up on the same six machines the same day. From the first merge to the fix that let it converge
+  took about 4.5 hours, read from merge times rather than a stopwatch, with a person at the
+  keyboard throughout. The limits matter as much as the number: it was a playbook run in order
+  with a person watching, nothing was restored automatically, and **a wipe is not a migration**.
+  The eight old restore drills were waived, and 0 of 257 old alerts, 0 of 74 mechanisms and 0 of
+  16 power-off proofs carried over. The cutover gate is not passed.
+- **Writing down decisions with their alternatives.** 41 decision records in the old repository
+  (2026-10-27), 8 in the new one (as of 2026-11-11), several of the old ones
   which have been reversed *by referring back to them* — including one that corrected a
   claim about why an earlier decision had been made, which turned out to be unsupported by
   the record it cited.
@@ -276,8 +314,7 @@ Shorter list, and the reason the rest was survivable:
 - **Pruning the backlog on purpose.** Thirty-four of fifty-nine open items were closed in one
   pass — some done, some obsolete, and nine as **won't-do**, each with a reason. Deciding
   what will never be done is the judgement call that keeps a register from becoming a guilt
-  pile. (Frozen history. Open items now: {{ s.repo.gaps_open }}, as of
-  {{ s.generated_at | date: "%Y-%m-%d" }}.)
+  pile. (Frozen history of the previous platform; its open-item register was retired with it.)
 
 ---
 
@@ -328,7 +365,7 @@ confident claims, none checked against what the system had actually recorded.
 
 The report was "old devices time out very, very fast". The natural suspect was the identity
 provider's timeouts, so I read its settings and made them explicit (an hour for the access
-token, thirty days idle for the offline refresh token, declared as code since 2026-10-09). That was worth
+token, thirty days idle for the offline refresh token, declared as code since 2026-10-09 by the old platform's playbook, which was retired on 2026-11-10). That was worth
 doing, and it was a diagnosis of the server, from the server's side. It was not the cause.
 
 The apps ended a session on **any** failure while refreshing a token. A dropped connection,
@@ -358,7 +395,7 @@ has had a user of its own since 2026-10-09.
 
 ## 13. What outside reviews found
 
-*Added 2026-10-27. Four reviews in fourteen days, each dated, each with a worklist.*
+*Added 2026-10-27, extended 2026-11-11. Four reviews in fourteen days in October and two more in November, each dated, each with a worklist.*
 
 The site's thesis is that naming mistakes in public is the point, and until now it named only the
 ones I found myself. In October the estate was reviewed from the outside four times, by an AI model
@@ -378,6 +415,12 @@ recorded beside the original rather than edited into it.
 | **How someone could get in**, 22 October | No direct path from the internet to cluster-admin was found; **the inside is soft**: what a foothold becomes is worse than how one is gained. | Key-only SSH on the nodes, proven by a fresh login (22 October); a generated Grafana password in place of a committed default; test passwords out of command lines. The rest is tracked privately and deliberately not itemised here until it is fixed. |
 | **The AI in the cluster**, 26 October | The summaries were inflated and one data source had been blind for fourteen days without a mention; a model-supplied name reached a root command. | The agent was hardened and put under measurement the same day: [the account is here](aiops.html#the-agent-since-2026-10-26). |
 | **This site**, 27 October | Clarity 4, completeness 3, fast-reader accessibility 2: no page had a summary, and five statements had turned stale in the pessimistic direction. | An *In short* block on every page, enforced by the build; a dated *Recently* list; this lesson; and the corrections on the [estate page](index.html#corrections-2026-10-27). |
+| **The old platform's carry-over**, 8 November | 188 findings, 21 of them high, about what the previous platform's habits, claims and mechanisms should or should not follow into the new one. | By 2026-11-10, 17 of the 21 high findings were closed, 3 open and 1 in review. 116 of the 188 findings were still open or in review that day. The review is private; this is its dated summary. |
+| **"The move, six days in"**, 10 November | The old cluster was healthy but unattended: its daily guards were red every day from 2026-11-02 to 2026-11-09. 76 of 77 commits went in through pull requests. The kind-cluster gate over its last 30 runs: 22 green, 5 red, 3 cancelled. The quarterly OKR page was still a draft with no start date. | The findings are open work, not fixed work, on 2026-11-11. Private review, cited by date only. |
+
+Six reviews, then, not four, and the two newest are the first about the move rather than the
+estate: they found the habits of the old platform going stale unattended, and a young platform
+with gates not yet passed.
 
 **What I would carry from it.** First, the best finding of the lot was not a vulnerability: the
 habit this site is built on, *assert the property, do not trust the report*, was applied to the
@@ -386,6 +429,60 @@ that did not survive were. The front door was the least-checked part. Second, a 
 estate that moves faster than its documents goes stale the day it is filed: the 14 October review's
 top finding, the repository's README contradicting this site, had been fixed by the 21st. The
 number to quote is therefore never the grade; it is the date.
+
+---
+
+## 14. What the first night of the new platform taught
+
+*Added 2026-11-11, about 14 hours after the new cluster came up. Dated 2026-11-10 and 2026-11-11.
+Each story has a status word. These are first-night facts, not a track record.*
+
+**1. A secrets apply that waited for itself (fixed, proven 2026-11-10).** One shared unit held
+the app namespace and the login service's secrets. The app namespace waited for the login
+service, which waited for its admin secret, which sat in the same failing apply. A deadlock
+with no error, only waiting. The fix was one unit per namespace.
+> Put things that wait for each other in different units.
+
+**2. The first backup failed on a name pods cannot resolve (fixed, proven 2026-11-10).** The
+backup target was addressed by a name ending in the local-network suffix, which works on a laptop
+and not inside a pod. The bootstrap now refuses such a name, and its self-test shows the refusal
+can fail, so it is not a check that cannot go red.
+
+**3. The restore drill hit three walls in the platform's own safety rules (proven 2026-11-10).**
+The rules that protect the cluster also blocked the drill that proves it. The database restore
+then succeeded once, by hand: 60 seconds, a few MB, from an on-demand backup into a scratch cluster with temporary network rules. The scheduled backup was not restored, and the backup store is one machine. The recovery point is bound by write-ahead-log
+archiving and is **not measured yet**. One manual restore of a tiny database is not a drill.
+
+**4. Default-deny held except for the first one to three seconds (open, 2026-11-10).** The
+probe recorded a FAIL: traffic got through briefly while a new workload came up. The gap is
+open and the FAIL stays on the record.
+
+**5. The fix that fixed nothing (proven 2026-11-11).** SSH to the nodes by name took 10 to 20
+seconds. The first fix opened IPv6 link-local in the firewall and did nothing, because the names
+resolve to global IPv6 addresses. The real fix made the nodes announce IPv4 only over
+mDNS; a login by name now takes 0.2 to 0.8 seconds (timed during the bring-up, not re-timed on 2026-11-11).
+> Measure before and after. A fix you did not time is a guess.
+
+**6. The rehearsal found defects the real machines would have (proven 2026-11-10).** Before
+the real run, the whole install ran in virtual machines on a Mac. It found a home-folder path in
+the key check, virtual machines that could not reach each other, no route from the Mac into the
+VM network, and a clock check run seconds after boot. After fixes it took 4 min 11 s, and a
+second run changed nothing. Limits: aarch64 only and one distribution only, so it rehearses the
+playbooks, not the hardware.
+
+**7. The wipe left things the uninstaller did not (fixed, proven 2026-11-10).** A virtual
+address stayed on one node and a node-password file on all six. One of the assistant's own
+claims during the session was wrong about this (the Ceph disk images) and was corrected after reading the machines.
+
+**8. A lost working tree (rule adopted, 2026-11-10).** Uncommitted files were lost once by
+removing a worktree after a hook rejected a commit. The rule: keep the worktree until the
+commit succeeds.
+
+**9. A cancelled required check blocks a merge (proven 2026-11-10).** After a watchdog
+fallback, the red aggregate result stayed on the pull request and the green dispatched run did
+not reach it. The merge stayed blocked for 28 minutes after the green existed. "Re-run all
+jobs" cleared it.
+> A required check is a property of the pull request, not of the repository's latest run.
 
 ---
 

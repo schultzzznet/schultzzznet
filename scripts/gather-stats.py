@@ -2,15 +2,35 @@
 """Measure the estate and write docs/_data/stats.yml - the numbers behind docs/status.md.
 
 Every figure is MEASURED here, at generation time, by a command this script runs:
-kubectl, git, cloc, cosign, the Prometheus HTTP API (through a kubectl port-forward that
-is always stopped again) and a few public endpoints. Nothing is copied from a document.
+kubectl (read-only, see below), git, cloc and the GitHub REST API. Nothing is copied from
+a document, except the counts of steps, rules and components, which are parsed from the
+platform repository's own generated status page (and that page is checked against its
+tables so a change of shape fails loudly).
 
-What it publishes is AGGREGATES ONLY - counts, percentages, versions, dates. It never
+What it publishes is AGGREGATES ONLY - counts, percentages, dates, a few words. It never
 writes a host, address, namespace, workload or secret name. Three things enforce that:
-each key is declared below with a strict value type (a number, a version, a timestamp
-or a lower-case word - nothing free-form can get through); the finished file is run
-through the site's own leak guard before it is written; and it fails loudly rather than
-write a partial file when a measurement fails or a key has no method.
+each key is declared below with a strict value type (a number, a date, a timestamp, a
+lower-case word or the exact phrase 'not measured yet' - nothing free-form can get through);
+the finished file is run through the site's own leak guard before it is written; and it
+fails loudly rather than write a partial file when a measurement fails or a key has no method.
+
+The platform repository is read from a fresh bare clone of its remote main branch, made
+into a temporary directory and deleted again, so a half-edited local branch can never
+move a published number. Offline, PLATFORM_REF=origin/main reads the local remote-tracking
+branch instead, and fails if that was last fetched more than 24 hours ago. The hardware
+repositories are read from their default branch, not from whatever is checked out.
+
+THE CLUSTER ACCESS IS READ-ONLY BY CONSTRUCTION, NOT BY CREDENTIAL. The kubeconfig this
+runs with may well be cluster-admin, so the only barrier is the allowlist in kubectl():
+`get` (never of secrets, never watching), `get --raw` under the metrics API, `version` and
+`top`. Everything else (exec, logs, port-forward, apply, patch, delete, create, edit,
+label, annotate, cp, debug, ...) is refused before a process is spawned. Do not widen it
+without a reason written next to the change.
+
+Some figures cannot be measured yet because the thing they measure is not running. Those
+carry the exact value 'not measured yet' (kind nm), never 0 and never an older number. A
+registry of probes (PENDING) makes the generator FAIL as soon as one of those things
+appears on the cluster, so the gap cannot silently outlive the day it closes.
 
 Usage:
   scripts/gather-stats.py                  measure, check, write docs/_data/stats.yml
@@ -26,38 +46,39 @@ Usage:
 
 Environment (no machine-specific path is hard-coded here; `make stats` sets the owner's
 defaults from $(HOME), see the Makefile header):
-  PLATFORM_REPO    REQUIRED for a measuring run: the private platform repository checkout
+  PLATFORM_REPO    REQUIRED for a measuring run: a checkout of the private platform repository
+                   (only its origin URL is used, and never printed, unless PLATFORM_REF is set)
   HARDWARE_REPOS   REQUIRED for a measuring run: the directory holding the private hardware
                    repositories
-  KUBECONFIG       the cluster's kubeconfig (default: ~/.kube/k3s-config)
+  KUBECONFIG       REQUIRED for a measuring run: the cluster's kubeconfig. There is no default,
+                   so a run can never silently measure an old cluster.
+  PLATFORM_REF     optional, offline only: read this local ref (e.g. origin/main) instead of cloning
   GITHUB_TOKEN     optional; raises the GitHub API rate limit, never printed
 
 README.md: if it contains the markers <!-- stats:begin --> and <!-- stats:end -->, whatever is
 between them is replaced with a table of the headline aggregates, built from the same measured
 values and vetted by the same leak guard. Without the markers nothing is touched.
 
-Standard library only; it also needs kubectl, git, cloc and cosign on the PATH.
+Standard library only; it also needs kubectl, git and cloc on the PATH.
 No command here pipes into another: output is filtered by the command's own options or
 parsed in Python.
 """
 import argparse
-import atexit
 import datetime as dt
 import json
 import math
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
 import tarfile
 import tempfile
-import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 
 SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(SITE, "docs", "_data")
@@ -68,10 +89,11 @@ INDEX_MD = os.path.join(SITE, "docs", "index.md")
 
 README = os.path.join(SITE, "README.md")
 # No default: a path to a private checkout does not belong in a public file. A measuring run
-# says so up front (see main) if either is unset.
+# says so up front (see main) if any of the three is unset.
 PLATFORM_REPO = os.path.expanduser(os.environ.get("PLATFORM_REPO", ""))
+PLATFORM_REF = os.environ.get("PLATFORM_REF", "")
 HARDWARE_REPOS = os.path.expanduser(os.environ.get("HARDWARE_REPOS", ""))
-KUBECONFIG = os.path.expanduser(os.environ.get("KUBECONFIG") or "~/.kube/k3s-config")
+KUBECONFIG = os.path.expanduser(os.environ.get("KUBECONFIG", ""))
 
 # hardware key -> directory name under HARDWARE_REPOS
 HARDWARE = {
@@ -83,9 +105,12 @@ HARDWARE = {
     "imx8": "theImx8Yocto",
 }
 
+NM = "not measured yet"
+
 # --- the contract: every published key, its group order, and what a value may look like ---
 # kinds: int (>= 0), float (finite, >= 0), ver (a version string), iso (UTC timestamp),
-# word (one lower-case word), head (a commit count and a date). Anything else is refused before it can be written.
+# date (a day), word (one lower-case word), nm (exactly 'not measured yet'). Anything else
+# is refused before it can be written.
 SCHEMA = [
     ("cluster", [
         ("nodes", "int"), ("nodes_ready", "int"), ("control_plane", "int"), ("agents", "int"),
@@ -93,47 +118,57 @@ SCHEMA = [
         ("pods_running", "int"), ("pods_total", "int"), ("namespaces", "int"),
         ("containers", "int"), ("deployments", "int"), ("statefulsets", "int"),
         ("daemonsets", "int"), ("cronjobs", "int"), ("hpas", "int"), ("ingresses", "int"),
-        ("pvcs", "int"), ("pvc_gib", "float"), ("helm_releases", "int"), ("crds", "int"),
+        ("pvcs", "int"), ("pvc_gib", "float"), ("crds", "int"),
         ("age_days", "int"), ("restarts_total", "int"),
     ]),
     ("storage", [
-        ("ceph_raw_gib", "float"), ("ceph_used_gib", "float"), ("ceph_stored_gib", "float"),
-        ("osds", "int"), ("osds_up", "int"), ("mons", "int"), ("pools", "int"),
-        ("pgs", "int"), ("pgs_clean", "int"), ("replica_size", "int"),
-        ("health", "word"), ("health_warnings", "int"),
+        ("storage_classes", "int"), ("default_storage_classes", "int"), ("pvcs_bound", "int"),
+    ]),
+    ("reconciler", [
+        ("kustomizations", "int"), ("kustomizations_ready", "int"),
+        ("kustomizations_suspended", "int"), ("kustomizations_prune_on", "int"),
+        ("sources_ready", "int"), ("revisions_in_use", "int"), ("artifact_age_hours", "int"),
+        ("artifact_signed", "nm"),
+    ]),
+    ("admission", [
+        ("policies", "int"), ("policies_ready", "int"), ("policies_deny", "int"),
+        ("namespaces_signature_enforced", "int"), ("namespaces_podsecurity_restricted", "int"),
+        ("network_policies", "int"), ("tenant_namespaces", "int"), ("tenants_default_deny", "int"),
+        ("quotas", "int"), ("quota_max_used_pct", "int"),
+        ("first_party_signed_verified", "nm"),
     ]),
     ("databases", [
-        ("clusters", "int"), ("instances", "int"), ("replicas", "int"),
-        ("pg16_clusters", "int"), ("pg18_clusters", "int"),
-        ("synchronous_clusters", "int"), ("synchronous_clusters_spec", "int"),
+        ("clusters", "int"), ("instances", "int"), ("instances_ready", "int"), ("replicas", "int"),
+        ("postgres_major", "int"), ("synchronous_clusters_spec", "int"),
+        ("clusters_spread_over_nodes", "int"), ("poolers", "int"), ("scheduled_backups", "int"),
         ("backups_total", "int"), ("backups_failed", "int"), ("backups_24h", "int"),
         ("archiving_clusters", "int"),
     ]),
-    ("observability", [
-        ("scrape_up", "int"), ("scrape_total", "int"), ("series", "int"),
-        ("samples_per_sec", "int"), ("alert_rules", "int"), ("alert_rules_custom", "int"),
-        ("recording_rules", "int"), ("dashboards", "int"), ("dashboards_custom", "int"),
-        ("retention_days", "int"), ("retention_size_gib", "float"),
-        ("data_span_days", "float"), ("notifications_failed", "int"),
-        ("firing_now", "int"), ("firing_now_excl_meta", "int"),
+    ("evidence", [
+        ("restore_drill_home_last", "date"), ("restore_drill_home_result", "word"),
+        ("restore_drill_home_age_days", "int"), ("restore_drills_records", "int"),
+        ("default_deny_probe_home_date", "date"), ("default_deny_probe_home_result", "word"),
+        ("host_rehearsal_date", "date"), ("host_rehearsal_result", "word"),
+        ("steps_total", "int"), ("steps_done", "int"), ("steps_done_on_kind", "int"),
+        ("steps_partly", "int"), ("steps_not_started", "int"), ("steps_gated", "int"),
+        ("rules_total", "int"), ("rules_built", "int"), ("rules_partly", "int"),
+        ("inventory_total", "int"), ("inventory_proven", "int"), ("inventory_built", "int"),
     ]),
-    ("supply_chain", [
-        ("images_running", "int"), ("images_first_party", "int"),
-        ("images_third_party", "int"), ("first_party_signed_verified", "int"),
-        ("sbom_projects", "int"),
+    ("observability", [
+        ("scrape_targets", "nm"), ("alert_rules", "nm"), ("recording_rules", "nm"),
+        ("dashboards", "nm"), ("metric_history_days", "nm"),
+        ("alerts_reaching_a_person", "nm"), ("sbom_projects", "nm"),
     ]),
     ("ci", [
         ("workflows", "int"), ("jobs", "int"), ("runs_on_self_hosted", "int"),
-        ("runs_on_github_hosted", "int"), ("precommit_hooks", "int"),
+        ("runs_on_github_hosted", "int"), ("runs_on_routed", "int"), ("precommit_hooks", "int"),
     ]),
     ("repo", [
         ("commits", "int"), ("commits_30d", "int"), ("age_days", "int"), ("adrs", "int"),
-        ("gaps_open", "int"), ("gaps_closed", "int"), ("make_targets", "int"),
-        ("playbooks", "int"), ("manifests", "int"), ("runbooks", "int"),
-        ("docs_pages", "int"), ("loc", "int"), ("loc_code", "int"), ("platform_head", "head"),
-        ("tests_java", "int"),
-        ("tests_python", "int"), ("tests_dart", "int"),
-        ("app_loc8_version", "ver"), ("app_warn_version", "ver"), ("app_talk_version", "ver"),
+        ("records", "int"), ("records_pass", "int"), ("records_fail", "int"),
+        ("check_scripts", "int"), ("playbooks", "int"), ("manifests", "int"),
+        ("runbooks", "int"), ("docs_pages", "int"), ("loc", "int"), ("loc_code", "int"),
+        ("tests_java", "int"), ("app_warn_version", "ver"),
     ]),
     ("hardware", [
         ("printing_commits", "int"), ("yocto_commits", "int"),
@@ -143,31 +178,18 @@ SCHEMA = [
         ("video_rover_commits", "int"), ("video_rover_tests", "int"),
         ("imx8_commits", "int"),
     ]),
-    ("referees", [
-        ("uptimerobot_7d", "float"), ("uptimerobot_30d", "float"),
-        ("healthchecks", "word"), ("github_stars", "int"), ("github_pushed", "iso"),
-    ]),
     ("site", [
         ("commits", "int"), ("pages", "int"), ("pages_last_build", "word"),
-        ("pages_last_build_at", "iso"), ("guard_last_run", "word"),
+        ("pages_last_build_at", "iso"), ("guard_last_run", "word"), ("last_push", "iso"),
     ]),
 ]
 KINDS = {
     "ver": re.compile(r"^v?[0-9]+(\.[0-9]+){1,3}([+-][0-9A-Za-z.]+)?$"),
     "iso": re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"),
+    "date": re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
     "word": re.compile(r"^[a-z][a-z_-]{0,19}$"),
-    # "<N> commits, HEAD dated <YYYY-MM-DD>": a count and a date, no hash
-    "head": re.compile(r"^[0-9]+ commits, HEAD dated [0-9]{4}-[0-9]{2}-[0-9]{2}$"),
+    "nm": re.compile(r"^not measured yet$"),
 }
-
-# The orchestrator this estate started on is retired but its tree is still in the platform
-# repository. Counts of what is running exclude any path with this segment.
-RETIRED_SEGMENT = "swarm"
-
-# Alerts that report on the alerting system rather than on the estate: the heartbeat that
-# is meant to fire permanently, and the inhibitor that appears whenever an info-level alert
-# is active. Both ship with the monitoring chart.
-META_ALERTS = ("Watchdog", "InfoInhibitor")
 
 # cloc languages counted as programming code for repo.loc_code. Markdown, YAML, JSON, XML,
 # HTML, SVG, INI, TOML, properties and build manifests are left out on purpose.
@@ -176,15 +198,15 @@ CODE_LANGUAGES = frozenset((
     "JavaScript", "TypeScript", "Bourne Shell", "Bourne Again Shell", "Zsh", "SQL", "Rust", "Ruby",
     "Lua", "Perl", "PowerShell"))
 
-# Registries that are public. Any other registry host is the estate's own.
-OWN_REGISTRY_SUFFIXES = (".local", ".lan", ".internal", ".home.arpa")
-
 NOW = dt.datetime.now(dt.timezone.utc)
 CLOCK_SKEW_DAYS = 2 / 24  # a generation time may be at most two hours ahead of this machine's clock
+MAX_REF_AGE_HOURS = 24    # an offline PLATFORM_REF may not have been fetched longer ago than this
 
 
 class Fail(Exception):
     """A required measurement failed. Nothing is written."""
+
+
 
 
 def scrub(text, limit=160):
@@ -220,8 +242,52 @@ def kenv():
     return e
 
 
+# kubectl verbs that change or expose things. Named only so the refusal can say why; the
+# allowlist below is what actually decides, and it refuses anything not on it.
+KUBECTL_REFUSED = frozenset((
+    "exec", "logs", "port-forward", "apply", "patch", "delete", "create", "edit", "label",
+    "annotate", "cp", "debug", "replace", "scale", "rollout", "drain", "cordon", "uncordon",
+    "taint", "set", "run", "expose", "attach", "proxy", "auth", "certificate", "config", "plugin"))
+KUBECTL_METRICS_PREFIX = "/apis/metrics.k8s.io/"
+KUBECTL_FORBIDDEN_FLAGS = ("--kubeconfig", "--token", "--as", "--server", "--context",
+                           "--insecure", "--client-", "--username", "--password", "-s")
+
+
+def check_kubectl(args):
+    """Refuse, before any process exists, everything but a read-only get/version/top."""
+    if not args:
+        raise Fail("kubectl called with no arguments")
+    verb = args[0]
+    if verb in KUBECTL_REFUSED:
+        raise Fail(f"kubectl {verb} is refused: this script only reads")
+    if verb not in ("get", "version", "top"):
+        raise Fail(f"kubectl {verb} is not on the allowlist (get, get --raw metrics, version, top)")
+    for a in args[1:]:
+        if a in ("-w", "--watch", "--watch-only"):
+            raise Fail("kubectl get --watch is refused")
+        if a.startswith(KUBECTL_FORBIDDEN_FLAGS):
+            raise Fail("a kubectl flag that changes identity or server is refused")
+    if verb != "get":
+        return
+    if "--raw" in args:
+        i = args.index("--raw")
+        if i + 1 >= len(args) or not args[i + 1].startswith(KUBECTL_METRICS_PREFIX):
+            raise Fail("kubectl get --raw is allowed only under the metrics API")
+        return
+    positional = [a for a in args[1:] if not a.startswith("-")]
+    if not positional:
+        raise Fail("kubectl get without a resource is refused")
+    for a in args[1:]:
+        if a.startswith("-"):
+            continue
+        for part in a.split(","):
+            if part.split("/")[0].split(".")[0].lower() in ("secret", "secrets"):
+                raise Fail("kubectl get of secrets is refused")
+
+
 def kubectl(*args, timeout=180):
-    return run(["kubectl", *args], env=kenv(), timeout=timeout)
+    check_kubectl(args)
+    return run(["kubectl", "--request-timeout=30s", *args], env=kenv(), timeout=timeout)
 
 
 def kjson(*args):
@@ -236,20 +302,20 @@ def git(repo, *args):
 
 
 class Snapshot:
-    """The committed tree at HEAD, extracted to a temporary directory.
+    """The tree of one ref, extracted to a temporary directory.
 
-    Counts are taken from what is COMMITTED, not from whatever is half-edited in a
-    working tree, so two runs against the same commit agree and a colleague's unsaved
+    Counts are taken from what is COMMITTED on a named ref, not from whatever is half-edited
+    in a working tree, so two runs against the same commit agree and a colleague's unsaved
     change cannot move a published number.
     """
 
-    def __init__(self, repo):
-        self.repo = repo
+    def __init__(self, repo, ref):
+        self.repo, self.ref = repo, ref
 
     def __enter__(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.dir = self._tmp.name
-        p = subprocess.Popen(["git", "-C", self.repo, "archive", "--format=tar", "HEAD"],
+        p = subprocess.Popen(["git", "-C", self.repo, "archive", "--format=tar", self.ref],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             with tarfile.open(fileobj=p.stdout, mode="r|") as tf:
@@ -259,7 +325,7 @@ class Snapshot:
                     tf.extractall(self.dir)
         except (tarfile.TarError, OSError) as e:
             p.kill()
-            raise Fail(f"could not extract HEAD of a repository: {scrub(e)}")
+            raise Fail(f"could not extract a repository ref: {scrub(e)}")
         if p.wait() != 0:
             raise Fail("git archive failed: " + scrub(p.stderr.read().decode("utf-8", "replace")))
         self.files = sorted(
@@ -275,6 +341,60 @@ class Snapshot:
     def read(self, rel):
         with open(os.path.join(self.dir, rel), encoding="utf-8", errors="replace") as fh:
             return fh.read()
+
+
+class PlatformSource:
+    """(repo directory, ref) for the private platform repository's main branch.
+
+    Normally a bare clone of the remote main into a temporary directory that is deleted on
+    exit. The origin URL is resolved from the checkout and never printed (git's own errors
+    go through scrub()). With PLATFORM_REF set (offline), that local ref is used instead,
+    and it must have been fetched within MAX_REF_AGE_HOURS.
+    """
+
+    def __enter__(self):
+        self._tmp = None
+        if PLATFORM_REF:
+            self.repo, self.ref = PLATFORM_REPO, PLATFORM_REF
+            git(self.repo, "rev-parse", "--verify", "--quiet", self.ref + "^{commit}")
+            fh = git(self.repo, "rev-parse", "--git-path", "FETCH_HEAD").strip()
+            fh = fh if os.path.isabs(fh) else os.path.join(self.repo, fh)
+            if not os.path.isfile(fh):
+                raise Fail("PLATFORM_REF is set but the checkout has never been fetched; run git fetch")
+            age_h = (NOW.timestamp() - os.path.getmtime(fh)) / 3600
+            if age_h > MAX_REF_AGE_HOURS:
+                raise Fail(f"PLATFORM_REF was last fetched {age_h:.0f} hours ago (limit {MAX_REF_AGE_HOURS}); "
+                           "run git fetch, or unset PLATFORM_REF to clone")
+            return self
+        url = git(PLATFORM_REPO, "remote", "get-url", "origin").strip()
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo, self.ref = os.path.join(self._tmp.name, "p.git"), "main"
+        env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+        run(["git", "clone", "--bare", "--single-branch", "--branch", "main", "--quiet", url, self.repo],
+            env=env, timeout=300)
+        return self
+
+    def __exit__(self, *exc):
+        if self._tmp is not None:
+            self._tmp.cleanup()
+        return False
+
+
+def default_ref(repo):
+    """The repository's default branch as a ref: origin/HEAD if set, else origin/main|master, else main|master."""
+    try:
+        sym = git(repo, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD").strip()
+        if sym:
+            return sym[len("refs/remotes/"):]
+    except Fail:
+        pass
+    for cand in ("origin/main", "origin/master", "main", "master"):
+        try:
+            git(repo, "rev-parse", "--verify", "--quiet", cand + "^{commit}")
+            return cand
+        except Fail:
+            continue
+    raise Fail("a hardware repository has no default branch to read")
 
 
 def read(repo, rel):
@@ -317,106 +437,16 @@ def http_json(url, headers=None, retries=3):
     raise Fail(f"GET {urllib.parse.urlsplit(url).netloc}: {scrub(last)}")
 
 
-# ----------------------------------------------------------- port-forward, always stopped
-_FORWARDS = []
-
-
-def _stop_forwards():
-    for p in _FORWARDS:
-        if p.poll() is None:
-            p.terminate()
-            try:
-                p.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                p.kill()
-                p.wait()
-    _FORWARDS.clear()
-
-
-atexit.register(_stop_forwards)
-
-
-def _die(signum, _frame):
-    _stop_forwards()
-    sys.exit(128 + signum)
-
-
-for _sig in (signal.SIGINT, signal.SIGTERM):
-    signal.signal(_sig, _die)
-
-
-class PortForward:
-    """kubectl port-forward on a free local port; stopped on exit, however we leave."""
-
-    def __init__(self, namespace, target, port):
-        self.args = ["kubectl", "port-forward", "-n", namespace, target, f":{port}"]
-        self.port = None
-
-    def __enter__(self):
-        self.proc = subprocess.Popen(self.args, env=kenv(), stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        _FORWARDS.append(self.proc)
-        found = threading.Event()
-        seen = []
-
-        def pump():
-            for line in self.proc.stdout:  # keeps draining so the pipe never fills
-                m = re.search(r"Forwarding from 127\.0\.0\.1:([0-9]+)", line)
-                if m and not found.is_set():
-                    self.port = int(m.group(1))
-                    found.set()
-                elif not found.is_set():
-                    seen.append(line.strip())
-
-        threading.Thread(target=pump, daemon=True).start()
-        if not found.wait(30):
-            self.__exit__()
-            raise Fail("port-forward did not come up: " + scrub(" ".join(seen)))
-        return self
-
-    def __exit__(self, *exc):
-        p = self.proc
-        if p.poll() is None:
-            p.terminate()
-            try:
-                p.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                p.kill()
-                p.wait()
-        if p.poll() is None:
-            raise Fail("port-forward could not be stopped")
-        return False
-
-
-class Prom:
-    def __init__(self, base):
-        self.base = base
-
-    def get(self, path, **params):
-        url = self.base + path + ("?" + urllib.parse.urlencode(params) if params else "")
-        r = http_json(url)
-        if r.get("status") != "success":
-            raise Fail(f"prometheus {path}: {r.get('status')}")
-        return r["data"]
-
-    def vector(self, expr):
-        return [(s["metric"], float(s["value"][1])) for s in self.get("/api/v1/query", query=expr)["result"]]
-
-    def scalar(self, expr, empty=None):
-        v = self.vector(expr)
-        if not v:
-            if empty is None:
-                raise Fail(f"prometheus returned nothing for: {expr}")
-            return empty
-        return v[0][1]
-
-
 # ----------------------------------------------------------------------------- cluster
+def conds_true(obj, kind="Ready"):
+    return any(c.get("type") == kind and c.get("status") == "True"
+               for c in obj.get("status", {}).get("conditions", []))
+
+
 def measure_cluster():
     nodes = kjson("nodes")["items"]
     pods = kjson("pods", "-A")["items"]
-    ready = sum(1 for n in nodes for c in n["status"]["conditions"]
-                if c["type"] == "Ready" and c["status"] == "True")
+    ready = sum(1 for n in nodes if conds_true(n))
     cp = sum(1 for n in nodes if "node-role.kubernetes.io/control-plane" in n["metadata"].get("labels", {}))
     running = [p for p in pods if p["status"].get("phase") == "Running"]
     restarts = 0
@@ -424,17 +454,15 @@ def measure_cluster():
         for c in p["status"].get("containerStatuses", []) + p["status"].get("initContainerStatuses", []):
             restarts += c.get("restartCount", 0)
     pvcs = kjson("persistentvolumeclaims", "-A")["items"]
-    # Helm v3 keeps one Secret per release revision; custom-columns prints labels only,
-    # so no secret data ever reaches this script.
-    helm = kubectl("get", "secrets", "-A", "--field-selector", "type=helm.sh/release.v1",
-                   "-o", "custom-columns=NS:.metadata.namespace,NAME:.metadata.labels.name",
-                   "--no-headers")
-    releases = {tuple(line.split()) for line in helm.splitlines() if line.strip()}
     oldest = min(parse_time(n["metadata"]["creationTimestamp"]) for n in nodes)
+    crds = [c["metadata"]["name"] for c in kjson("customresourcedefinitions.apiextensions.k8s.io")["items"]]
 
     def count(kind):
         return len(kjson(kind, "-A")["items"])
 
+    images = [c["image"] for p in pods for c in p["spec"].get("containers", []) + p["spec"].get("initContainers", [])]
+    names = [j["metadata"]["name"] for kind in ("jobs.batch", "cronjobs.batch") for j in kjson(kind, "-A")["items"]]
+    ctx = {"crds": set(crds), "images": images, "job_names": names, "pods": pods}
     return {
         "nodes": len(nodes), "nodes_ready": ready, "control_plane": cp, "agents": len(nodes) - cp,
         "cores": int(round(sum(quantity(n["status"]["capacity"]["cpu"]) for n in nodes))),
@@ -448,41 +476,102 @@ def measure_cluster():
         "ingresses": count("ingresses.networking.k8s.io"),
         "pvcs": len(pvcs),
         "pvc_gib": sum(quantity(c["spec"]["resources"]["requests"]["storage"]) for c in pvcs) / 2**30,
-        "helm_releases": len(releases),
-        "crds": len(kjson("customresourcedefinitions.apiextensions.k8s.io")["items"]),
+        "crds": len(crds),
         "age_days": int((NOW - oldest).total_seconds() // 86400),
         "restarts_total": restarts,
-    }, pods
+    }, ctx
 
 
 # ----------------------------------------------------------------------------- storage
 def measure_storage():
-    tools = kjson("deployments.apps", "-A", "-l", "app=rook-ceph-tools")["items"]
-    if len(tools) != 1:
-        raise Fail(f"expected exactly one Ceph toolbox deployment, found {len(tools)}")
-    ns, name = tools[0]["metadata"]["namespace"], tools[0]["metadata"]["name"]
-
-    def ceph(*args):
-        out = kubectl("-n", ns, "exec", f"deploy/{name}", "--", "ceph", *args, "-f", "json")
-        try:
-            return json.loads(out)
-        except json.JSONDecodeError:
-            raise Fail(f"ceph {args[0]}: not JSON")
-
-    status, df, pools = ceph("status"), ceph("df"), ceph("osd", "pool", "ls", "detail")
-    pg = status["pgmap"]
-    clean = sum(s["count"] for s in pg["pgs_by_state"] if s["state_name"] == "active+clean")
-    h = status["health"]["status"].replace("HEALTH_", "").lower()
+    classes = kjson("storageclasses.storage.k8s.io")["items"]
+    default_keys = ("storageclass.kubernetes.io/is-default-class", "storageclass.beta.kubernetes.io/is-default-class")
+    default = sum(1 for c in classes if any(c["metadata"].get("annotations", {}).get(k) == "true" for k in default_keys))
+    pvcs = kjson("persistentvolumeclaims", "-A")["items"]
     return {
-        "ceph_raw_gib": df["stats"]["total_bytes"] / 2**30,
-        "ceph_used_gib": df["stats"]["total_used_raw_bytes"] / 2**30,
-        # logical bytes the applications stored: the sum of every pool's "stored" in ceph df
-        "ceph_stored_gib": sum(p["stats"]["stored"] for p in df["pools"]) / 2**30,
-        "osds": status["osdmap"]["num_osds"], "osds_up": status["osdmap"]["num_up_osds"],
-        "mons": status["monmap"]["num_mons"], "pools": len(pools),
-        "pgs": pg["num_pgs"], "pgs_clean": clean,
-        "replica_size": min(p["size"] for p in pools),
-        "health": h, "health_warnings": len(status["health"].get("checks", {})),
+        "storage_classes": len(classes), "default_storage_classes": default,
+        "pvcs_bound": sum(1 for c in pvcs if c.get("status", {}).get("phase") == "Bound"),
+    }
+
+
+# --------------------------------------------------------------------------- reconciler
+SOURCE_KINDS = ("gitrepositories.source.toolkit.fluxcd.io", "ocirepositories.source.toolkit.fluxcd.io",
+                "helmrepositories.source.toolkit.fluxcd.io", "buckets.source.toolkit.fluxcd.io")
+
+
+def measure_reconciler():
+    ks = kjson("kustomizations.kustomize.toolkit.fluxcd.io", "-A")["items"]
+    if not ks:
+        raise Fail("no Flux Kustomizations found")
+    sources = [s for kind in SOURCE_KINDS for s in kjson(kind, "-A")["items"]]
+    ages = []
+    for s in sources:
+        art = s.get("status", {}).get("artifact")
+        if not art:
+            continue
+        built = art.get("metadata", {}).get("org.opencontainers.image.created") or art.get("lastUpdateTime")
+        if built:
+            ages.append((NOW - parse_time(built)).total_seconds() / 3600)
+    if not ages:
+        raise Fail("no source artifact with a build time found")
+    return {
+        "kustomizations": len(ks),
+        "kustomizations_ready": sum(1 for k in ks if conds_true(k)),
+        "kustomizations_suspended": sum(1 for k in ks if k["spec"].get("suspend")),
+        "kustomizations_prune_on": sum(1 for k in ks if k["spec"].get("prune")),
+        "sources_ready": sum(1 for s in sources if conds_true(s)),
+        "revisions_in_use": len({k["status"].get("lastAppliedRevision") for k in ks
+                                 if k.get("status", {}).get("lastAppliedRevision")}),
+        # the age of the OLDEST artifact in use, so a stale one cannot hide behind a fresh one
+        "artifact_age_hours": int(max(ages)),
+        # a source verification block is the only thing that would make this measurable; the
+        # artifact is not signed today, and a signed one would need a different probe
+        "artifact_signed": NM,
+    }
+
+
+# ---------------------------------------------------------------------------- admission
+POLICY_KINDS = ("validatingpolicies.policies.kyverno.io", "imagevalidatingpolicies.policies.kyverno.io",
+                "mutatingpolicies.policies.kyverno.io")
+
+
+def is_default_deny(np):
+    """A structural test: selects every pod, covers both directions, allows nothing."""
+    spec = np["spec"]
+    return (not spec.get("podSelector")
+            and set(spec.get("policyTypes", [])) >= {"Ingress", "Egress"}
+            and not spec.get("ingress") and not spec.get("egress"))
+
+
+def measure_admission():
+    # The NEW policy kinds. The old ClusterPolicy kind is deliberately not counted: nothing
+    # here uses it, and a count of it would read 0 and look like an absence of policy.
+    pols = [p for kind in POLICY_KINDS for p in kjson(kind)["items"]]
+    ready = sum(1 for p in pols if p.get("status", {}).get("conditionStatus", {}).get("ready") is True)
+    deny = sum(1 for p in pols if "Deny" in (p["spec"].get("validationActions") or []))
+    ns = kjson("namespaces")["items"]
+    labels = [n["metadata"].get("labels", {}) for n in ns]
+    sig = sum(1 for l in labels if l.get("signature-check") == "enforce")
+    psa = sum(1 for l in labels if l.get("pod-security.kubernetes.io/enforce") == "restricted")
+    nps = kjson("networkpolicies.networking.k8s.io", "-A")["items"]
+    tenants = {n["metadata"]["name"] for n in ns if "signature-check" in n["metadata"].get("labels", {})}
+    deny_ns = {np["metadata"]["namespace"] for np in nps if is_default_deny(np)}
+    quotas = kjson("resourcequotas", "-A")["items"]
+    pct = 0.0
+    for q in quotas:
+        hard = q.get("status", {}).get("hard", {})
+        for res, h in hard.items():
+            hv = quantity(h)
+            if hv > 0:
+                pct = max(pct, 100 * quantity(q["status"].get("used", {}).get(res, "0")) / hv)
+    return {
+        "policies": len(pols), "policies_ready": ready, "policies_deny": deny,
+        "namespaces_signature_enforced": sig, "namespaces_podsecurity_restricted": psa,
+        "network_policies": len(nps), "tenant_namespaces": len(tenants),
+        "tenants_default_deny": len(tenants & deny_ns),
+        "quotas": len(quotas), "quota_max_used_pct": int(round(pct)),
+        # verifying a signature needs a registry credential, which this script must not hold
+        "first_party_signed_verified": NM,
     }
 
 
@@ -491,30 +580,26 @@ def measure_databases():
     clusters = kjson("clusters.postgresql.cnpg.io", "-A")["items"]
     if not clusters:
         raise Fail("no database clusters found")
-    sql = ("select current_setting('server_version_num'), "
-           "(select count(*) from pg_stat_replication where sync_state in ('sync','quorum'))")
-    pg = {16: 0, 18: 0}
-    sync_spec = sync_seen = archiving = primaries = 0
+    # Operator objects only: no exec, no SQL. Whether a standby is synchronous RIGHT NOW is
+    # therefore not measured; only what the spec asks for is.
+    pods = kjson("pods", "-A", "-l", "cnpg.io/podRole=instance")["items"]
+    by_cluster = {}
+    for p in pods:
+        key = (p["metadata"]["namespace"], p["metadata"]["labels"].get("cnpg.io/cluster"))
+        by_cluster.setdefault(key, []).append(p["spec"].get("nodeName"))
+    spread = sum(1 for c in clusters
+                 if (lambda ns: len(ns) > 1 and None not in ns and len(set(ns)) == len(ns))(
+                     by_cluster.get((c["metadata"]["namespace"], c["metadata"]["name"]), [])))
+    majors = [c["status"]["pgDataImageInfo"]["majorVersion"] for c in clusters]
+    sync_spec = archiving = 0
     for c in clusters:
-        st, spec = c["status"], c["spec"]
-        primary = st.get("currentPrimary")
-        if not primary:
-            raise Fail("a database cluster reports no primary")
-        primaries += 1
-        major = st["pgDataImageInfo"]["majorVersion"]
-        pg[major] = pg.get(major, 0) + 1
-        want_sync = bool(spec.get("postgresql", {}).get("synchronous")) or spec.get("minSyncReplicas", 0) > 0
-        sync_spec += want_sync
-        # read-only SELECT on the primary: confirm the major, and whether a standby is
-        # really synchronous right now (the spec only says what was asked for).
-        out = kubectl("-n", c["metadata"]["namespace"], "exec", primary, "-c", "postgres", "--",
-                      "psql", "-U", "postgres", "-At", "-F", "|", "-c", sql).strip()
-        ver, sync_n = out.split("|")
-        if int(ver) // 10000 != major:
-            raise Fail("a cluster's reported major version disagrees with the server")
-        sync_seen += int(sync_n) > 0
+        spec = c["spec"]
+        sync_spec += bool(spec.get("postgresql", {}).get("synchronous")) or spec.get("minSyncReplicas", 0) > 0
         archiving += any(x["type"] == "ContinuousArchiving" and x["status"] == "True"
-                         for x in st.get("conditions", []))
+                         for x in c["status"].get("conditions", []))
+    instances = sum(c["status"]["instances"] for c in clusters)
+    # Plugin-driven backups leave the cluster's own lastSuccessfulBackup empty, so the Backup
+    # objects are what is counted.
     backups = kjson("backups.postgresql.cnpg.io", "-A")["items"]
     day = 0
     for b in backups:
@@ -523,11 +608,14 @@ def measure_databases():
                 (NOW - parse_time(s["stoppedAt"])).total_seconds() <= 86400:
             day += 1
     return {
-        "clusters": len(clusters),
-        "instances": sum(c["status"]["instances"] for c in clusters),
-        "replicas": sum(c["status"]["instances"] for c in clusters) - primaries,
-        "pg16_clusters": pg[16], "pg18_clusters": pg[18],
-        "synchronous_clusters": sync_seen, "synchronous_clusters_spec": sync_spec,
+        "clusters": len(clusters), "instances": instances,
+        "instances_ready": sum(c["status"].get("readyInstances", 0) for c in clusters),
+        "replicas": instances - len(clusters),
+        "postgres_major": min(majors),
+        "synchronous_clusters_spec": sync_spec,
+        "clusters_spread_over_nodes": spread,
+        "poolers": len(kjson("poolers.postgresql.cnpg.io", "-A")["items"]),
+        "scheduled_backups": len(kjson("scheduledbackups.postgresql.cnpg.io", "-A")["items"]),
         "backups_total": len(backups),
         "backups_failed": sum(1 for b in backups if b.get("status", {}).get("phase") == "failed"),
         "backups_24h": day, "archiving_clusters": archiving,
@@ -535,155 +623,36 @@ def measure_databases():
 
 
 # ----------------------------------------------------------------------- observability
-def duration_days(s):
-    m = re.fullmatch(r"([0-9]+)([smhdwy])", s.strip())
-    if not m:
-        raise Fail(f"unreadable Prometheus duration: {scrub(repr(s), 40)}")
-    return int(m.group(1)) * {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800, "y": 31536000}[m.group(2)] / 86400
+# Nothing in this group is measured: the monitoring stack is written but not applied. Each
+# probe below turns True the day its thing exists, and main() then FAILS, so a 'not measured
+# yet' cannot outlive the gap by accident. When one fires: write the measurement, change the
+# key's kind from nm, and delete the probe.
+def _image_repo(ref):
+    return ref.split("@")[0].rsplit(":", 1)[0].rsplit("/", 1)[-1] if ref else ""
 
 
-def size_gib(s):
-    """A Prometheus ByteSize flag ('8GB', '512MB', '0B'). Prometheus reads these as powers of
-    1024, so '8GB' is 8 GiB. 0 means no size limit."""
-    m = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)\s*([KMGTP]?)i?B?", s.strip(), re.I)
-    if not m:
-        raise Fail(f"unreadable Prometheus size: {scrub(repr(s), 40)}")
-    return float(m.group(1)) * 1024 ** ("BKMGTP".index(m.group(2).upper() or "B")) / 2**30
+PENDING = [
+    ("monitoring resource definitions (alert rules, scrape targets)",
+     lambda ctx: any(c.endswith(".monitoring.coreos.com") for c in ctx["crds"])),
+    ("a metrics server (Prometheus image)",
+     lambda ctx: any(_image_repo(i) == "prometheus" for i in ctx["images"])),
+    ("dashboards (Grafana image)",
+     lambda ctx: any(_image_repo(i) == "grafana" for i in ctx["images"])),
+    ("SBOM upload (an SBOM job or cron job)",
+     lambda ctx: any("sbom" in n.lower() for n in ctx["job_names"])),
+    ("Helm releases (the HelmRelease resource definition)",
+     lambda ctx: "helmreleases.helm.toolkit.fluxcd.io" in ctx["crds"]),
+]
+
+
+def check_pending(ctx):
+    for name, probe in PENDING:
+        if probe(ctx):
+            raise Fail(f"{name} is now measurable: replace the not-measured entry")
 
 
 def measure_observability():
-    svcs = kjson("services", "-A", "-l", "app=kube-prometheus-stack-prometheus")["items"]
-    if len(svcs) != 1:
-        raise Fail(f"expected exactly one Prometheus service, found {len(svcs)}")
-    ns, name = svcs[0]["metadata"]["namespace"], svcs[0]["metadata"]["name"]
-    port = next(p["port"] for p in svcs[0]["spec"]["ports"] if p["port"] == 9090)
-    crs = kjson("prometheuses.monitoring.coreos.com", "-A")["items"]
-    prefix = (crs[0]["spec"].get("routePrefix") or "/").rstrip("/") if len(crs) == 1 else ""
-    rules_cr = kjson("prometheusrules.monitoring.coreos.com", "-A")["items"]
-    custom = 0
-    for r in rules_cr:
-        if r["metadata"].get("labels", {}).get("app.kubernetes.io/managed-by") != "Helm":
-            custom += sum(1 for g in r["spec"].get("groups", []) for x in g.get("rules", []) if "alert" in x)
-    dashboards = dashboards_custom = 0
-    for cm in kjson("configmaps", "-A", "-l", "grafana_dashboard")["items"]:
-        n = sum(1 for k in cm.get("data", {}) if k.endswith(".json"))
-        dashboards += n
-        # the same test as alert_rules_custom: not installed by a Helm chart
-        if cm["metadata"].get("labels", {}).get("app.kubernetes.io/managed-by") != "Helm":
-            dashboards_custom += n
-
-    with PortForward(ns, f"svc/{name}", port) as fwd:
-        prom = Prom(f"http://127.0.0.1:{fwd.port}{prefix}")
-        for _ in range(15):  # a fresh forward needs a moment
-            try:
-                prom.get("/api/v1/status/runtimeinfo")
-                break
-            except Fail:
-                time.sleep(1)
-        rules = prom.get("/api/v1/rules")["groups"]
-        alerting = sum(1 for g in rules for r in g["rules"] if r["type"] == "alerting")
-        recording = sum(1 for g in rules for r in g["rules"] if r["type"] == "recording")
-        flags = prom.get("/api/v1/status/flags")
-        span = prom.scalar("time() - prometheus_tsdb_lowest_timestamp_seconds") / 86400
-        # Never publish a 7-day figure over less than 7 days of data: the window is
-        # the shorter of 7 days and what the TSDB actually holds.
-        hours = max(1, int(min(7 * 24, span * 24)))
-        failed = prom.scalar(f"sum(increase(alertmanager_notifications_failed_total[{hours}h]))")
-        alerts = prom.get("/api/v1/alerts")["alerts"]
-        firing = [a for a in alerts if a["state"] == "firing"]
-        out = {
-            "scrape_up": int(prom.scalar("count(up == 1)", empty=0)),
-            "scrape_total": int(prom.scalar("count(up)")),
-            "series": int(prom.scalar("prometheus_tsdb_head_series")),
-            "samples_per_sec": int(round(prom.scalar("sum(rate(prometheus_tsdb_head_samples_appended_total[5m]))"))),
-            "alert_rules": alerting, "alert_rules_custom": custom, "recording_rules": recording,
-            "dashboards": dashboards, "dashboards_custom": dashboards_custom,
-            "retention_days": int(duration_days(flags["storage.tsdb.retention.time"])),
-            "retention_size_gib": size_gib(flags["storage.tsdb.retention.size"]),
-            "data_span_days": span,
-            "notifications_failed": int(round(failed)),
-            "firing_now": len(firing),
-            "firing_now_excl_meta": sum(1 for a in firing if a["labels"].get("alertname") not in META_ALERTS),
-        }
-    return out
-
-
-# ------------------------------------------------------------------------ supply chain
-def image_parts(ref):
-    first, _, rest = ref.partition("/")
-    if rest and ("." in first or ":" in first or first == "localhost"):
-        return first, rest
-    return "docker.io", ref
-
-
-def is_own_registry(host):
-    return ":" in host or host.endswith(OWN_REGISTRY_SUFFIXES) or re.fullmatch(r"[0-9.]+", host) is not None
-
-
-def measure_supply_chain(pods, plat):
-    digests = {}
-    for p in pods:
-        if p["status"].get("phase") != "Running":
-            continue
-        refs = {c["name"]: c["image"] for c in p["spec"].get("containers", []) + p["spec"].get("initContainers", [])}
-        for cs in p["status"].get("containerStatuses", []) + p["status"].get("initContainerStatuses", []):
-            ref = refs.get(cs["name"])
-            if ref:
-                d = digests.setdefault(ref, set())
-                m = re.search(r"@(sha256:[0-9a-f]{64})", cs.get("imageID", ""))
-                if m:
-                    d.add(m.group(1))
-        for ref in refs.values():
-            digests.setdefault(ref, set())
-    # First party: pulled from the estate's own registry AND a flat repository name.
-    # A mirror of someone else's software keeps its upstream org path, so it is not ours.
-    first = []
-    for ref in digests:
-        host, path = image_parts(ref)
-        if is_own_registry(host) and "/" not in path:
-            first.append(ref)
-    key = os.path.join(plat.dir, "infra", "k3s", "cosign.pub")
-    if not os.path.isfile(key):
-        raise Fail("signing public key not found in the platform repository")
-    verified = 0
-    for ref in first:
-        if not digests[ref]:
-            raise Fail("a first-party image has no recorded digest to verify")
-        repo = ref.split("@")[0]
-        repo = repo.rsplit(":", 1)[0] if re.search(r":[^/]+$", repo) else repo
-        ok = True
-        for d in sorted(digests[ref]):
-            p = subprocess.run(
-                ["cosign", "verify", "--key", key, "--insecure-ignore-tlog=true",
-                 "--allow-insecure-registry", "--allow-http-registry", f"{repo}@{d}"],
-                capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL)
-            if p.returncode != 0:
-                err = p.stderr.lower()
-                if re.search(r"no such host|connection refused|timeout|dial tcp|i/o|eof", err) and "signature" not in err:
-                    raise Fail("cosign could not reach the registry")
-                ok = False
-        verified += ok
-
-    # SBOMs accepted by the tracker in the latest successful run of each SBOM CronJob.
-    jobs = kjson("jobs.batch", "-A")["items"]
-    latest = {}
-    for j in jobs:
-        owner = next((o["name"] for o in j["metadata"].get("ownerReferences", []) if o["kind"] == "CronJob"), None)
-        if owner and "sbom" in owner and j["status"].get("succeeded") and j["status"].get("completionTime"):
-            k = (j["metadata"]["namespace"], owner)
-            if k not in latest or j["status"]["completionTime"] > latest[k][1]:
-                latest[k] = (j["metadata"]["name"], j["status"]["completionTime"])
-    if not latest:
-        raise Fail("no successful SBOM job found")
-    uploaded = 0
-    for (ns, _owner), (job, _t) in latest.items():
-        log = kubectl("-n", ns, "logs", f"job/{job}", timeout=120)
-        uploaded += len(re.findall(r"uploaded to DT \(HTTP 200\b", log))
-    return {
-        "images_running": len(digests), "images_first_party": len(first),
-        "images_third_party": len(digests) - len(first),
-        "first_party_signed_verified": verified, "sbom_projects": uploaded,
-    }
+    return {k: NM for k, _ in dict(SCHEMA)["observability"]}
 
 
 # ----------------------------------------------------------------------------------- ci
@@ -725,15 +694,19 @@ def workflow_jobs(text):
     return out
 
 
+
+
 def measure_ci(plat):
     files = [f for f in plat.files if re.fullmatch(r"\.github/workflows/[^/]+\.ya?ml", f)]
-    jobs = self_hosted = hosted = 0
+    jobs = self_hosted = hosted = routed = 0
     for f in files:
         for runs in workflow_jobs(plat.read(f)):
             jobs += 1
             if runs is None:
                 continue  # a job that calls a reusable workflow has no runner of its own
-            if "self-hosted" in runs:
+            if "${{" in runs:  # chosen by an expression at run time: classified before the name tests
+                routed += 1
+            elif "self-hosted" in runs:
                 self_hosted += 1
             elif re.search(r"\b(ubuntu|macos|windows)-[A-Za-z0-9._-]+", runs):
                 hosted += 1
@@ -741,44 +714,160 @@ def measure_ci(plat):
                 raise Fail("a workflow job has a runs-on this script cannot classify")
     hooks = len(re.findall(r"^\s*-\s*id:\s*\S+", plat.read(".pre-commit-config.yaml"), re.M))
     return {"workflows": len(files), "jobs": jobs, "runs_on_self_hosted": self_hosted,
-            "runs_on_github_hosted": hosted, "precommit_hooks": hooks}
+            "runs_on_github_hosted": hosted, "runs_on_routed": routed, "precommit_hooks": hooks}
+
+
+# ------------------------------------------------------------------------------ records
+def record_fields(text):
+    """The '- **Field:** value' lines of one run record, by lower-cased field name."""
+    out = {}
+    for m in re.finditer(r"^- \*\*([A-Za-z ]+):\*\*\s*(.*)$", text, re.M):
+        out.setdefault(m.group(1).strip().lower(), m.group(2).strip())
+    return out
+
+
+def load_records(plat):
+    recs = []
+    for f in plat.files:
+        if not re.fullmatch(r"records/20[0-9]{2}-[0-9]{2}-[0-9]{2}-[^/]+\.md", f):
+            continue
+        fields = record_fields(plat.read(f))
+        d = re.match(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", fields.get("date", ""))
+        res = re.match(r"(pass|fail)\b", fields.get("result", "").lower())
+        if not d or not res:
+            raise Fail("a run record has no readable Date or a Result other than pass or fail")
+        recs.append({"name": os.path.basename(f), "date": d.group(0), "result": res.group(1),
+                     "home": "home site" in fields.get("where", "").lower()})
+    if not recs:
+        raise Fail("no run records found")
+    return recs
+
+
+def latest(recs, needle, home_only):
+    """Latest record whose file name contains `needle`; 'home' records say 'home site' on their
+    Where line, and old-platform records never count."""
+    sel = [r for r in recs if needle in r["name"] and "old-platform" not in r["name"]
+           and (r["home"] or not home_only)]
+    if not sel:
+        raise Fail("no run record matches a figure that needs one")
+    return max(sel, key=lambda r: (r["date"], r["name"]))
+
+
+def status_parse(text):
+    """The aggregates of the platform repository's generated status page. The In short lines are
+    matched with regexes, then cross-checked against the page's own tables; any change of shape fails."""
+    def one(pattern, what):
+        m = re.search(pattern, text)
+        if not m:
+            raise Fail(f"the status page no longer has the '{what}' line in the shape this parser expects")
+        return [int(x) for x in m.groups()]
+
+    st = one(r"\*\*Order of work:\*\* ([0-9]+) of ([0-9]+) steps are done, ([0-9]+) done on kind only, "
+             r"([0-9]+) partly done, ([0-9]+) not started and ([0-9]+) gated", "order of work")
+    ru = one(r"\*\*Rules:\*\* of ([0-9]+) rules on the objective pages, ([0-9]+) are built, "
+             r"([0-9]+) partly built and ([0-9]+) not built", "rules")
+    inv = one(r"\*\*Inventory:\*\* ([0-9]+) components\. ([0-9]+) are proven on the new platform, ([0-9]+) built,",
+              "inventory")
+    done, total, kind, partly, notstarted, gated = st[0], st[1], st[2], st[3], st[4], st[5]
+    if done + kind + partly + notstarted + gated != total:
+        raise Fail("status page: the step counts do not add up")
+    if ru[1] + ru[2] + ru[3] != ru[0]:
+        raise Fail("status page: the rule counts do not add up")
+    section = text.split("## Order of work", 1)[-1].split("\n## ", 1)[0]
+    rows = len(re.findall(r"^\| [0-9]+ \|", section, re.M))
+    if rows != total:
+        raise Fail("status page: the Order of work table does not have as many rows as the summary says")
+    m = re.search(r"^\| Total \| ([0-9]+) \| ([0-9]+) \| ([0-9]+) \| ([0-9]+) \|$", text, re.M)
+    if not m or [int(x) for x in m.groups()] != [ru[0], ru[1], ru[2], ru[3]]:
+        raise Fail("status page: the Objectives table total disagrees with the summary line")
+    m = re.search(r"^\| Total \| ([0-9]+) \| ([0-9]+) \| ([0-9]+) \|", text.split("## Inventory", 1)[-1], re.M)
+    if not m or int(m.group(1)) != inv[0] or int(m.group(2)) != inv[1] or int(m.group(3)) != inv[2]:
+        raise Fail("status page: the Inventory table total disagrees with the summary line")
+    return {
+        "steps_total": total, "steps_done": done, "steps_done_on_kind": kind, "steps_partly": partly,
+        "steps_not_started": notstarted, "steps_gated": gated,
+        "rules_total": ru[0], "rules_built": ru[1], "rules_partly": ru[2],
+        "inventory_total": inv[0], "inventory_proven": inv[1], "inventory_built": inv[2],
+    }
+
+
+def measure_evidence(plat):
+    recs = load_records(plat)
+    drill = latest(recs, "restore-drill", True)
+    probe = latest(recs, "default-deny-probe", True)
+    rehearsal = latest(recs, "lima-rehearsal", False)
+    out = {
+        "restore_drill_home_last": drill["date"], "restore_drill_home_result": drill["result"],
+        "restore_drill_home_age_days": max(0, (NOW.date() - dt.date.fromisoformat(drill["date"])).days),
+        "restore_drills_records": sum(1 for r in recs if "restore" in r["name"]),
+        "default_deny_probe_home_date": probe["date"], "default_deny_probe_home_result": probe["result"],
+        "host_rehearsal_date": rehearsal["date"], "host_rehearsal_result": rehearsal["result"],
+    }
+    out.update(status_parse(plat.read("STATUS.md")))
+    return out
 
 
 # --------------------------------------------------------------------------------- repo
-def live(path):
-    return RETIRED_SEGMENT not in path.split("/")
+def pom_version(text):
+    """The project's own <version>, which comes after the <parent> block (whose version is the
+    framework's, not the application's)."""
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        raise Fail("the application's pom is not readable XML")
+    for child in root:
+        if child.tag.rsplit("}", 1)[-1] == "version" and child.text:
+            return child.text.strip()
+    raise Fail("no project-level version in the application's pom")
 
 
-def make_targets(text):
-    names = set()
-    for line in text.split("\n"):
-        if not line or line[0] in "\t #.@-" or line.startswith(("ifeq", "ifneq", "ifdef", "ifndef", "else", "endif")):
-            continue
-        head, sep, tail = line.partition(":")
-        if not sep or tail.startswith("=") or "=" in head or head.strip() == "":
-            continue
-        for tok in head.split():
-            if re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.+-]*", tok) and "%" not in tok:
-                names.add(tok)
-    return len(names)
+def measure_repo(plat, repo, ref):
+    files = plat.files
+    roots = [int(x) for x in git(repo, "log", "--max-parents=0", "--format=%at", ref).split()]
+    cloc = json.loads(run(["cloc", "--git", ref, "--json", "--quiet"], cwd=repo, timeout=300))
+    java = [f for f in files if re.search(r"/src/test/.*\.java$", f)]
+    recs = load_records(plat)
+    return {
+        "commits": int(git(repo, "rev-list", "--count", ref)),
+        "commits_30d": int(git(repo, "rev-list", "--count", "--since=30 days ago", ref)),
+        "age_days": int((NOW.timestamp() - min(roots)) // 86400),
+        "adrs": sum(1 for f in files if re.fullmatch(r"docs/adr/[0-9]{4}-.*\.md", f)),
+        "records": len(recs),
+        "records_pass": sum(1 for r in recs if r["result"] == "pass"),
+        "records_fail": sum(1 for r in recs if r["result"] == "fail"),
+        "check_scripts": sum(1 for f in files if re.fullmatch(r"scripts/check-[^/]+\.(py|sh)", f)),
+        "playbooks": sum(1 for f in files if re.fullmatch(r"hosts/playbooks/[^/]+\.ya?ml", f)),
+        "manifests": sum(1 for f in files if re.search(r"\.ya?ml$", f)
+                         and re.match(r"(platform|sites|apps)/", f)
+                         and re.search(r"^kind:", plat.read(f), re.M)),
+        "runbooks": sum(1 for f in files if re.fullmatch(r"docs/runbooks/[^/]+\.md", f)
+                        and not f.endswith("README.md")),
+        "docs_pages": sum(1 for f in files if re.fullmatch(r"docs/.*\.md", f)),
+        "loc": int(cloc["SUM"]["code"]),
+        "loc_code": sum(int(v["code"]) for k, v in cloc.items() if k in CODE_LANGUAGES),
+        "tests_java": count_in(plat, java, r"^\s*@(?:Test|ParameterizedTest|RepeatedTest)\b"),
+        "app_warn_version": pom_version(plat.read("apps/warn/pom.xml")),
+    }
 
 
-def gaps(text):
-    open_ = closed = 0
-    gap_table = False
-    prev_table = False
-    for l in text.split("\n"):
-        is_row = l.startswith("|")
-        if is_row and not prev_table:  # first row of a table is its header
-            gap_table = re.match(r"^\|\s*ID\s*\|", l) is not None
-        elif is_row and gap_table and re.match(r"^\|\s*\*\*[^*|]+\*\*\s*\|", l):
-            open_ += 1
-        prev_table = is_row
-        if l.startswith("Closed:"):
-            closed += len(re.findall(r"\*\*[^*]+\*\*", l))
-    return open_, closed
+def measure_hardware():
+    need_dir(HARDWARE_REPOS, "HARDWARE_REPOS")
+    out = {}
+    for key, d in HARDWARE.items():
+        repo = os.path.join(HARDWARE_REPOS, d)
+        need_dir(repo, f"hardware repository '{key}'")
+        ref = default_ref(repo)  # the default branch, whatever is checked out
+        out[f"{key}_commits"] = int(git(repo, "rev-list", "--count", ref))
+        if key in ("rover_platform", "mower", "video_rover"):
+            with Snapshot(repo, ref) as snap:
+                t = test_counts(snap)
+            out[f"{key}_tests"] = t["py"] + t["go"]
+            if key == "rover_platform":
+                out["rover_platform_c_assertions"] = t["c"]
+    return out
 
 
+# ------------------------------------------------------------------------------- site
 def count_in(snap, files, pattern, flags=re.M):
     rx = re.compile(pattern, flags)
     return sum(len(rx.findall(snap.read(f))) for f in files)
@@ -797,67 +886,6 @@ def test_counts(snap):
     }
 
 
-def pubspec_version(plat, rel):
-    """The `version:` line of a committed pubspec.yaml, e.g. 1.6.1+2 (name+build)."""
-    m = re.search(r"^version:\s*(\S+)\s*$", plat.read(rel), re.M)
-    if not m:
-        raise Fail(f"no version: line in {rel}")
-    return m.group(1)
-
-
-def measure_repo(plat):
-    r, files = PLATFORM_REPO, plat.files
-    roots = [int(x) for x in git(r, "log", "--max-parents=0", "--format=%at").split()]
-    gap_o, gap_c = gaps(plat.read("docs/maturity/GAPS.md"))
-    cloc = json.loads(run(["cloc", "--git", "HEAD", "--json", "--quiet", f"--exclude-dir={RETIRED_SEGMENT}"],
-                          cwd=r, timeout=300))
-    java = [f for f in files if re.search(r"/src/test/.*\.java$", f)]
-    dart = [f for f in files if re.search(r"(^|/)test/.*_test\.dart$", f)]
-    pytests = [f for f in files if re.search(r"^apps/.*(^|/)(test_[^/]*|[^/]*_test)\.py$", f)]
-    return {
-        "commits": int(git(r, "rev-list", "--count", "HEAD")),
-        "commits_30d": int(git(r, "rev-list", "--count", "--since=30 days ago", "HEAD")),
-        "age_days": int((NOW.timestamp() - min(roots)) // 86400),
-        "adrs": sum(1 for f in files if re.fullmatch(r"docs/adr/[0-9]{4}-.*\.md", f)),
-        "gaps_open": gap_o, "gaps_closed": gap_c,
-        "make_targets": sum(make_targets(plat.read(f)) for f in files
-                            if live(f) and (f.rsplit("/", 1)[-1] == "Makefile" or f.endswith(".mk"))),
-        "playbooks": sum(1 for f in files if live(f) and re.fullmatch(r".*/playbooks/[^/]+\.ya?ml", f)),
-        "manifests": sum(1 for f in files if re.search(r"/manifests/.*\.ya?ml$", f)
-                         and re.search(r"^kind:", plat.read(f), re.M)),
-        "runbooks": sum(1 for f in files if live(f) and re.search(r"/runbooks/[^/]+\.md$", f)
-                        and not f.endswith("README.md")),
-        "docs_pages": sum(1 for f in files if live(f) and re.fullmatch(r"docs/.*\.md", f)),
-        "loc": int(cloc["SUM"]["code"]),
-        "loc_code": sum(int(v["code"]) for k, v in cloc.items() if k in CODE_LANGUAGES),
-        "platform_head": f"{git(r, 'rev-list', '--count', 'HEAD').strip()} commits, HEAD dated "
-                         f"{git(r, 'log', '-1', '--format=%cs', 'HEAD').strip()}",
-        "tests_java": count_in(plat, java, r"^\s*@(?:Test|ParameterizedTest|RepeatedTest)\b"),
-        "tests_python": count_in(plat, pytests, r"^\s*(?:async\s+)?def test_\w*"),
-        "tests_dart": count_in(plat, dart, r"(?<![A-Za-z_])(?:test|testWidgets)\("),
-        "app_loc8_version": pubspec_version(plat, "apps/flutter-loc8-app/pubspec.yaml"),
-        "app_warn_version": pubspec_version(plat, "apps/flutter_warn_app/pubspec.yaml"),
-        "app_talk_version": pubspec_version(plat, "apps/flutter-talk-app/pubspec.yaml"),
-    }
-
-
-def measure_hardware():
-    need_dir(HARDWARE_REPOS, "HARDWARE_REPOS")
-    out = {}
-    for key, d in HARDWARE.items():
-        repo = os.path.join(HARDWARE_REPOS, d)
-        need_dir(repo, f"hardware repository '{key}'")
-        out[f"{key}_commits"] = int(git(repo, "rev-list", "--count", "HEAD"))
-        if key in ("rover_platform", "mower", "video_rover"):
-            with Snapshot(repo) as snap:
-                t = test_counts(snap)
-            out[f"{key}_tests"] = t["py"] + t["go"]
-            if key == "rover_platform":
-                out["rover_platform_c_assertions"] = t["c"]
-    return out
-
-
-# ------------------------------------------------------------------------------ referees
 def github_slug():
     url = git(SITE, "remote", "get-url", "origin").strip()
     m = re.search(r"github\.com[:/]([^/]+/[^/]+?)(?:\.git)?$", url)
@@ -871,46 +899,27 @@ def github_headers():
     return {"Authorization": f"Bearer {t}"} if t else {}
 
 
-def shields_pct(url):
-    m = re.fullmatch(r"([0-9.]+)%", http_json(url)["message"])
-    if not m:
-        raise Fail("uptime badge did not return a percentage")
-    return float(m.group(1))
 
-
-def measure_referees():
-    idx = read(SITE, "docs/index.md")
-    ids = {w: re.search(rf"uptimerobot/ratio/{w}/([A-Za-z0-9-]+)", idx) for w in ("7", "30")}
-    hc = re.search(r"healthchecks\.io%2Fbadge%2F([0-9a-f-]+)%2F([A-Za-z0-9_-]+)\.shields", idx)
-    if not all(ids.values()) or not hc:
-        raise Fail("referee badges not found in docs/index.md")
-    state = http_json(f"https://healthchecks.io/badge/{hc.group(1)}/{hc.group(2)}.shields")["message"]
-    repo = http_json(f"https://api.github.com/repos/{github_slug()}", github_headers())
-    return {
-        "uptimerobot_7d": shields_pct(f"https://img.shields.io/uptimerobot/ratio/7/{ids['7'].group(1)}.json"),
-        "uptimerobot_30d": shields_pct(f"https://img.shields.io/uptimerobot/ratio/30/{ids['30'].group(1)}.json"),
-        "healthchecks": state.strip().lower(),
-        "github_stars": int(repo["stargazers_count"]),
-        "github_pushed": repo["pushed_at"],
-    }
 
 
 def measure_site():
+    repo = http_json(f"https://api.github.com/repos/{github_slug()}", github_headers())
     runs = http_json(f"https://api.github.com/repos/{github_slug()}/actions/runs?per_page=100",
                      github_headers())["workflow_runs"]
 
-    def latest(name):
+    def latest_run(name):
         for r in runs:  # newest first
             if r["name"] == name and r.get("conclusion"):
                 return r
         raise Fail("no finished workflow run found in the last 100")
 
-    pages, guard = latest("pages build and deployment"), latest("Public docs guard")
+    pages, guard = latest_run("pages build and deployment"), latest_run("Public docs guard")
     return {
         "commits": int(git(SITE, "rev-list", "--count", "HEAD")),
         "pages": sum(1 for f in os.listdir(os.path.join(SITE, "docs")) if f.endswith(".md")),
         "pages_last_build": pages["conclusion"], "pages_last_build_at": pages["updated_at"],
         "guard_last_run": guard["conclusion"],
+        "last_push": repo["pushed_at"],
     }
 
 
@@ -1006,17 +1015,19 @@ def validate(stats):
         raise Fail("unexpected group")
 
 
+
+
+
 def render(stats, generated_at):
     out = ["# Generated by scripts/gather-stats.py - do not edit by hand. Regenerate with `make stats`.",
-           "# Aggregates only: counts, percentages, versions, dates. How each is measured: stats_methods.yml.",
+           "# Aggregates only: counts, dates, words. How each is measured: stats_methods.yml.",
            f'generated_at: "{generated_at}"']
     for g, keys in SCHEMA:
         out.append(f"{g}:")
         for k, kind in keys:
             v = stats[g][k]
-            out.append(f'  {k}: "{v}"' if kind in KINDS else f"  {k}: {num(v, 3 if k.startswith('uptimerobot') else 1)}")
+            out.append(f'  {k}: "{v}"' if kind in KINDS else f"  {k}: {num(v, 1)}")
     return "\n".join(out) + "\n"
-
 
 README_BEGIN, README_END = "<!-- stats:begin -->", "<!-- stats:end -->"
 STATUS_URL = "https://schultzzznet.github.io/schultzzznet/status.html"
@@ -1050,26 +1061,30 @@ def load_stats(path):
     return stats, gen
 
 
+
+
 def readme_block(stats, generated_at):
     """The headline aggregates as a compact Markdown table, from the measured values."""
-    c, st, d, o = stats["cluster"], stats["storage"], stats["databases"], stats["observability"]
-    r, ci = stats["repo"], stats["ci"]
+    c, a, d, o = stats["cluster"], stats["admission"], stats["databases"], stats["observability"]
+    rc, e, r, ci = stats["reconciler"], stats["evidence"], stats["repo"], stats["ci"]
     rows = [
         ("Nodes (Ready)", f"{c['nodes']} ({c['nodes_ready']})"),
         ("CPU cores", num(c["cores"])),
         ("Memory", f"{num(c['ram_gb'], 0)} GB"),
         ("Pods running", num(c["pods_running"])),
-        ("Postgres clusters / instances", f"{d['clusters']} / {d['instances']}"),
-        ("Clusters with a synchronous standby right now", f"{d['synchronous_clusters']} of {d['clusters']}"),
-        ("Backup objects (completed in the last 24 hours)", f"{d['backups_total']} ({d['backups_24h']})"),
-        ("Alert rules loaded", num(o["alert_rules"])),
-        ("Scrape targets up", f"{o['scrape_up']} of {o['scrape_total']}"),
-        ("Commits to the platform repository", num(r["commits"])),
+        ("Kustomizations ready", f"{rc['kustomizations_ready']} of {rc['kustomizations']}"),
+        ("Admission policies ready", f"{a['policies_ready']} of {a['policies']}"),
+        ("Tenants with default-deny (structural count)", f"{a['tenants_default_deny']} of {a['tenant_namespaces']}"),
+        ("Database instances ready", f"{d['instances_ready']} of {d['instances']}"),
+        ("Backup objects completed in the last 24 hours", num(d["backups_24h"])),
+        ("Latest restore drill on the home site", f"{e['restore_drill_home_last']}, {e['restore_drill_home_result']}"),
+        ("Alert rules", o["alert_rules"]),
         ("Decision records", num(r["adrs"])),
-        ("Test definitions (counted, not run)", num(r["tests_java"] + r["tests_python"] + r["tests_dart"])),
+        ("Run records (pass of total)", f"{r['records_pass']} of {r['records']}"),
+        ("Test definitions (counted, not run)", num(r["tests_java"])),
         ("CI workflows", num(ci["workflows"])),
     ]
-    lines = ["| Figure | Value |", "| --- | ---: |"] + [f"| {a} | {b} |" for a, b in rows]
+    lines = ["| Figure | Value |", "| --- | ---: |"] + [f"| {a_} | {b} |" for a_, b in rows]
     lines += ["", f"*Measured {generated_at} by `make stats`. What each figure counts, and the command "
                   f"behind it: [the status page]({STATUS_URL}).*"]
     return "\n".join(lines)
@@ -1122,7 +1137,6 @@ def leak_guard(stats_yaml, readme_block_text=None):
             raise Fail("the leak guard refused the generated file: " + "; ".join(labels))
 
 
-# --------------------------------------------------------------------------------- main
 def verify(what, max_age, data_dir):
     if what == "methods":
         problems = check_methods(None, data_dir)
@@ -1145,6 +1159,7 @@ def verify(what, max_age, data_dir):
     for p in problems:
         print(p)
     return 1 if problems else 0
+
 
 
 def main():
@@ -1184,25 +1199,33 @@ def main():
                            "holding the private hardware checkouts) or run `make stats`, which sets both "
                            "from $HOME; see the Makefile header.")
             need_dir(val, var)
-        for tool in ("kubectl", "git", "cloc", "cosign"):
+        if not KUBECONFIG:
+            raise Fail("KUBECONFIG is not set. There is no default, so a run cannot measure the wrong cluster: "
+                       "run `make stats KUBECONFIG=...`")
+        for tool in ("kubectl", "git", "cloc"):
             if shutil.which(tool) is None:
                 raise Fail(f"{tool} is not installed")
         if not os.path.isfile(KUBECONFIG):
             raise Fail("KUBECONFIG does not point at a file")
         stats = {}
-        cluster, pods = measure_cluster()
-        stats["cluster"] = cluster
-        print("  extracting the committed platform tree ...", file=sys.stderr)
-        with Snapshot(PLATFORM_REPO) as plat:
-            for group, fn, args in (
-                ("storage", measure_storage, ()), ("databases", measure_databases, ()),
-                ("observability", measure_observability, ()),
-                ("supply_chain", measure_supply_chain, (pods, plat)), ("ci", measure_ci, (plat,)),
-                ("repo", measure_repo, (plat,)), ("hardware", measure_hardware, ()),
-                ("referees", measure_referees, ()), ("site", measure_site, ()),
-            ):
-                print(f"  measuring {group} ...", file=sys.stderr)
-                stats[group] = fn(*args)
+        stats["cluster"], ctx = measure_cluster()
+        check_pending(ctx)
+        for group, fn in (("storage", measure_storage), ("reconciler", measure_reconciler),
+                          ("admission", measure_admission), ("databases", measure_databases),
+                          ("observability", measure_observability)):
+            print(f"  measuring {group} ...", file=sys.stderr)
+            stats[group] = fn()
+        print("  reading the platform repository's main branch ...", file=sys.stderr)
+        with PlatformSource() as src, Snapshot(src.repo, src.ref) as plat:
+            print("  measuring evidence ...", file=sys.stderr)
+            stats["evidence"] = measure_evidence(plat)
+            print("  measuring ci ...", file=sys.stderr)
+            stats["ci"] = measure_ci(plat)
+            print("  measuring repo ...", file=sys.stderr)
+            stats["repo"] = measure_repo(plat, src.repo, src.ref)
+        for group, fn in (("hardware", measure_hardware), ("site", measure_site)):
+            print(f"  measuring {group} ...", file=sys.stderr)
+            stats[group] = fn()
         validate(stats)
         problems = check_methods(schema_keys())
         if problems:
