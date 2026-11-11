@@ -3,11 +3,11 @@ title: The estate
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**What it is:** a training system, on purpose. V2.0, a new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). It is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
+  - "**What it is:** a training system, on purpose. V2.0, a new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). The cluster is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
   - "**Proven (dated):** admission policies refuse off-list or undigested images (one real refusal, 2026-11-10); one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10, with limits. The default-deny probe failed (a 1-3 s gap at pod start)."
   - "**Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
-  - "**V1.0 (retired 2026-11-10):** its figures stay lower on this page under dated headings. None is a claim about the new cluster. Next: [Where to start](#where-to-start) and [How we work](how-we-work.html)."
-  - "**V1.0 against V2.0:** [a dated diff list](versions.html) of what changed between the retired cluster and this one, area by area, including where V1.0 did better and what is not rebuilt yet."
+  - "**History:** the cluster is a day old; the platform is not. V1.0 ran from 2025-12-21 to 2026-11-10 (Docker Swarm first, k3s from 2026-04, Swarm retired 2026-06-09): 2,051 commits and 226 merged pull requests, written up here in public since 2026-04-18. V2.0 is its next step on the same six machines: [History](history.html)."
+  - "**V1.0 against V2.0:** [a dated diff list](versions.html), area by area, including where V1.0 did better and what is not rebuilt yet. V1.0's own figures stay lower on this page under dated headings; none is a claim about the new cluster."
   - "**Two axes:** what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, scripted and push at the edges, so not fully GitOps yet: [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
 ---
 {% assign s = site.data.stats %}
@@ -20,6 +20,7 @@ summary:
 {% assign ci = s.ci %}
 {% assign rp = s.repo %}
 {% assign hw = s.hardware %}
+{% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
 # A training system, on purpose: the latest platform technology on the weakest hardware I could put to use, AI on every side, to learn as much as possible before the day a killer app needs it.
@@ -43,7 +44,9 @@ six machines were rebuilt as a new K3s cluster that day and the next. As of 2026
 {{ c.age_days }} days old by the count below, so no uptime is claimed. One of the three reference apps (the hazard-warning
 one) is deployed on it. Admission control and default-deny between tenant namespaces are live. A restore
 drill passed on 2026-11-10, with limits. Everything V1.0 measured, and every
-correction it made, is kept further down under a dated heading and is not a claim about this cluster.
+correction it made, is kept further down under a dated heading and is not a claim about this cluster. The cluster is new;
+the platform is not: V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }}, with a commit in each of its twelve months,
+and its [history](history.html) is measured month by month, with receipts in this public repository.
 
 **There are no paying customers, no users and no load at all.** The synthetic load generator went
 with V1.0. There is no public entrance and no public name. **Monitoring is running and has been read**: the
@@ -56,6 +59,7 @@ metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run 
 | You have | Read |
 |---|---|
 | **2 minutes** | The *In short* block above, then *Recently* below |
+| **How it got here** | [History](history.html): V1.0 from 2025-12-21 to 2026-11-10, month by month, the dated milestones, and receipts anyone can check |
 | **What changed since V1.0** | [V1.0 and V2.0: what changed](versions.html): the diff list, area by area, with a status word on every V2.0 row |
 | **How it works today** | [How we work](how-we-work.html): changes, secrets, admission, approvals, home CI, and the restore drill, each dated and marked proven or not |
 | **5 minutes** | Add [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert (found on V1.0, retired 2026-11-10; the habit carries over) |
@@ -122,8 +126,11 @@ yet (open). Until there is one, the figures above are the cluster describing its
 ## None of this is a demo
 
 The repository for the platform is {{ rp.age_days }} days old, with {{ rp.commits }} commits, and it is a **new,
-private repository started on 2026-11-05**; the old one is kept as a record. The **current cluster is {{ c.age_days }}
-days old** and has no uptime to boast about. The one before it ran for weeks and was torn down on purpose. That is not a hole
+private repository started on 2026-11-05**. It follows the old one, kept as a record, which ran from {{ hv.first_commit }}
+to {{ hv.last_commit }} with {% include thousands.html n=hv.commits %} commits and {{ hv.merged_prs }} merged pull requests
+([History](history.html)). The **current cluster is {{ c.age_days }} days old** and has no uptime to boast about. The one
+before it, V1.0's last k3s build, ran from {{ hv.last_cluster_built }} to {{ hv.retired }} and was torn down on purpose;
+before that came an earlier k3s build from 2026-04 and a Docker Swarm cluster until 2026-06-09. That is not a hole
 in the record, it is the record. Components are meant to be disposable, and
 several have been disposed of. What has persisted is the practice around the cluster, not the cluster.
 
@@ -217,13 +224,13 @@ screenshots, how they sign in, and the bug that signed people out for the wrong 
 ## Repositories
 
 Nine repositories show active work. **The platform is now a new private repository** ({{ rp.commits }} commits since it
-was started on 2026-11-05, as of {{ gen_date }}); the old one is kept as a record and receives no platform changes. The embedded Linux layer, a
+was started on 2026-11-05, as of {{ gen_date }}); the old one ({% include thousands.html n=hv.commits %} commits from {{ hv.first_commit }} to {{ hv.last_commit }}, see [History](history.html)) is kept as a record and receives no platform changes. The embedded Linux layer, a
 satellite application and the mechanical repository also get attention on this site; the rest are
 a mowing robot, a drone swarm, a rover platform, a video rover and an i.MX8 layer. Commit
 counts, as of {{ gen_date }}: embedded Linux {{ hw.yocto_commits }},
 mechanical {{ hw.printing_commits }}, mower {{ hw.mower_commits }}, rover platform
-{{ hw.rover_platform_commits }}, video rover {{ hw.video_rover_commits }}, i.MX8
-{{ hw.imx8_commits }}. They shared a registry, signing keys and a vulnerability tracker on V1.0; on the new
+{{ hw.rover_platform_commits }}, video rover {{ hw.video_rover_commits }}, i.MX8 {{ hw.imx8_commits }}.
+They shared a registry, signing keys and a vulnerability tracker on V1.0; on the new
 one the registry and signing exist and the tracker does not (planned).
 
 The satellite was the proof, on V1.0, that **an application does not have to live in the

@@ -1,0 +1,3 @@
+{%- comment -%}A whole number with a thousands comma, the way the prose on this site writes them: include thousands.html n=12937 -> 12,937 (up to 999,999).{%- endcomment -%}
+{%- assign tn = include.n | plus: 0 -%}
+{%- if tn >= 1000 -%}{{ tn | divided_by: 1000 }},{{ tn | modulo: 1000 | plus: 1000 | append: "" | slice: 1, 3 }}{%- else -%}{{ tn }}{%- endif -%}

@@ -8,25 +8,27 @@ summary:
   - "**Counts, 2026-11-11:** 14 kept, 32 changed, 6 new, 1 dropped, 17 not rebuilt yet. Of the V2.0 sides, 19 are proven, 17 built, 8 planned, 24 open; 2 are unchanged and outside the cluster."
   - "**Where V1.0 was better:** 30 rows, among them a live reference to compare against, replicated storage, one database cluster per app, names on the LAN, an in-cluster registry that needed no internet, read monitoring and alerts, rehearsed upgrades, rollback and restore drills, a public entrance, scans and an audit log. Most of that is not rebuilt yet."
   - "**The first four delivery rows name their cell** of the two axes (what is written: declarative or scripted; who applies it: pull or push), explained in [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
-  - "**V1.0 is kept as a diffed reference.** Nothing about it is deleted and every V1.0 fact keeps its date. It is not running; it is never evidence about V2.0."
+  - "**V1.0 is kept as a diffed reference.** It ran from 2025-12-21 to 2026-11-10 ([History](history.html)). Nothing about it is deleted and every V1.0 fact keeps its date. It is not running; it is never evidence about V2.0."
 ---
 
 # V1.0 and V2.0: what changed
 
 {% include in-short.html %}
 
-On 2026-11-10 I took V1.0 down and built V2.0 on the same six machines. This page is the diff list: for each area, what V1.0 did, what V2.0 does today, whether that is a change, and how far V2.0 has got. It was read against the system on 2026-11-11 (the live readings at 07:00 UTC), when V2.0 was about a day old, so no row is an uptime claim. Where V1.0 did something better I say so in the row.
+On 2026-11-10 I took V1.0 down and built V2.0 on the same six machines. V1.0 had run for 324 days by then, from its first commit on 2025-12-21 (Docker Swarm first, k3s from 2026-04-04, its last cluster built on 2026-09-04); [History](history.html) has it month by month. This page is the diff list: for each area, what V1.0 did, what V2.0 does today, whether that is a change, and how far V2.0 has got. It was read against the system on 2026-11-11 (the live readings at 07:00 UTC), when V2.0 was about a day old, so no row is an uptime claim. Where V1.0 did something better I say so in the row.
 
 ## The key
 
 | Word | Meaning |
 |---|---|
-| **V1.0** | The retired old cluster, torn down on 2026-11-10. It is described only as it was on the dates given. It does not run. |
+| **V1.0** | The retired platform of the old repository, 2025-12-21 to 2026-11-10: Docker Swarm until 2026-06-09, k3s from 2026-04-04, its last cluster built on 2026-09-04 and torn down on 2026-11-10 ([History](history.html)). It is described only as it was on the dates given. It does not run. |
 | **V2.0** | The K3s home site, built on the same six machines on 2026-11-10 and 11. |
 | **proven** | Seen working, on the date given in the evidence column. |
 | **built** | Written and applied, but not shown to do its job. |
 | **planned** | Decided or intended, not built. |
 | **open** | Not decided, not done, or a known gap. |
+
+A row tagged *(V1.0, as of 2026-11-05 to 2026-11-10)* was read from V1.0's notes in its last days; it does not mean V1.0 lasted five days.
 
 Change types: **kept** (same idea, carried over), **changed** (a different way of doing it), **new** (V1.0 had nothing like it), **dropped** (removed on purpose), **not rebuilt yet** (V1.0 had it, V2.0 does not). Two rows (3D printing source and cost) are unchanged and outside the cluster, so they carry no status word.
 
@@ -57,7 +59,7 @@ The shape matters more than the totals: most of what V1.0 had for watching, scan
 
 | Area | V1.0 | V2.0 | Change | V2.0 status | Evidence and why |
 |---|---|---|---|---|---|
-| Hardware and OS | Six retired laptops: three control-plane servers that also ran workloads, three agents; the oldest from 2011. Ran until 2026-11-10. | The same six machines, wiped and rebuilt as V2.0 on 2026-11-10; same roles. | kept | proven | **Evidence:** All six machines Ready, and none carries a taint, so the three servers still run workloads; read 2026-11-11 07:00 UTC. **Why:** The old hardware is the handicap on purpose: if it runs here it runs on better. |
+| Hardware and OS | Six retired laptops: three control-plane servers that also ran workloads, three agents; the oldest from 2011. This build ran from 2026-09-04 until 2026-11-10. | The same six machines, wiped and rebuilt as V2.0 on 2026-11-10; same roles. | kept | proven | **Evidence:** All six machines Ready, and none carries a taint, so the three servers still run workloads; read 2026-11-11 07:00 UTC. **Why:** The old hardware is the handicap on purpose: if it runs here it runs on better. |
 | Hardware and OS | V1.0 stayed up as the working reference until 2026-11-10. Its own daily guards had been red every day from 2026-11-02 to 2026-11-09 and nobody read them. | Torn down on 2026-11-10, before the new site passed its gates, because the new site needed the same machines. | changed | proven | **Evidence:** Teardown record 2026-11-10; the 2026-11-10 review found V1.0 healthy but unattended, 6 nodes Ready and 6 apps at 2 of 2. **Why:** V1.0 was better here: it was a live thing to compare against. The cost of tearing it down first is that comparisons now rest on notes, and the outside-tool baseline I wanted before the wipe (benchmark, scorecard) was never filed. |
 | Hardware and OS | Ubuntu Desktop on the nodes with the desktop stripped by a play; Debian on some CI builders. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | One server distribution on every host, including the CI builders, installed from a stick built from the repository. | changed | proven | **Evidence:** Six blank machines became a Ready site in one supervised session on 2026-11-10. **Why:** One image to maintain. The reason for the single distribution is not written down, and only one distribution has run end to end (a second is open). |
 | Hardware and OS | Host rules learned from incidents lived in playbooks: frequency governor and temperature caps, sleep masked, swap off, inotify limits, one stable IPv4 node address, service flags only in config files, time synced before runners start. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | A written host baseline and a host play. On 2026-11-08 the review found most of V1.0's rules missing from it; I have not re-checked rule by rule. | changed | built | **Evidence:** A three-VM rehearsal passed on 2026-11-10 and a second run changed nothing (4 min 11 s); the baseline applied to six real machines the same day. **Why:** Each of those rules cost an incident. Writing the baseline from scratch risks paying for them twice. |

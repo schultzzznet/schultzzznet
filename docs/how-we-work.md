@@ -14,7 +14,7 @@ summary:
 
 {% include in-short.html %}
 
-This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The platform was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It is a day old, and nothing here claims uptime.
+This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The cluster was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It is a day old, and nothing here claims uptime. The ways of working are older: most were learned on V1.0, from 2025-12-21 to 2026-11-10 ([History](history.html)).
 
 **Why there are no links to the records.** The repository behind this page is private, by choice. A claim here comes from a run record with fixed fields: date, what was done, result, what it proves, what it does not prove. I can show one on request.
 

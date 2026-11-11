@@ -5,7 +5,7 @@ reread: 2026-11-11
 body_read: 2026-11-11
 summary:
   - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Dated 2026-11-11."
-  - "**The platform is about a day old:** it was rebuilt on 2026-11-10 and 2026-11-11, so nothing here is an uptime claim. It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
+  - "**The cluster is about a day old:** it was rebuilt on 2026-11-10 and 2026-11-11, so nothing here is an uptime claim (the platform's [history](history.html) goes back to 2025-12-21). It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
   - "**Two evidence records are shown with what they do not prove:** a restore drill passed on 2026-11-10 and a default-deny probe failed the same day (a new pod was open for about 1 to 3 seconds). Open item."
   - "**Monitoring is running and read, and there is no external referee yet.** Figures that no probe can read yet say not measured yet, never zero and never an old number. V1.0's headline figures are kept below as history only."
 ---
@@ -28,8 +28,9 @@ The generator reads the cluster read-only, and the main branch of the private pl
 repository counts. None of it was typed in. The last column says what was counted, and where the label is
 wider than the count, it says so.
 
-**The platform is about a day old.** V1.0 was torn down on 2026-11-10 and this one was
-brought up on 2026-11-10 and 2026-11-11. Nothing on this page is an uptime claim, and a count of things that
+**The cluster is about a day old.** V1.0 was torn down on 2026-11-10 and this one was
+brought up on 2026-11-10 and 2026-11-11. The platform is older: V1.0 ran from 2025-12-21, and its frozen
+[history](history.html) is measured month by month. Nothing on this page is an uptime claim, and a count of things that
 exist is not a claim that they have worked for any length of time. Where a figure cannot be measured yet, the
 page says **not measured yet**. It does not show zero, and it never carries a number over from V1.0.
 

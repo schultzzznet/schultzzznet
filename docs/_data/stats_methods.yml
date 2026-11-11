@@ -138,3 +138,37 @@ site:
   guard_last_run: { label: "Last leak-guard run", how: "GitHub REST API, workflow runs; conclusion of the newest finished run of the guard workflow." }
 
   last_push: { label: "Last push to this repository", how: "GitHub REST API, repository endpoint; pushed_at." }
+# V1.0's history, in docs/_data/history.yml, written by scripts/gather-history.py (make history) and shown on /history.html.
+# It is FROZEN, not a snapshot: V1.0's repository is dormant, so `make history-check` re-measures and must find nothing
+# changed. The stats freshness rule does not apply to it; scripts/gather-history.py --verify checks kinds, sums and that
+# every key below has a figure and every figure a key. "Git's clock" is the committer's own clock, so its author could
+# have set it; "GitHub's clock" is a server timestamp the author cannot set.
+history:
+  chart_days: { label: "Days drawn in the timeline", how: "V1.0's days plus one, so the last day (the teardown) has a width. Bars that are still running end at the right edge." }
+  v1_first_commit: { label: "V1.0's first commit", how: "git, a fresh clone of the V1.0 repository's default branch; the committer date of its single root commit. Git's clock." }
+  v1_last_commit: { label: "V1.0's last commit", how: "Same clone; the committer date of the branch head. Git's clock. A later commit there would fail make history-check." }
+  v1_retired: { label: "V1.0 torn down", how: "The date in the file name of the V2.0 repository's run record of the old platform's teardown." }
+  v1_days: { label: "V1.0's length", unit: " days", how: "Whole days from the first commit to the teardown. The life of the repository and the practice, not the uptime of any one cluster: no cluster ran that long." }
+  v1_commits: { label: "V1.0 commits", how: "`git rev-list --count` on the same clone's head. Git's clock." }
+  v1_active_days: { label: "Days with at least one V1.0 commit", how: "Distinct committer dates over the same commits, each in its own time zone. Git's clock." }
+  v1_merged_prs: { label: "V1.0 pull requests merged", how: "GitHub REST API, the repository's closed pull requests; those with a merge time up to the day of the last commit (UTC). GitHub's clock. Before the pull-request gate of 2026-07-30 changes went straight to the main branch, so this starts in August." }
+  v1_first_merged_pr: { label: "First merged pull request", how: "The same list; the earliest merge time, as a UTC date. GitHub's clock." }
+  v1_ci_runs: { label: "V1.0 CI runs", how: "GitHub REST API, Actions runs created per day range (UTC) from the first to the last commit, every run whatever its result; a range at the search cap is halved until each part is below 1,000. GitHub's clock." }
+  v1_first_ci_run: { label: "First CI run", how: "The same API; the first day from the first commit on with a run created. GitHub's clock." }
+  v1_adrs: { label: "V1.0 decision records", how: "Same clone; numbered Markdown files in the decision-record directory at the head." }
+  v1_last_cluster_built: { label: "Last V1.0 cluster built", how: "From this public repository: the measurement date of each generated stats file from before V2.0 minus the cluster age it published (the age of the oldest node object). They must agree within a day. Anyone can repeat it from the receipts." }
+  v2_first_commit: { label: "V2.0 repository started", how: "git, a fresh clone of the V2.0 repository's default branch; the committer date of its root commit. Git's clock." }
+  v2_built: { label: "V2.0 built on the machines", how: "The date in the file name of the V2.0 run record of the home site's bring-up." }
+  site_first_commit: { label: "First public write-up of the platform", how: "git on this public repository's main branch; the earliest commit on or after V1.0's first commit (the three older commits are a 2021-2022 profile text). Anyone can repeat it." }
+  site_commits_v1_window: { label: "Commits to this public repository during V1.0", how: "The same log; commits from V1.0's first to its last commit date. Anyone can repeat it." }
+  site_first_deployment: { label: "First GitHub Pages deployment", how: "GitHub REST API, this repository's deployments; the oldest creation time. GitHub's clock, and public." }
+  site_deployments_before_v2: { label: "Pages deployments before V2.0 existed", how: "The same list; deployments created before the V2.0 repository's first commit date. GitHub's clock, and public." }
+  months_days: { label: "Days of V1.0 in the month", how: "Calendar days of the month inside V1.0's first and last commit dates (December 2025 starts on the 21st, November 2026 ends on the 5th)." }
+  months_commits: { label: "Commits in the month", how: "As V1.0 commits, by committer month in each commit's own time zone. Git's clock." }
+  months_active_days: { label: "Days with a commit in the month", how: "As days with at least one V1.0 commit, per month. Git's clock." }
+  months_merged_prs: { label: "Pull requests merged in the month", how: "As V1.0 pull requests merged, by UTC month of the merge time. GitHub's clock." }
+  months_ci_runs: { label: "CI runs in the month", how: "As V1.0 CI runs, for the month's days inside V1.0 (UTC). GitHub's clock." }
+  months_site_commits: { label: "Commits to this public repository in the month", how: "As commits to this public repository during V1.0, per month. Anyone can repeat it." }
+  eras: { label: "Timeline bars", how: "Seven bars with dates: Swarm (to 2026-06-09) and the k3s start (2026-04-04) are from my private record and already on the site; the last cluster build, the public write-up and Pages are measured from this repository; the V2.0 dates as above. from_day and to_day are days since V1.0's first commit." }
+  receipts: { label: "Public receipts", how: "Every commit to this repository before V2.0 that changed the generated stats file, one per measurement time: the V1.0 figures it published, the time GitHub recorded the push that first contained it (the activity API, GitHub's clock), and V1.0's commits counted today with `git rev-list --count --before` that measurement time. The two counts differ by commits made before and pushed after a measurement." }
+  milestones: { label: "Milestones", how: "Lines written by a person in scripts/gather-history.py, never copied from a private commit message. A public one names a commit in this repository, checked to be on main, with the time GitHub recorded the push that first contained it; a private one is my record, which a reader cannot check." }

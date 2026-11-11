@@ -603,3 +603,41 @@ if [[ "$out" != *"mDNS (.local) names"* ]]; then
   exit 1
 fi
 echo "  pass  generator refused: a .local name in its own output"
+
+# --- V1.0's frozen history (docs/_data/history.yml): no freshness rule, so its kinds, sums and methods must hold ---
+# Each case damages the scratch copy one way and must be refused by the history rule (or, for a leak shape, by the
+# content rule that would have caught it on any page), so a fault cannot hide behind another check failing.
+history_rule="history data is consistent and every figure has a method"
+history_fault() { # <label> <rule> <python that edits the text held in t>
+  scratch
+  (cd "$tmp/site" && python3 - docs/_data/history.yml "$3" <<'PY'
+import re, sys
+path, code = sys.argv[1], sys.argv[2]
+t = open(path).read()
+env = {"t": t, "re": re}
+exec(code, env)
+if env["t"] == t:
+    sys.exit("test-guard: the planted fault changed nothing in " + path + ": " + code)
+open(path, "w").write(env["t"])
+PY
+  )
+  must_fail "$1" "$2"
+}
+history_fault "a month's commits that no longer add up to the total" "$history_rule" \
+  't = re.sub(r"(?m)^    commits: 72$", "    commits: 73", t, count=1)'
+history_fault "a figure in history.yml with no method" "$history_rule" \
+  't = t.replace("  adrs: ", "  adrs_extra: 1\n  adrs: ", 1)'
+history_fault "a private commit id in a milestone line" "$history_rule" \
+  't = t.replace("Third app: chat.", "Third app: chat (ab12cd34).", 1)'
+history_fault "a milestone out of date order" "$history_rule" \
+  't = t.replace("date: \"2025-12-22\"", "date: \"2026-12-22\"", 1)'
+history_fault "a LAN address in a milestone line" "private LAN addresses" \
+  't = t.replace("Third app: chat.", "Third app: chat, on 192.168.1.20.", 1)'
+history_fault "a token in a milestone line" "token shapes" \
+  't = t.replace("Third app: chat.", "Third app: chat " + "gh" + "p_" + "a1B2" * 9 + ".", 1)'
+scratch
+sed -i.bak '/^  v1_commits:/d' "$tmp/site/docs/_data/stats_methods.yml"
+must_fail "a history figure whose method was removed" "$history_rule"
+scratch
+rm "$tmp/site/docs/_data/history.yml"
+must_fail "history.yml missing altogether" "$history_rule"

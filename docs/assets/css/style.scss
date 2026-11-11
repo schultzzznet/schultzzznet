@@ -70,3 +70,96 @@
 @media (prefers-color-scheme: dark) {
   .in-short { background: #1d2b27; border-left-color: #2ea66a; }
 }
+
+// The History page (docs/history.md): a timeline of bars and a month table with bars, plain HTML and CSS, no library.
+$hist-v1: #157878;
+$hist-site: #8a6d1f;
+$hist-v2: #c2410c;
+
+.hist-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  font-size: 0.85rem;
+  margin: 0.4rem 0 0.8rem;
+
+  span::before {
+    content: "";
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-right: 0.35rem;
+    vertical-align: -0.1rem;
+    border-radius: 2px;
+  }
+  .hist-k-v1::before { background: $hist-v1; }
+  .hist-k-site::before { background: $hist-site; }
+  .hist-k-v2::before { background: $hist-v2; }
+}
+
+.hist-gantt {
+  margin: 0 0 1.4rem;
+  font-size: 0.85rem;
+
+  .hist-row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 14rem) 1fr;
+    gap: 0.2rem 0.8rem;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  }
+  .hist-label small { display: block; opacity: 0.75; }
+  .hist-track {
+    position: relative;
+    height: 1rem;
+    background: rgba(127, 127, 127, 0.1);
+    border-radius: 3px;
+  }
+  .hist-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 4px;
+    border-radius: 3px;
+  }
+  .hist-bar.hist-private { opacity: 0.7; background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, 0.35) 4px 6px); }
+  .hist-row.hist-axisrow { border-bottom: 0; }
+  .hist-axis {
+    position: relative;
+    height: 1.1rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
+
+    span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  }
+}
+
+.hist-v1 { background-color: $hist-v1; }
+.hist-site { background-color: $hist-site; }
+.hist-v2 { background-color: $hist-v2; }
+
+table.hist-months {
+  font-size: 0.85rem;
+
+  td.hist-num { text-align: right; white-space: nowrap; }
+  td.hist-barcell { min-width: 9rem; }
+  .hist-mbar {
+    display: inline-block;
+    height: 0.7rem;
+    min-width: 2px;
+    margin-right: 0.4rem;
+    vertical-align: -0.05rem;
+    background: $hist-v1;
+    border-radius: 2px;
+  }
+  tr.hist-total td { font-weight: 700; }
+}
+
+@media screen and (max-width: 42em) {
+  .hist-gantt .hist-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .hist-gantt .hist-track { background: rgba(255, 255, 255, 0.08); }
+}
