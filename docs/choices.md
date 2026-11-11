@@ -1,32 +1,24 @@
 ---
 title: Why these tools, and what got rejected
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred* (not needed yet), *rejected on principle* (a standing constraint, here: no cloud-only analysis or scanning services; the cloud AI models are a deliberate exception), and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
-  - "**A trigger has fired:** the GitOps row. A reconciler was rejected in August on the condition that manifests were ever seen drifting from git. They were, at a cost each time, and on 24 October the decision was reopened: detect first, secrets second, Flux by default for the declarative half. [The account is on the delivery-chain page](platform.html#how-a-change-reaches-the-cluster)."
-  - "**Secrets moved out of the deferred list, halfway:** encrypted in git since 25 October (SOPS and age); rotation and encryption at rest in the cluster are not done."
-  - "**Still deferred or open:** admission-time policy (the highest-leverage next security step), network policies, tracing, a service mesh. Several choices on this page are contested, and one is a live risk."
+  - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred*, *rejected on principle* (no cloud-only analysis services; the cloud AI models are a deliberate exception) and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
+  - "**Two triggers fired and were acted on:** GitOps (Flux, installed 2026-11-10, decided early; reconciling since then; the live Ready count is on the [status page](status.html)) and policy admission (Deny rules live since 2026-11-10). Both are about a day old on the new platform: not yet seen working over time."
+  - "**Storage changed:** the previous platform's replicated storage is gone; the new one has node-local storage only, and backups go to a small object store on one machine (one copy). A reviewed trade, not a hidden one."
+  - "**Still open:** tracing is deployed but no trace has been read, encryption of secrets inside the cluster is configured but not read back, a service mesh is deferred, and a probe on 2026-11-10 found a 1 to 3 second window at pod start with everything open (the record's result is fail)."
 ---
 
 
-{% assign s = site.data.stats %}
-{% assign gen = s.generated_at | date: "%-d %B %Y" %}
 
 # Choices — including the ones that were wrong, and the ones that are debts
 
-![k3s nodes](https://img.shields.io/badge/k3s%20nodes-{{ s.cluster.nodes }}-1A5276)
-![ceph replicas](https://img.shields.io/badge/ceph%20replicas-{{ s.storage.replica_size }}-326CE5)
-![right-sizing rejections with a reopen trigger](https://img.shields.io/badge/right--sizing%20rejections%20with%20a%20reopen%20trigger-all%20four%2C%20one%20reopened%2024%20Oct%202026-2EA44F)
+![k3s nodes](https://img.shields.io/badge/k3s%20nodes-6-1A5276)
+![right-sizing rejections with a reopen trigger](https://img.shields.io/badge/right--sizing%20rejections%20with%20a%20reopen%20trigger-all%20four%2C%20one%20reopened%2024%20Oct%202026%20and%20decided%2010%20Nov-2EA44F)
 
 {% include in-short.html %}
 
-*Written by hand; the GitOps and secrets rows were re-read on 27 October 2026, the rest was last reviewed on 9 October 2026. Figures rendered from the
-[generated stats](status.md) are as of {{ gen }}. On that day I also re-read the node
-topology, the storage class, the autoscalers and the NetworkPolicy count from the cluster;
-the rest, including the secrets-at-rest and self-hosted-scanner statements, rests on the
-earlier audit and the repository, not on a live check. Anything else that is a snapshot says
-so where it appears.*
+*Written by hand. On 11 November 2026 the GitOps, admission, network, storage, database, tracing and secrets rows were re-read against the new platform (brought up on 10 to 11 November 2026, so about a day old: nothing here implies uptime). Figures here were read by hand from the live cluster on 11 November 2026; the [generated stats](status.md) are being regenerated for the new platform. Statements about the previous platform (retired on 10 November 2026) are kept, labelled and dated, because a decision log with its history cut out proves nothing. Anything else that is a snapshot says so where it appears.*
 
 Every other page here says *what* is running. This one says *why that and not the obvious
 alternative* — which is the question an experienced reader actually has, and the one most
@@ -58,7 +50,7 @@ Three lists, and the distinction between them is the whole point:
 
 | | |
 |---|---|
-| **In use** | **k3s** — {{ s.cluster.control_plane }} embedded-etcd servers and {{ s.cluster.agents }} agents, {{ s.cluster.nodes }} nodes in all (as of {{ gen }}) |
+| **In use** | **k3s** — 3 embedded-etcd servers and 3 agents, 6 nodes in all (read 2026-11-11). The new platform, built on 10 to 11 November 2026, chose k3s again with the same 3 + 3 shape. |
 | Retired | **Docker Swarm** |
 | Considered | upstream Kubernetes (kubeadm), k0s, MicroK8s, Nomad |
 
@@ -80,58 +72,32 @@ The alternatives, each in one line:
 
 ---
 
-## The networking caveat, and the premise I had wrong
+## Networking and network policy: no longer a gap
 
-**Flannel (VXLAN)**, the bundled CNI, kept because it works on a mixed-hardware LAN with no
-tuning. It is IPv4-only, which is why every kubelet is pinned to an IPv4 node address.
+**Flannel with the WireGuard backend** is the CNI on the new platform (built for anything beyond basic traffic: the encryption between nodes was configured, and a packet capture to prove it has not been done). It is IPv4-only, which is why every kubelet is pinned to an IPv4 node address.
 
-I believed this meant the cluster had no way to enforce network policy. That was wrong.
-Flannel on its own enforces nothing, but **k3s bundles a NetworkPolicy controller of its own**
-and the install never disables it. I have not tested that it blocks anything, because there
-is nothing to test it with:
+Flannel on its own enforces nothing, but **k3s bundles a NetworkPolicy controller of its own**, and that is what enforces policy here. **Status, 11 November 2026: in use.** The cluster holds 27 NetworkPolicy objects, with a default-deny per tenant namespace and explicit allows on top (counts read from the API on 11 November 2026). Whether each allow is minimal is not audited, and a deny proven on the previous platform does not transfer. On the new one a live probe on 2026-11-10 showed **steady-state blocking**: once a pod had been up about 30 seconds, cross-namespace connections to the database and connections to off-list ports and machines were refused, while the allowed route worked. The same probe found that for about **1 to 3 seconds after a pod starts, everything is open**, and the probe's recorded result is **fail** because of that gap. Not proven: default-deny from the first packet, denial of ingress from outside the cluster, and limits on DNS egress. Treat it as **built**.
 
-> **The cluster has 0 NetworkPolicy objects** (read from the API on 9 October 2026).
-> Pod-to-pod traffic is unrestricted because I have not written a policy, not because the
-> technology cannot enforce one. The first step is to write default-deny policies per
-> namespace and prove one blocks something, not to swap the CNI.
+There is one measured cost. With default-deny, a new pod's first connections can fail for about 1 to 3 seconds while the controller programs its rules. Two candidates would shorten that, and **neither has been tested**: a **Cilium** CNI (eBPF datapath, richer policy and runtime visibility; a rebuild-level change), or an init-time wait in the pod that holds start-up until the rules exist.
 
-A CNI swap to **Cilium** (eBPF datapath, richer policy, runtime visibility in the same
-family) is still a rebuild-level change on a running cluster, and would now be justified by
-those extras rather than by a gap that was never there. This section stays on the page
-because segmentation is exactly the kind of gap a stack this otherwise-hardened can hide
-behind, and because I was confidently wrong about its cause.
+**Previous platform (until 2026-11-10).** On 9 October 2026 the old cluster had 0 NetworkPolicy objects, and this page said so after first wrongly claiming the CNI could not enforce policy at all. The technology was never the gap; the missing policy was. That correction stays because segmentation is exactly the kind of gap a hardened stack can hide behind.
 
 ---
 
-## Storage: the plan that changed, and a supply chain that moved under us
+## Storage: the plan that changed twice, and a supply chain that moved under us
 
 | | |
 |---|---|
-| **In use** | **Rook-Ceph**, block mode, {{ s.storage.replica_size }}-way replication — the *sole* storage class (as of {{ gen }}) |
-| Rejected | **Longhorn** — the original plan |
-| Future | **Ceph RGW**, to collapse two systems into one |
+| **In use (11 November 2026)** | **The node-local default class only** (1 storage class in the cluster, marked default, read 2026-11-11). Volumes live on one machine's disk. |
+| Backup object store | **Garage**, on a small always-on Mac: one machine, one copy. Chosen on 2026-11-07 by a head-to-head spike against the alternatives. |
+| Previous platform (until 2026-11-10) | **Rook-Ceph** with replicated block storage, and **MinIO** as the object store |
+| Rejected earlier | **Longhorn** |
 
-Longhorn was the plan, and it was installed. On 9 June 2026 it went in cleanly (every pod up,
-a test volume bound with three replicas) and was reverted the same day. Three of the five
-nodes then had a ZFS root, and ZFS cannot punch holes in a file, which Longhorn's replicas
-require; every replica that landed on one of them faulted. Loopback-file Ceph OSDs need only
-plain allocation, worked on the same disks, and cost nothing. So the reason was a blocker I
-hit, not a preference I reasoned my way to.
+**The trade, stated plainly.** The new platform does not replicate storage underneath the workloads. Replication is left to the database layer (database instances stream to each other), and everything else on a node-local volume is lost with its node unless it is backed up or rebuildable. That was a reviewed decision, not an oversight: a replicated storage tier was the most expensive thing on the previous platform to run and to reason about. The consequence is real. The backups sit on one small machine, so today there is **one copy**, and a restore from it was drilled once on 2026-11-10 (a scratch database built from the object store alone had its marker row and tables back, after temporary network rules were added because default-deny also blocks the recovery job), but a loss of that machine is not covered (status 11 November 2026: **open**).
 
-The decision that mattered more than the product choice was **removing the single-node
-provisioner entirely**. An unqualified volume claim now lands on replicated Ceph, because
-that class is the default, and it can never silently pin itself to one machine's disk.
-Delete the unsafe default rather than documenting it.
+**Previous platform (until 2026-11-10), kept as history.** Longhorn was the original plan and was installed on 9 June 2026, then reverted the same day: three of the five nodes then had a ZFS root, and ZFS cannot punch holes in a file, which Longhorn's replicas require. Loopback-file Ceph OSDs worked on the same disks. The decision that mattered more than the product choice was **removing the single-node provisioner entirely**, so an unqualified claim could never silently pin itself to one machine's disk. The new platform reverses that decision on purpose and knows it.
 
-**And an uncomfortable one, because it is the kind of thing that gets left out:** the object
-store in use is **MinIO**, and its upstream community repository was **archived in April
-2026**. Source-only, no further binary releases, no security updates, with upstream pointing
-at a commercial product instead. That was found during a routine dependency review, not
-announced by anything.
-
-It converts a "nice-to-have someday" migration — Ceph's own S3 gateway, which would remove
-MinIO rather than replace it — into a live piece of work. It is on the register, it is not
-done, and the honest status is *known risk, accepted for now, with a named replacement*.
+**And the uncomfortable one, which is why MinIO is a row of history.** MinIO's upstream community repository was **archived in April 2026**: source-only, no further binary releases, no security updates. That was found during a routine dependency review, not announced by anything, and it turned a migration into live work. Garage is the answer on the new platform; the head-to-head spike is the evidence, and the object store has run for about a day, so it is **built; not seen over time**.
 
 > Supply-chain risk is not only "is this version vulnerable." It is also "is anyone still
 > shipping fixes for it," and nothing in a CVE scanner asks that question.
@@ -142,9 +108,9 @@ done, and the honest status is *known risk, accepted for now, with a named repla
 
 **PostgreSQL**, always. **CloudNativePG** to operate it — one custom resource per cluster,
 the operator handles failover and the read-write service always points at the current primary.
-As of {{ gen }} that is {{ s.databases.clusters }} clusters and {{ s.databases.instances }} instances.
+On 2026-11-11 the new platform ran 1 cluster with 3 instances (read from the API) (the previous platform ran thirteen clusters; the application set is smaller so far, and that is not a like-for-like comparison). The operator is unchanged. Backups use the operator's **barman-cloud plugin**, which writes to the object store above (installed and running on 11 November 2026; one restore drill passed on 2026-11-10; see [reliability](reliability.md)).
 
-"One resource per cluster" cuts both ways, and I should say so. When the application and
+"One resource per cluster" cuts both ways, and I should say so. **Previous platform, 2026-09 to 2026-10:** when the application and
 identity clusters moved to PostgreSQL 18 on 16 September 2026, the cutover silently dropped
 their quorum-synchronous commit, their resource limits and their failover tolerations. For
 23 days the live databases were asynchronous while this site said otherwise. They were
@@ -168,13 +134,14 @@ orchestrator rather than swapped out on its own.
 | Topic | Candidate | Why not yet |
 |---|---|---|
 | Service mesh | Linkerd / Istio | No need for mTLS between pods or fine-grained traffic policy. Linkerd wins on day-one cost when that changes. |
-| **Secrets** | SOPS + age, or sealed secrets — **not Vault** | **Half done, 27 October 2026.** *In git:* done on 25 October with SOPS and age, two recipients, and a check that fails any new plaintext Secret; the choice was the lightest self-hosted option, because Vault is overkill for a handful of secrets and would itself become a thing to operate. *Still open:* the old values stay in git history until rotated, and **inside the cluster they are ordinary Secrets, with encryption at rest not switched on** (read back 27 October). The earlier "plaintext base64 in cluster secrets" was right about the cluster and, until 25 October, about git too. |
-| Policy admission | Kyverno / OPA / sigstore policy controller | Worth doing once there is one hard rule worth enforcing — and there is: **signature-required at admission**. Signatures are verified in CI but are not yet load-bearing at deploy time. Highest-leverage next security step. |
-| Backups beyond Postgres | Velero | No longer "the database tier is the only stateful tier": the OTA release store and the build host's signing keys now have purpose-built backups, each with a restore drill (see [reliability](reliability.md#restore-is-drilled-not-assumed)). Velero matters when *generic* volume backup does — and the rule stays the same: only what nobody else holds. Caches re-download. |
-| Tracing | OpenTelemetry + Tempo | The collector has to land before instrumenting applications is worth anything. |
+| **Secrets** | SOPS + age — **not Vault** | **Done in git, 2026-11-11 status.** Secrets are encrypted in git with SOPS and age, and a check fails any new plaintext Secret. Vault is overkill for a handful of secrets and would itself become a thing to operate. *Inside the cluster:* encryption of secrets at rest in etcd is **configured but not read back**, so this page does not claim it. Rotation of the old values is open. |
+| Backups beyond Postgres | Velero | **Unchanged: not used.** Velero matters when *generic* volume backup does, and the rule stays: only what nobody else holds. Caches re-download. |
+| Tracing | OpenTelemetry + Tempo | **Tempo picked and deployed (a pod runs, 2026-11-11); no trace has been read, and the collector is still not deployed.** Built. The monitoring tenant that would show it was merged on 2026-11-11; Flux is applying it and it is not Ready (its first run failed on a missing-namespace defect, fix in review), and it has never run. |
 
-The secrets row is the one worth dwelling on: it is listed in the deferred table *and* named
-in [what this does not do](devsecops.md#10-what-this-does-not-do), because it is the recurring
+**Policy admission was in this table until 2026-11-10.** It is no longer deferred: **Kyverno is live, with rules set to Deny** (since 2026-11-10; status: built, about a day old). The old sentence calling it the highest-leverage next security step is history now, kept in the previous-platform note under the quality page's gaps. What is proven: the policies exist and are enforcing. What is not: that every rule has had a negative test on this cluster, and signature-required-at-admission is only as good as the rule set behind it.
+
+The secrets row is the one worth dwelling on: it is named
+in [what this does not do](devsecops.md#7-what-this-does-not-do), because it is the recurring
 root cause behind a whole class of placeholder-credential defects. Writing it down twice is
 deliberate.
 
@@ -185,7 +152,7 @@ deliberate.
 A standing constraint: **no third-party analysis service gets source, telemetry or
 repository access beyond the git host itself.** The code is on GitHub and always has been;
 what the constraint rules out is handing it to a SaaS scanner on top of that. The cloud AI models are the deliberate exception: they read the code at development time and a day's alert text at run time, on purpose ([AI in development](ai-dev.md), [operations](aiops.md)).
-Several of the products below are genuinely excellent. That is not the deciding factor, and
+Several of the products below are genuinely excellent. The right-hand column mixes what the previous platform did with what the new one does, and says which. That is not the deciding factor, and
 the list exists to make the constraint explicit rather than to disparage them.
 
 Where a row says "idea worth stealing", that is the whole verdict: take the idea, build or
@@ -193,13 +160,13 @@ self-host it.
 
 | Candidate | What is done instead |
 |---|---|
-| **Aikido Security** (all-in-one AppSec) | Every scanner in its free tier already runs self-hosted, aggregated into one findings tracker, plus signing and provenance it does not offer. Its OSS in-app firewall is the one genuinely different piece, and *is* self-hostable, so it is tracked separately. |
-| **Socket.dev** (malicious packages) | Idea worth stealing: detect *malicious* rather than merely vulnerable packages. Watch the open malicious-package feeds instead. |
+| **Aikido Security** (all-in-one AppSec) | **Previous platform (until 2026-11-10):** every scanner in its free tier ran self-hosted, aggregated into one findings tracker. Both the scanners and the tracker are gone with that platform, and **not rebuilt yet**. What stands on the new platform (11 November 2026): secret scanning with Gitleaks in the pre-commit and CI path, signing, and admission rules. Planned, not built: vulnerability scanning of images and dependencies, and an inventory of components. |
+| **Socket.dev** (malicious packages) | Idea worth stealing: detect *malicious* rather than merely vulnerable packages. Watch the open malicious-package feeds instead (planned). |
 | **Endor Labs** (reachability-based SCA) | Idea worth stealing: only alert on CVEs on code paths actually executed. A noise-reduction concept to watch for in open tooling. |
-| **GitGuardian** (secret scanning) | The valuable half, *validity-checked* secrets, exists in open tooling (TruffleHog). That is rated trial and **not running yet**; what runs today is Gitleaks plus a custom sweep. |
-| **StackHawk · Escape · 42Crunch** (DAST / API) | Spec-driven scanning done in-house against the OpenAPI documents the services already emit. |
-| **Wiz · Sysdig · Datadog** (runtime / cloud security) | Agent-based and cloud-only. The open equivalent was deferred until there was something to triage the output — which now exists. |
-| **Snyk · Black Duck** (commercial SCA) | Covered by open tooling, which additionally re-analyses *already-shipped* inventories against new advisories. |
+| **GitGuardian** (secret scanning) | The valuable half, *validity-checked* secrets, exists in open tooling (TruffleHog). Rated trial and **not running**; what runs is Gitleaks. |
+| **StackHawk · Escape · 42Crunch** (DAST / API) | Spec-driven testing in-house: the contract fuzzer against the reference app's OpenAPI document runs in the pipeline's local-cluster gate (see [quality](quality.md)). |
+| **Wiz · Sysdig · Datadog** (runtime / cloud security) | Agent-based and cloud-only. The open equivalent was deferred until there is something to triage the output. |
+| **Snyk · Black Duck** (commercial SCA) | The open tooling that covered this on the previous platform is gone; the replacement is **planned, not built**. A gap, stated as one. |
 
 > **A cloud-only scanner or analysis service can inspire something built or self-hosted here. It can never be
 > adopted.** That is a design input, not a limitation to apologise for — but it does mean
@@ -213,40 +180,35 @@ The hardest list to be honest about, because these are self-hostable, well-built
 genuinely standard. Trying any of them to learn it is free; keeping one running because it is what serious platforms use is
 cargo-culting. The question for keeping is whether the problem is *observed here*. Each row names what
 would change the answer. Only the ArgoCD / Flux trigger was written down before 9 October
-2026; I stated the KEDA, VPA and Redis ones that day, from the reasons already given. They
-are decisions from that date, not older ones, and the VPA one is the weakest of the four.
+2026; I stated the KEDA and VPA ones that day, from the reasons already given, and the VPA one is the weakest. **The first row has since changed side**, which is the point of having a trigger.
 
 | Candidate | Why not here | Reopen if |
 |---|---|---|
-| **ArgoCD / Flux** | Solved multi-team drift and pull-based reconciliation; neither existed at one-maintainer scale. **Reopened 24 October 2026**: the second trigger fired. See below. | ~~A second maintainer joins, or manifests are observed drifting from git~~ Fired. Stage 3 (rolling out from git on merge) is decided by 2026-12-01 from the drift data |
+| **ArgoCD / Flux** | **Chosen: Flux, installed on the new platform on 2026-11-10 (partly reconciling on 2026-11-11).** Originally rejected: it solved multi-team drift and pull-based reconciliation, and neither existed at one-maintainer scale. | ~~A second maintainer joins, or manifests are observed drifting from git~~ Fired on 24 October 2026; decision date of 2026-12-01 was met early. See below. |
 | **KEDA** | Would be a permanently-running component watching a metric that does not exist. | There is a real queue to scale on |
 | **VPA** | Fights the HPA on the same metric unless carefully partitioned; requests are hand-tuned instead. | Something other than CPU drives scaling, so the two stop competing |
-| **Redis** | None of my own services needs a cache or queue. The only one running is Valkey, bundled as DefectDojo's task queue. Adding one in advance is how a platform accumulates components nobody understands. | An application of mine has a cache or queue workload |
+
+A fourth row, **Redis**, is gone: nothing of mine needed a cache or queue, and on the new platform no Redis-family service runs at all (11 November 2026). The one that did, bundled with a findings tracker on the previous platform, left with it.
 
 Autoscaling today is a **HorizontalPodAutoscaler** on CPU, two to four replicas on each of
-the {{ s.cluster.hpas }} that exist (as of {{ gen }}): native, no extra component, and CPU is the honest signal for
+the 2 that exist (cluster DNS and the reference app, read from the API on 2026-11-11): native, no extra component, and CPU is the honest signal for
 these services. There is no cluster-autoscaler analogue, because the fleet is
-{{ s.cluster.nodes }} fixed machines. Scale-out only. A platform that cannot add nodes should say so
+6 fixed machines. Scale-out only. A platform that cannot add nodes should say so
 rather than imply elasticity it does not have.
 
-### The worked example: ArgoCD and Flux
+### The worked example: ArgoCD and Flux, a reopened decision
 
-Deployment is already declarative and reproducible from nothing, and there is a drill that
-*proves* configuration comes back from git — the same guarantee, demonstrated more simply.
-A reconciler would add a second source of truth and a permanently-running component.
+The case against was: deployment is already declarative and reproducible from nothing, and a drill proves configuration comes back from git. A reconciler would add a second source of truth and a permanently-running component.
 
 > **Reopen if:** a second maintainer joins, **or** manifests are ever observed drifting from
-> git. *(Written 9 October: "Both are checkable on demand. Neither runs continuously, and that
-> is the honest remaining gap: an arbitrary edit made by hand is not caught until someone asks.")*
+> git. *(Written 9 October 2026.)*
 >
-> **Outcome, 27 October 2026: the trigger fired, and this page owes the answer.** Drift was
-> observed repeatedly with a cost each time, and on the 24th the decision was reopened in four
-> stages, not as a switch to a tool: *detect* (done: a daily read-only diff of every plain
-> manifest), *secrets in git* (done on the 25th), *roll out from git on merge* (Flux by default;
-> not built, decided by 2026-12-01), *the imperative steps* (later). A reconciler is therefore no
-> longer rejected, only not yet needed for the half that detection already covers. Drift is no
-> longer "checked on demand": it is checked daily and alerts. The full account is on
-> [the delivery-chain page](platform.html#how-a-change-reaches-the-cluster).
+> **History, previous platform:** drift was observed repeatedly with a cost each time, and on
+> 24 October 2026 the decision was reopened in four stages: *detect* (a daily read-only diff),
+> *secrets in git* (25 October), *roll out from git on merge* (Flux by default, decision date
+> 2026-12-01), *the imperative steps* (later).
+>
+> **Outcome, 2026-11-10: chosen and installed.** Flux runs on the new platform, **pull-based, with prune on**. The reason that decided it was not drift this time: the home network sits behind carrier-grade NAT, so there is **no inbound path** for a push-based deploy to reach the cluster, and a reconciler inside the cluster that pulls from git needs none. Revert and prune were shown on a local rehearsal cluster before the real one. Status: **built**, about a day old, not yet seen working over time. The live count of Ready Kustomizations changes with every merge, so it is on the [status page](status.html). The one failure I saw on 2026-11-11 was the new monitoring tenant. The decision date of 2026-12-01 was met three weeks early. The older account is on [the delivery-chain page](platform.html#how-a-change-reaches-the-cluster).
 
 That trigger is the part that makes this a decision rather than a preference: when the
 question comes back, it is a lookup instead of a fresh argument.

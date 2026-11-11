@@ -1,130 +1,200 @@
 ---
 title: How the platform builds and ships things
-reread: 2026-10-27
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**Where it runs:** every build and deploy runs on the estate's own runners. GitHub's hosted runners were refused after a billing lapse, and the house connection (carrier-grade NAT) means they could not reach the cluster anyway. There is no cloud fallback."
-  - "**The contract:** a satellite repository ships by bringing a Dockerfile and a manifest. It was proven end to end on 2026-08-11 in under two minutes, and is not running today."
-  - "**How a change reaches the cluster, since 24 October:** the rule is that git is the only way in. A daily read-only diff of every plain manifest against the live cluster is running, and every Secret in git is encrypted. Rolling out from git on merge, and turning the imperative steps into idempotent jobs, are not built."
-  - "**Weak points:** the deploy path is one Mac; the release gate covers three apps only; signatures are verified in CI, not at admission."
+  - "**How a change arrives (proven 2026-11-10/11):** pull request, required checks, squash merge, a publish step builds an artifact from main, and Flux on the cluster pulls it every 2 minutes. There is no inbound path and the pipeline holds no cluster credential."
+  - "**Where CI runs:** anything holding a key runs on hosted runners; heavy jobs with no secret run on a fresh VM per job at home. By day nine of November 2026 the included hosted minutes were about 90 percent used (89.5 percent by my own tally, 92 by the budget tool, measured 2026-11-09), which is why the home path exists."
+  - "**Admission (built 2026-11-10):** own images need a CI signature (one named image; Ready and enforcing on 2026-11-11, signature check itself not on record); vendor images pass a digest-pinned list. Default-deny fails for 1 to 3 s after a pod starts."
+  - "**Open:** the delivery artifact itself is not signed and is read through a moving tag; operators and ingress are installed by a bootstrap script, not reconciled; a new pod is outside default-deny for about 1 to 3 seconds. The cluster is about a day old, so nothing here claims uptime."
 ---
 
 # The delivery chain
 
 {% include in-short.html %}
 
-An application does not have to live in the platform's repository to run on it. It can sit
-in its own repo and deploy over a small published contract. This is how that works, and why
-it is shaped the way it is. Figures marked *as of* come from the
-[generated stats](status.md), measured {{ asof }}.
+An application does not have to live in the platform's repository to run on it. It meets a
+contract, and the platform checks that contract instead of trusting it. This page describes the
+platform as it stands on 2026-11-11: a new cluster, brought up on 2026-11-10 and 2026-11-11 after
+the previous one was torn down, so it is about 13 hours old as this is written. Every new claim
+carries a date and a status: **proven** (a record or a live check shows it), **built-not-proven**,
+**planned** or **open**. Material about the old platform is kept, dated, in sections marked
+*previous platform*. Measured counts for the new cluster are on the [generated stats](status.md)
+page as that page's measurement catches up; anything not measured there is "not measured yet" here too.
 
 ---
 
-## Why every job runs on my own machines
+## Why the cluster pulls
+
+*History, kept because the reasoning still holds. Written 2026-08 to 2026-10, on the previous platform.*
 
 The house internet connection is behind carrier-grade NAT: no port forward, and no inbound
-path for GitHub to reach the image registry or the Kubernetes API server. So GitHub's own
-hosted runners, which live in the cloud, cannot deploy to the cluster. The public apps are
-reached through a separate edge; that is not a way in for a build.
+path for GitHub to reach the image registry or the Kubernetes API server. So a build running in
+GitHub's cloud cannot push a deploy to the cluster. On the previous platform that was answered by
+running every job on my own machines. A billing gap ended the cloud half in August 2026 (hosted jobs
+were refused from 2026-08-15 because the account had no payment method), and by 2026-08-26 the last
+hosted job had moved to a self-hosted runner. The CGNAT story was true; the billing gap is what made it total.
 
-The first version of this page said the pipeline was split in two: source-only work in the
-cloud, anything touching the registry, signing key or API server on a self-hosted runner.
-The workflow files were split that way until 2026-08-26, but hosted jobs had been refused
-since 2026-08-15 because the account has no payment method, so the cloud half was already
-not running when I wrote that. On 2026-08-26 the last hosted job moved to a self-hosted
-runner. The cloud half was ended by a billing gap, not by a design decision; the CGNAT
-story is true, but the billing gap is what made it total.
+**That reasoning is exactly why the new cluster pulls.** If nothing can reach in, the cluster reaches
+out: it fetches what to run from the registry on a timer. The pipeline therefore needs no route into
+the house and holds no cluster credential. Proven in use 2026-11-10/11.
 
-As of {{ asof }}: **{{ s.ci.runs_on_self_hosted }} of the {{ s.ci.runs_on_self_hosted | plus: s.ci.runs_on_github_hosted }} `runs-on:` lines
-in {{ s.ci.workflows }} workflow files are self-hosted, {{ s.ci.runs_on_github_hosted }} are GitHub-hosted.** The
-split that exists now is by role, and the label counts below I re-counted from the workflow
-files on 2026-10-27:
+---
 
-| Runner label | `runs-on:` lines | What runs there |
-|---|---|---|
-| Linux builders | 29 | most CI, scans, DAST and jobs that need containers or service sidecars |
-| Mac builder | 45 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and the light application CI that moved here from the Linux builders |
-| Mac gate pool | 2 | only the 90-minute release gate, on three dedicated runner instances, so it never waits in the same pool as the jobs it gates |
-| One Linux builder, picked by its own label | 1 | the nightly mutation-testing run that the other Linux builder cannot finish |
+## How a change reaches the cluster
+
+*New platform, state on 2026-11-11. The previous platform's staged plan is further down, under [its four stages](#the-previous-platforms-four-stages-to-2026-11-10).*
 
 ```mermaid
 flowchart LR
-  GH["GitHub: schedules and triggers only<br/>no hosted runner is used"]
-  subgraph LIN["Linux builders · 29 lines"]
-    A["lint · scans · DAST<br/>container and service jobs"]
+  GH["GitHub<br/>triggers and checks"]
+  subgraph CI["CI"]
+    H["hosted runners<br/>anything that holds a key"]
+    V["fresh VM per job at home<br/>heavy jobs with no secret<br/>hosted fallback via a watchdog"]
   end
-  subgraph MAC["Mac builder · 45 lines"]
-    B["container build + push<br/>sign + verify<br/>rollout · light CI"]
+  PUB["publish workflow<br/>on main: builds an OCI artifact"]
+  REG[("registry")]
+  subgraph CL["Cluster, behind NAT"]
+    F["Flux pulls<br/>every 2 minutes<br/>no inbound path"]
+    K["Kustomizations"]
+    T["tenant namespaces"]
+    A{"admission"}
   end
-  subgraph GATE["Mac gate pool · 2 lines"]
-    G["release gate"]
-  end
-  subgraph NIGHT["Dedicated nightly Linux builder · 1 line"]
-    W["nightly mutation-testing run"]
-  end
-  GH --> LIN
-  GH --> MAC
-  GH --> GATE
-  GH --> NIGHT
-  B --> REG[("in-cluster image registry")]
-  B --> API["Kubernetes API server"]
+  GH --> H
+  GH --> V
+  H --> PUB
+  PUB --> REG
+  F --> REG
+  F --> K
+  K --> A
+  A --> T
 ```
 
-**Plain conformant Kubernetes, on k3s.** Chosen for cost and simplicity on {{ s.cluster.nodes }} machines in
-a house. Portability is a design aim, not something exercised: the workloads were first run
-on Docker Swarm, which is retired, and a move to a managed Kubernetes service has not been
-attempted, so I make no promise that the manifests would lift over unchanged.
+Images are built in CI, signed there with a key only the main branch can use, pushed to the
+registry and pulled from it; admission checks them when a pod is created. The pipeline holds no
+credential for the cluster.
 
-The weakness is plain: the deploy runs on a single Mac builder. Every deploy, including the
-satellite repositories that call in, stops when it is off. It is the one part of the
-delivery path with no redundancy.
+**The path (proven 2026-11-10/11).**
+
+1. A pull request, with required checks.
+2. A squash merge into main.
+3. A publish workflow builds an artifact from main and pushes it to the registry.
+4. Flux on the cluster polls the source every 2 minutes; each Kustomization re-applies every 5 minutes, with pruning on. The live count of Kustomizations and their state is on the [status page](status.md); a number written here would go stale.
+
+**Hand patches do not stay (seen live 2026-11-10).** When a tenant's quota was patched by hand, Flux
+put it back within minutes. That is the old rule, "git is the only way in", now enforced by a
+controller instead of a daily diff.
+
+**Secrets** are per-namespace encrypted units, split out after the first bring-up deadlocked on
+a single secrets unit that had to exist before the thing that decrypts it (built, applied 2026-11-10; the
+deadlock itself was recorded on the day).
+
+**Open, stated plainly (2026-11-11):**
+
+- **The artifact is not signed, and Flux verifies nothing on it.** It is read through a moving tag.
+  Anyone who could push that tag could change what the cluster runs. Signing and pinning it is the
+  stated next step; only the application images are signed today.
+- **Helm-chart software is not reconciled.** Operators, ingress, the admission engine, certificate
+  management and the database operator are installed by the bootstrap script (read 2026-11-11: it runs the chart installs itself), because the site runs no
+  Helm controller. They are in git but not held there by a controller. Open.
+- **Default-deny has a gap at pod start (probed live 2026-11-10, recorded as a failed probe).** For about 1 to 3 seconds after a pod starts, its egress and ingress are open; after that the rules hold. Not tested: egress from the first packet under another engine, ingress from outside the cluster, DNS limits. Open.
+- **Keycloak runs in its dev profile on an in-memory database** (seen by the same probe, 2026-11-10), so it loses state on a restart. Open.
+- **Monitoring is not live on the new cluster.** The monitoring tenant was merged into the private repository on 2026-11-11 and Flux is applying it, but it is not Ready: its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix is in review. It has never run, so alert and
+  dashboard figures are not measured yet. Built, not proven.
 
 ---
 
-## The contract an application has to meet
+## The contract an application must meet
 
-The platform provides the registry, the signing chain, the reusable deploy workflow, the
-runtime, ingress, replicated storage, identity, metrics and logs.
+*New platform, built 2026-11-09 to 2026-11-10; the namespace rules are applied on the real site, the
+rest as noted.* The platform provides the tenant namespace, the registry, the signing chain, ingress,
+storage, identity and tracing. The application brings an image and a manifest, and meets an **app
+standard**, which a manifest checker tests before a merge (built; the checker runs in the gate below).
 
-The application brings two things:
+What the tenant pack enforces:
 
-1. **A `Dockerfile`** that builds for `linux/amd64`.
-2. **A Kubernetes manifest**, whose image line is a placeholder the deploy fills in.
+| Rule | What it does | Status 2026-11-11 |
+|---|---|---|
+| Pod Security `restricted` | A container that runs as root, or asks for privilege, is refused at creation. | built, applied |
+| Default-deny network policy | Nothing in or out except three allows: DNS, same-namespace traffic, and one combined outbound 443 plus tracing-port allow. Anything else is written per app. | steady state proven on the live site 2026-11-10; **fails for about 1 to 3 s after a pod starts** (recorded as a failed probe); ingress from outside and DNS limits not tested |
+| ResourceQuota and LimitRange | Each tenant has a ceiling and per-container defaults. | built, applied; the quota was patched by hand once and reverted by Flux |
+| Resource limits, probes, budgets | The manifest checker fails a manifest without them. | built, checked in CI |
+| Image signature | A first-party image must carry the CI signature. | covers one named first-party image. Policy Ready with action Deny, and first-party pods running in an enforcing namespace (live check 2026-11-11); no record shows the signature check itself. Proven on a throwaway local cluster 2026-11-07 |
+| Vendor images | A closed list, each pinned by digest. | a separate digest-pin policy, Ready; refused an off-list image on the real site 2026-11-10 (in the day's history, not a gate record) |
 
-A signed image plus a manifest is the entire handoff. The caller's side of it:
+**"Nothing enforces them" is no longer true.** The previous platform shipped limits, probes and a
+budget in a template and checked none of them; here the namespace and admission refuse what breaks the
+rules, and the checker catches the rest before merge. That the checker and admission agree on every
+case is not proven; the tenant-rights faults found on 2026-11-09 were fixed one by one.
 
-```yaml
-# .github/workflows/deploy.yml in the satellite repository
-jobs:
-  deploy:
-    uses: <platform-org>/<platform-repo>/.github/workflows/deploy-app.yml@master
-    with:
-      app: my-app
-      manifest: deploy/app.yml
-    # secrets: inherit    # only if the manifest needs any
-```
-
-That is the workflow. It is not the whole setup: there are three one-time steps, which are
-registering a runner to the satellite repository, setting one repository variable, and
-allowing cross-repository access to the platform's Actions.
-
-The deploy substitutes exactly three variables into the manifest, `${IMAGE}`, `${APP}` and
-`${NS}`, and nothing else. My earlier example used `${REGISTRY}` and `${IMAGE_TAG}`, which
-would have been applied literally and failed to pull. The line that matters:
-
-```yaml
-image: ${IMAGE}   # the deploy injects <registry>/<app>:git-<sha>
-```
-
-**What the contract does not require** is the interesting half: no language, no framework,
-no test suite, no minimum coverage, no policy gate, no approval. The template ships
-resource limits, a readiness probe and a disruption budget, but the deploy only runs
-`envsubst` and `kubectl apply` and then waits on the rollout. It checks none of them. An
-earlier version of this page called them "required"; they are expected, and nothing
-enforces them.
+**Vendor images are an open gap against our own rule.** The rule says images are admitted by signature.
+Vendor images are not signed by this platform; they pass because a reviewer put their digest on a list.
+That trusts the digest as pinned on a reviewed pull request, nothing more. Open.
 
 ---
 
-## The satellite: proving the contract from outside
+## What a deploy actually does
+
+*New platform, proven 2026-11-10/11.* There is no deploy job. A merge publishes an artifact and Flux
+applies it. The tag-versus-digest question is better than before: workloads are identified by
+content, not by a tag that a rollout could silently re-resolve, though the artifact itself is still read
+through a moving tag (open, above). Rolling out from git on merge, which the previous platform listed as
+not built, exists.
+
+---
+
+## The gate
+
+*New platform, 2026-11-10.*
+
+- **A kind gate on pull requests that touch the reference app:** the app is deployed onto a throwaway
+  local cluster running the same tenant pack and admission, and exercised there.
+- **Contract fuzzing** against the app's OpenAPI description, in the same gate.
+- **An aggregate check, `ci-gate`, left out of the required checks until the watchdog recovers by itself.** Proof B, run on a throwaway branch pattern, 2026-11-10: after a
+  watchdog fallback, a red aggregate result won over a green run, and the pull request stayed blocked 28 minutes
+  after a green run existed. On main the same block is expected but not shown; main's required checks are two others. Keeping `ci-gate` out is the intended way to avoid a stale aggregate holding a merge, not a proven result.
+
+---
+
+## Where CI runs
+
+*New platform, 2026-11-11.*
+
+- **Mac runners were retired on 2026-11-10.** Two Ubuntu home CI builder hosts replace them, each an old (2013) desktop-class machine with about 15 GB of RAM. Each host runs one job VM at a time, fresh per job, behind an allow-list proxy, with no secret inside it. Both took jobs in parallel for the first time on 2026-11-11; those gates were started when I wrote this and have not finished, so parallel running is not yet proven.
+- **Jobs that hold a key stay on hosted runners.**
+- **Proof C, a throwaway pull request, 2026-11-10:** the full kind gate passed at home on
+  attempt 3, after two red runs that were flakes of the gate itself, in 32 minutes 20 seconds. Once.
+- **First real pull request, 2026-11-10:** the kind gate passed at home in one run, 33 minutes 12 seconds, with the old runners still active beside it; about 25 hosted minutes saved. Once; neither result shows it holds every time.
+- **The case is saved Actions minutes, not speed:** about 33 minutes at home against 24 to 27 hosted.
+- **Why now:** by day nine of November the included hosted minutes (3,000) were about 90 percent used: 89.5 percent by my own tally, 92 by the budget tool, a different figure (measured 2026-11-09). A $20
+  budget was set on 2026-11-09; whether it stops spend at $20 is not verified. A hosted gate costs roughly $0.15 (an estimate: about 25 minutes at $0.006, not measured). Spend guards are merged.
+- **Not proven:** a per-host heartbeat is merged but was not applied to both hosts on 2026-11-10, so I do
+  not claim the two hosts share load or that failover between them works.
+
+---
+
+## Supply chain
+
+*New platform, 2026-11-11.*
+
+- **Own images** are signed in CI with a key that only main can use. The signature is checked at admission:
+  **proven on a throwaway local cluster on 2026-11-07**; the real site has the same policy Ready since
+  2026-11-10, a live check on 2026-11-11 shows it Ready with action Deny, the warn namespace set to enforce, and first-party pods running, which points to admission by signature having happened, but no record verifies it. It covers one named first-party image.
+- **Vendor images** are admitted by a closed list plus a digest pin, checked by a separate policy (Ready), not by signature. Open, see above.
+- **No vulnerability tracker or SBOM store runs now.** Planned. The previous platform's counts are not carried over.
+- **Not signed:** the delivery artifact (open).
+
+One lesson holds regardless of the cluster: **a vulnerability scanner only matches what it can
+identify.** An SBOM whose components carry only generic package identifiers produces zero
+findings even when real vulnerabilities exist. Zero findings and "nothing was evaluated" look
+identical on a dashboard. Check that components resolve to real ecosystem identifiers before
+believing a clean report. The [embedded side](yocto.md) is where that was learned.
+
+---
+
+## The satellite, as history
+
+*Previous platform, dated 2026-08-11 to 2026-10-09.* Kept because its lesson still stands.
 
 A contract that has only ever been exercised from inside the repository that defines it is
 not a contract, it is a coincidence. So one application lives in **its own repository**
@@ -170,11 +240,7 @@ practice". **That was wrong.** Its Dockerfile has no `USER` line, and as far as 
 (I did not re-check the base image's published config today) the base image sets none
 either, so the container runs as root. Nothing checked, because the contract never asked.
 
-The gate below does not apply to satellites either. Everything the *platform* owns still
-applies at deploy: the image is built with provenance and an SBOM, signed, and the
-signature is verified. Scanning is not part of the deploy; it happens afterwards in the
-nightly SBOM run, and only while the application is running. Everything the *repository*
-owns is whatever that repository chose.
+Everything the *repository* owned was whatever that repository chose.
 
 > **A platform contract silently defines the floor for everything built on it.** What it
 > omits is not neutral. It is a permission, and it will be taken.
@@ -184,9 +250,42 @@ tightening the contract raises the floor for every satellite and simultaneously 
 cost of being one. The current position is a deliberate choice for a small estate, and it
 would be the wrong one at ten teams.
 
+**Update 2026-11-11:** the new tenant pack makes this exact case refuse to start. Pod Security `restricted`
+rejects a container that runs as root, so the floor is now set by the platform and not by what the
+contract forgot to say. Whether a satellite repository can meet the new pack has not been tried (not proven).
+
 ---
 
-## What a deploy actually does
+## Previous platform (retired 2026-11-10)
+
+*Everything below describes the platform torn down on 2026-11-10, with values measured between
+2026-10-09 and 2026-10-27 on the old repository. None of it is current.*
+
+### Why every job ran on my own machines
+
+At 2026-10-27, 77 `runs-on:` lines in the workflow files were self-hosted and none GitHub-hosted. The
+label counts below were re-counted on 2026-10-27:
+
+| Runner label | `runs-on:` lines | What ran there |
+|---|---|---|
+| Linux builders | 29 | most CI, scans, DAST and jobs that need containers or service sidecars |
+| Mac builder | 45 | the deploy, image scans and the registry/signing/`kubectl` work, the mobile CI, and light application CI |
+| Mac gate pool | 2 | only the 90-minute release gate, on three dedicated runner instances |
+| One Linux builder, picked by its own label | 1 | the nightly mutation-testing run |
+
+The weakness was plain: the deploy ran on a single Mac builder. Every deploy, including the satellite
+repositories that called in, stopped when it was off. It was the one part of the delivery path with no
+redundancy, and there was no cloud fallback.
+
+
+
+### Contract and deploy workflow
+
+A satellite shipped by bringing a `Dockerfile` for `linux/amd64` and a manifest whose image line was a
+placeholder (`${IMAGE}`, `${APP}`, `${NS}` were the only substitutions), and calling the published
+reusable workflow. It was validated end to end on 2026-08-11 in 1 minute 46 seconds, and by 2026-10-09
+nothing in the repository called it any more. The template shipped resource limits, a probe and a
+disruption budget, but the deploy ran `envsubst` and `kubectl apply` and checked none of them.
 
 Two deploy workflows exist, and this page used to blur them. The **ungated** one,
 `deploy-app.yml`, is the published contract for satellites, and the diagram below is its
@@ -213,9 +312,7 @@ it, so "what is actually running" stays answerable.
 Step 4: **the signature is verified, not just created.** Signing something and never
 checking the signature is a ceremony, not a control.
 
----
-
-## The gate, and who it does not protect
+### The old release gate
 
 Three applications, the reference apps, go through a release gate between resolving the
 release and deploying it. That gate lives in the gated workflow, `cd-deploy.yml`, and exactly
@@ -241,20 +338,14 @@ between a commit and a rollout. That is a deliberate consequence of keeping the 
 small, and an asymmetry worth knowing when deciding what belongs in a satellite versus the
 platform itself.
 
----
+### The previous platform's four stages, to 2026-11-10
 
-## How a change reaches the cluster
-
-*Added 2026-10-27, from a decision made on the 24th. The short version is in the box above.*
-
-**The rule.** *Git is the only way a change reaches the cluster.* A change made by hand is a defect,
-found by a guard, not a habit. This is infrastructure as code with no hand changes, whether or not
-a controller does the rolling out.
+*Added 2026-10-27, from a decision made on the 24th.* The rule was: *git is the only way a change reaches the cluster.*
 
 **It reopened a decision, and the reopen-trigger had fired.** On 2026-08-10 a pull-based
 reconciler (Argo CD, Flux) was rejected on principle: it solves multi-team drift, which a
 one-maintainer estate does not have, and rebuild-from-git was already proven by a drill. The
-[choices page](choices.html#the-worked-example-argocd-and-flux) wrote down when to reopen it:
+[choices page](choices.html#the-worked-example-argocd-and-flux-a-reopened-decision) wrote down when to reopen it:
 *manifests are ever observed drifting from git*. They were, repeatedly, and each time with a cost:
 
 - a retention setting that lived only on the live object for 19 days after a SEV1;
@@ -265,18 +356,18 @@ one-maintainer estate does not have, and rebuild-from-git was already proven by 
 - and on 2026-10-21 a deploy that pinned a new image in git and a second deploy two minutes later
   that rolled the cluster *back* to the old one, where it stayed for two days.
 
-**What was measured before choosing.** Every hand-run step was classified (172 make targets and 59
-playbooks). 104 are checks, drills and status views, which are not state at all; 24 are host-level
+**What was measured before choosing.** Every hand-run step was classified (about 172 make targets and 59
+playbooks; the published split sums to 173). 104 are checks, drills and status views, which are not state at all; 24 are host-level
 automation; 20 are imperative orchestration; 6 are wrappers; **19 are declarative applies a controller
-could own.** On the same day, of 81 plain manifests, 74 matched the live cluster and 6 did not.
+could own.** On the same day, of about 80 plain manifests, 74 matched the live cluster and 6 did not (the published counts sum to 80, not 81; not re-checkable now).
 
-**Four stages, each useful on its own:**
+**Four stages, each useful on its own, as planned and as they stood on 2026-10-27:**
 
 | Stage | What | State on 2026-10-27 |
 |---|---|---|
 | 1. Detect | A read-only diff of every plain manifest against the live cluster, daily, with an alert on any difference. About three seconds. Deliberate exceptions carry a reason and an expiry. | **Done 2026-10-24.** It found 6 differences on its first run and all were resolved the same day. Three files are excluded with dated reasons that force a decision by 2026-12-01. |
-| 2. Secrets in git | SOPS with age, two recipients (an operator key and a recovery key held elsewhere); a check fails any new plaintext Secret. | **Done 2026-10-25** for all 14 Secrets. **Open:** rotating the old values, which stay in git history, starting with the object-store root credential. |
-| 3. Roll out from git | The declarative half applied on merge (19 steps), by a reconciler (Flux by default) or by CI. | **Not built.** To be decided by 2026-12-01 from the drift data. It waits on in-cluster hardening. |
+| 2. Secrets in git | SOPS with age, two recipients (an operator key and a recovery key); a check fails any new plaintext Secret. | **Done 2026-10-25** for all 14 Secrets. **Open:** rotating the old values, which stay in git history, starting with the object-store root credential. |
+| 3. Roll out from git | The declarative half applied on merge (19 steps), by a reconciler (Flux by default) or by CI. | **Not built on the old platform.** *Done on the new platform on 2026-11-10: see above.* |
 | 4. Imperative steps | Realm setup, database major-upgrade scripts, bootstrap and key jobs, turned into idempotent jobs case by case. | **Not started.** |
 
 **It reaches beyond the cluster.** The machine that runs the operations agent is not in the
@@ -294,31 +385,11 @@ was committed.
 
 ---
 
-## Supply chain
-
-As of {{ asof }}, **{{ s.supply_chain.first_party_signed_verified }} of {{ s.supply_chain.images_first_party }} first-party running
-images have a signature that verifies**; the other {{ s.supply_chain.images_first_party | minus: s.supply_chain.first_party_signed_verified }} does not.
-The deploy workflow builds with provenance and an SBOM, and the nightly run uploads SBOMs to
-the vulnerability tracker ({{ s.supply_chain.sbom_projects }} projects), where they are re-analysed against new
-vulnerability data on the tracker's own schedule, about daily. The {{ s.supply_chain.images_third_party }} third-party images
-of the {{ s.supply_chain.images_running }} running are not signed by this platform, and nothing at admission refuses an unsigned image.
-
-I used to write that every image carries a signature, provenance and an SBOM. That was an
-overclaim: it holds for what the deploy workflow builds, not for the estate.
-
-One lesson from doing this in anger: **a vulnerability scanner only matches what it can
-identify.** An SBOM whose components carry only generic package identifiers produces zero
-findings even when real vulnerabilities exist. Zero findings and "nothing was evaluated" look
-identical on a dashboard. Check that components resolve to real ecosystem identifiers before
-believing a clean report. The [embedded side](yocto.md) is where that was learned.
-
----
-
 ## Read next
 
-- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves.
-- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine.
-- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking.
+- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *Previous platform until rewritten.*
+- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *Previous platform until rewritten.*
+- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *Previous platform until rewritten.*
 - **[The embedded side](yocto.md)**: from zero findings to a hundred raw matches on one image.
 
 ---

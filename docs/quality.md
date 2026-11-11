@@ -1,12 +1,12 @@
 ---
 title: Testing, quality gates, and grading our own maturity
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**What stops a merge:** nothing on the server. Branch protection is not enforceable on this plan, so the gates are CI workflows and hooks that one maintainer is bound to follow. Mutation testing and the dependency sweep are advisory, and the mutation job is red most nights."
-  - "**Two speeds, on purpose:** a fast lane on every push, and a nightly slow lane (dependency sweep, mutation testing) that never blocks a pull request. **The contract-testing story** is the instructive one: a property-based API tester produced 496 findings on 132 operations, mostly because no operation declared its error responses, so the number measured the specification's silence, not defects."
-  - "**Self-graded maturity (2026-09-09):** the infrastructure and operations half crossed the baseline; the product-facing half did not (analytics L0, UX L0 to L1, legal L1). That gap is parked on purpose, and the grade says so. The security row (L4) is contested: an outside review on 2026-10-18 graded it 3 of 5."
-  - "**Next:** the next self-grade is due in December 2026, or after the next top-priority gap closes. Old grades are never edited; a new one is added."
+  - "**What stops a merge (read from the hosting API, 2026-11-08):** the main branch is protected: a pull request, two named checks, linear history, administrators bound. Proven on 2026-11-08 on a throwaway branch; main's own was not tested. Only those two checks are required. The aggregate gate is deliberately not required yet, with the fix open; the local-cluster gate and app tests are advisory."
+  - "**Maturity is now scored against objectives, not a ladder:** the new platform's objectives page is still a draft with no start date. Its generated register (the 2026-11-10 status file) counts 12 steps (2 done, 2 done on a local cluster, 5 partly, 2 not started, 1 gated) and 109 rules (3 built, 19 partly, 87 not built)."
+  - "**Old grades are dated, not current:** the 3.47 radar, the 2.72 portfolio, the ladder and the 3-of-5 second opinion belong to the previous platform (2026-08-06 to 2026-10-18)."
+  - "**Not built yet:** mutation testing, the nightly dependency sweep, a load generator, blue/green and canary. Tracing is deployed but no trace has been read. The platform is about a day old, so nothing here is an uptime claim."
 ---
 
 {% assign s = site.data.stats -%}
@@ -15,26 +15,35 @@ summary:
 
 {% include in-short.html %}
 
-![gates](https://img.shields.io/badge/CI-{{ s.ci.workflows }}%20workflows%20%C2%B7%20blocking%20by%20convention-2088FF?logo=githubactions&logoColor=white)
-![contract](https://img.shields.io/badge/API%20contract-132%20ops%20%C2%B7%20496%20findings%20first%20run-8A2BE2)
-![mutation](https://img.shields.io/badge/mutation%20testing-PIT%2C%20floors%2025%E2%80%9335%25%2C%20advisory-24A1C1)
-![maturity](https://img.shields.io/badge/self%E2%80%91graded%20maturity-3.47%20%2F%205%20as%20of%202026%E2%80%9108%E2%80%9106-orange)
+![gates](https://img.shields.io/badge/main-protected%20%C2%B7%20PR%20%2B%202%20required%20checks-2088FF?logo=githubactions&logoColor=white)
+![contract](https://img.shields.io/badge/API%20contract%20fuzzing-8%20real%20faults%20found%20and%20fixed%20when%20added-8A2BE2)
+![register](https://img.shields.io/badge/rules%20built-3%20of%20109%20as%20of%202026%E2%80%9111%E2%80%9110-orange)
 
 A gate nobody can fail is decoration. This page is the other side of
 [the security gate table](devsecops.md): what stops a merge for a *quality* reason, what only
 advises, and, because a platform that measures everything else and exempts itself would be
 worth less than one that doesn't, how it scores its own maturity, weaknesses included.
 
-For scale: the platform repository holds {{ s.repo.adrs }} decision records and
-{{ s.ci.workflows }} workflow files, and its sources contain {{ s.repo.tests_java }} Java test
-methods, {{ s.repo.tests_python }} Python test functions and {{ s.repo.tests_dart }} Dart tests
-(counted statically, not run, so not a pass rate; [how each is measured](status.md)).
+**Which platform this page describes.** On 2026-11-10 the previous platform was torn down and a new one was brought up in a new repository (about a day before this page was re-read, 2026-11-11). Statements about the new one carry a date and a status word: *proven*, *built*, *planned* or *open* (defined once on [how we work](how-we-work.html)). Everything from before is under a heading that says **previous platform**, with its own date, and is never presented as current. The generated counts of the new repository's decision records, run records, workflow files and test methods are **not measured yet** (the stats are being regenerated against the new platform; [how figures are measured](status.md)). The register in the maturity section below is the only count used here.
 
-**Retraction, 2026-10-09.** An earlier version of this page said the fast lane "blocks" and
-that rollout was "blue/green". It does not block by any server rule (see the first section),
-and the rollout is a plain rolling update. It also gave a 50% mutation threshold, 122 operations
-and a "rollback under 60s" badge. All four were wrong or never measured and have been
-corrected or removed below.
+---
+
+## What stops a merge: the new platform (read 2026-11-08, proved on a throwaway branch; aggregate-gate finding 2026-11-10)
+
+Unlike the previous platform, **the server now refuses**. Read from the hosting API on 2026-11-08 and shown on a throwaway branch:
+
+- a **pull request is required** to change main, with **two named checks** required to pass (the main check job and an objectives-line check) and the branch must be up to date with main;
+- **zero approvals** are required (one maintainer), but **administrators are bound** by every rule, including the owner;
+- **history is linear**, and squash is the only merge method;
+- there is **no merge queue**.
+
+**Only two checks are required: the main check job and the objectives-line check.** An aggregate gate job exists. It runs always and fails if any check it needs failed, was cancelled or did not run. It is **not a required check**. A test on 2026-11-10 ("proof B") found why it cannot simply be switched on: after a runner fallback one commit carries two results, a red one from the cancelled run and a green one from the re-dispatched run, and the **red result wins**, so the pull request stays blocked until the original run is re-run in full. The watchdog has to change first. The aggregate gate is deliberately not required yet; the fix is **open** (2026-11-11).
+
+**The consequence, stated plainly.** The local-cluster gate (which carries the contract fuzzing), the app build and test, and the aggregate gate are **advisory**. A red test in the reference app, or a broken manifest the required checks do not cover, can still be merged on green required checks. The aggregate gate is deliberately not required yet, with the fix open; the local-cluster gate and the app checks are advisory, and I have not yet decided whether to require them.
+
+**The result in practice (2026-11-11):** 76 of the first 77 commits, in the first six days of the repository, went through a pull request. Status: **proven** on 2026-11-08 for the rules as read; not seen over time, because six days is not a track record.
+
+**Previous platform (until 2026-11-10).** Branch protection could not be enforced on that repository's hosting plan (the API refused the request, checked 2026-10-09), so "blocking" meant red by convention and nothing on the server stopped a direct push. That was a weaker thing than a gate, and this page had said "blocks" unqualified until the 2026-10-09 retraction. The new repository is in a different position, which is why the rule above exists at all.
 
 ---
 
@@ -43,66 +52,23 @@ corrected or removed below.
 ```mermaid
 flowchart LR
   subgraph FAST["Fast lane: every push and PR"]
-    A["compile · unit + integration tests<br/>formatting · static analysis<br/>image build + smoke test"]
+    A["compile · unit tests<br/>formatting · static checks<br/>secret scan · documentation checks"]
   end
-  subgraph SLOW["Nightly slow lane: advisory, never blocks a PR"]
-    B["dependency CVE sweep<br/>mutation testing<br/>documentation link check"]
+  subgraph KIND["Local-cluster gate: per change"]
+    B["a throwaway cluster is built<br/>contract fuzzing against the OpenAPI<br/>backup and restore through git"]
   end
-  subgraph CHG["Per change, report-first"]
-    C["API contract tests<br/>DAST scan"]
+  subgraph SLOW["Nightly slow lane: planned, not built"]
+    C["mutation testing<br/>dependency sweep"]
   end
   FAST --> M["minutes"]
-  SLOW --> N["roughly half an hour, off the critical path"]
+  KIND --> N["longer, advisory today"]
 ```
 
-The split exists because the honest, thorough version of some checks is too slow to run on
+The split exists because the thorough version of some checks is too slow to run on
 every commit without destroying the feedback loop that makes small, frequent changes safe.
-Splitting speed from thoroughness keeps both properties instead of trading one for the other.
-The contract and DAST scans are not nightly: they run when an app changes, and report without
-failing the build yet.
+The idea survives the move: a fast lane on every push, a heavier gate on a throwaway local cluster, and a slow lane for what is too expensive for either. **The slow lane does not exist yet.** Status, 2026-11-11: **mutation testing and the nightly dependency sweep are not on the new repository (planned)**.
 
-**"Blocking" means red by convention, not by a server rule.** Branch protection cannot be
-enforced on this repository's hosting plan (the API refuses the request, checked 2026-10-09),
-so a direct push to the trunk is possible. The fast lane is a habit plus the delivery
-pipeline, which will not ship a red build. That is a weaker thing than a gate, and the word
-should not have been used unqualified.
-
-**Nightly timing, as of 2026-10-09:** the last eight scheduled runs took between about 21 and
-38 minutes where they finished normally; one was cancelled; one reported success only after a
-single service's mutation job ran into the six-hour job limit. That job failed on six of
-those eight nights. A slow lane that is red most nights is advisory in the worst sense.
-
-**Per-app delivery is independent by design:** each app has its own delivery workflow and a
-path-filtered CI run, so a failing check on one app does not sit in front of another. I have
-not queried the full run history to say it has never happened.
-
----
-
-## Coverage, mutation testing, and where the floor actually is
-
-The three database-heavy Java services run JUnit 5 with Testcontainers-backed integration
-tests: real database containers, not mocks, so a coupling defect shows up in CI rather than
-at 3am. The two small services run on an in-memory database and have neither.
-
-**Coverage has a floor, and the floor catches something a percentage alone would miss:** the
-house rule is *the quality gate's own new-code rules, plus an overall floor*, because "100%
-of new code covered" is a real gate that a project sitting at 0% overall would still pass.
-**On a dated read of the live dashboard (2026-08-10, two months old):** one service sat at
-44.7% coverage and cleared its gate; a second at 55.9% and also cleared; a third at 67.6%,
-the highest of the three, and *failed*, on new-code violations rather than the raw
-percentage; two smaller services were not yet wired into the dashboard. **The highest
-percentage failing and the lowest passing is the gate working as designed**, and not being
-onboarded is a worse state than a low score, because a low score is at least visible. Those
-figures have moved (one service's build file records 51% on 2026-08-27) and the dashboard
-needs a credential this page's generator does not hold, so I have not re-read it. The
-two "not wired" services may no longer be true of both, and I have not checked.
-
-**Mutation testing runs nightly against per-app floors of 25, 35 and 35%, and never blocks a
-pull request.** The recorded scores, in the build files and dated 2026-08-26, are 28, 37 and
-39%, so each sits only a little over its floor. An earlier "50%" on this page was not the setting; it survived in
-comments. Mutation testing is expensive and exactly the kind of check the slow lane exists for, and
-it is the one static-coverage numbers can't fake: a suite that asserts nothing can still show
-100% line coverage by merely executing every line.
+**Previous platform (until 2026-11-10), kept as history.** Mutation testing ran nightly against per-app floors of 25, 35 and 35%, never blocked a pull request, and the job was red on six of the last eight scheduled nights as of 2026-10-09 (the recorded scores were 28, 37 and 39%, dated 2026-08-26). Coverage on a read of the old dashboard on 2026-08-10 had one service at 44.7% and clearing its gate and the one at 67.6% failing, on new-code rules: the gate working as designed. None of those figures describe the new platform, and **the new reference application's own test suite has not been counted in them**. Its coverage is **not measured yet**.
 
 ---
 
@@ -112,83 +78,35 @@ Every backend publishes an OpenAPI specification, and a property-based tester th
 generated, spec-legal inputs at the *running* service and checks the response matches what
 the spec promises, not just that the endpoint returns something.
 
-**The first real run: 132 documented operations, 496 conformance findings, 8 of them server
-errors (HTTP 500).** (This page said 122, an older count.) That gap between "documented" and
-"conforming" is the value of the exercise: a hand-written spec describes intent; a service
-under generated input shows what it does. The 8 are not the whole of the real defects, either;
-more of them hide in the noise.
+**On the new platform (2026-11-10 move review):** contract fuzzing against the reference app's OpenAPI document is part of the local-cluster gate, which is advisory (see above). When the fuzz was added (about 2026-11-07 to 2026-11-08) it **found eight real faults** in the reference app's contract, and they were fixed. One further fault, a repeated query parameter that the contract forbids but the app accepts, was found in a later CI run on 2026-11-08 and is **open** with no owner. Status: **proven** (2026-11-08) to find faults; whether eight is most of them is unknown. That is the value of the exercise: a hand-written specification describes intent, and a service under generated input shows what it does.
 
-**The instructive part is *why* the number was so high.** Precisely zero of the documented
-operations carried an explicit response-code annotation, so every response type had been
-auto-derived from a method signature, which only describes the success path. Most findings
-were the tool correctly saying *"you never told me this endpoint could return this,"* not
-defects in behaviour.
+**Previous platform (2026-09 to 2026-10), the instructive part.** The first real run there had 132 documented operations and 496 conformance findings, 8 of them server errors. Precisely zero operations carried an explicit response-code annotation, so every response type was auto-derived from a method signature, which only describes the success path. Most findings were the tool correctly saying *"you never told me this endpoint could return this,"* not defects. That is a trap with a wrong exit and a right one:
 
-That is a trap with a wrong exit and a right one:
+- **The wrong fix** is annotating every documented status code until the tool stops complaining, which launders a handful of real defects into a sea of newly "documented" ones and teaches the next reader that the noisy baseline was always normal.
+- **The right fix** is annotating the small number of shared exception-handler classes that produce the error responses, which fixes the specification for every endpoint behind them and leaves the genuine defects visible.
 
-- **The wrong fix** is annotating every documented status code onto the specification until
-  the tool stops complaining, which launders a handful of real defects into a sea of newly
-  "documented" ones and teaches the next reader that the noisy baseline was always normal.
-- **The right fix** is annotating the small number of shared exception-handler classes that
-  produce the error responses, which fixes the specification for every endpoint behind them
-  at once and leaves the genuine defects visible. This is **not yet done**.
-
-**One of those defects, found the same way:** one service produced three unhandled server
-errors across its six endpoints; a sibling with more than ten times as many endpoints
-produced none, because it already had the shared exception-handler pattern the first lacks.
-Copying that handler across is a one-class fix. It is still open, and an earlier version of
-this page wrongly said it was closed.
+The lesson was carried to the new gate: read what a finding says before counting it.
 
 ---
 
 ## Load, autoscaling, and the difference between reacting and deciding
 
-Load and soak runs hit the apps from an in-cluster generator, so a regression shows up as a
-number, not a feeling. (The Swarm runtime that once ran the same scripts was retired on
-2026-05-23.)
+**Status, 2026-11-11: there is no load generator on the new platform** (the previous platform's in-cluster generator went with it), so no load figure exists and none is claimed. Autoscaling is horizontal pod autoscaling on CPU: 2 autoscalers exist (cluster DNS and the reference app, read from the API 2026-11-11), reacting to CPU only. Nobody has loaded them to see that they scale, so the status is **built**.
 
-**Autoscaling exists in three different registers today, and only the loudest one is
-automatic:**
+**Progressive delivery is the other side of the same honesty.** Deployments are a plain rolling update. **Rollback now means a git revert**: the in-cluster reconciler (Flux, installed since 2026-11-10) puts back whatever git says, so a hand-run rollout undo would be reverted by the reconciler. That is a cleaner rule than the previous platform's, where a manual rollback did not touch git and the next deploy would reinstate the bad version; it is also less drilled: a revert through git was shown on a local cluster before the real one, and **not yet exercised on a live failure**. **Blue/green and canary rollout with automatic analysis are not built.**
 
-| Trigger | Mechanism | Status |
-|---|---|---|
-| CPU utilisation | Horizontal pod autoscaling: {{ s.cluster.hpas }} autoscalers, each between 2 and 4 replicas; four target 70% CPU, one 80% (read 2026-10-09) | live, reacting continuously |
-| A human decision | declarative replica count, or a conversational request through the ops agent | available on demand |
-| **A traffic signal the platform already sees** | a specialist watcher flags a request-rate spike or a near-zero drop in the same metrics store the autoscaler reads | **surfaced, not yet wired to a decision** |
-
-That third row is the honest gap. The platform already has the signal that would justify
-scaling before CPU catches up, because traffic leads CPU, and closing that loop is a named,
-open piece of work rather than an implied capability.
-
-**Progressive delivery is the other side of the same honesty.** Deployments use a plain
-rolling update with an immutable git-SHA image tag. Rollback is `kubectl rollout undo`: it
-has been drilled in a scratch namespace, but it is **not armed in the delivery pipeline**,
-where the post-deploy health gate only reports, and a rollback does not touch git, so the
-next deploy would reinstate the bad version. **Blue/green and canary rollout with automatic
-analysis and auto-rollback are not built.** The groundwork, a health check a rollout could
-gate on, exists; wiring it to a progressive-delivery controller is tracked as future
-leverage, not claimed early.
+**Chaos (2026-11-11):** failure injection was tried in a **spike on a local cluster only**. There is **no scheduled injection** on the real platform. Status: **planned**.
 
 ---
 
 ## A gap closed by refusing to close it
 
 Not every open item on the roadmap is a thing waiting to be built. One of the more useful
-entries is a **rejection**.
+entries was a **rejection**.
 
-A cluster-state reconciler that continuously re-applies the git-declared state and corrects
-live drift automatically was evaluated and turned down on 2026-08-10 **on principle, not
-deferred**, because the problems it solves (several teams stepping on each other's changes,
-pull-based reconciliation across many operators) don't exist at single-maintainer scale, and
-the platform already has a plainer tool that rebuilds the cluster from git and can prove it
-**on demand**. It does not run on a schedule; an earlier version of this page said it did.
+A cluster-state reconciler that continuously re-applies the git-declared state was evaluated and turned down on 2026-08-10 **on principle, not deferred**, because the problems it solves (several teams stepping on each other's changes, pull-based reconciliation across many operators) did not exist at single-maintainer scale. The rejection carried its own reopen condition, written down: **a second maintainer arriving, or configuration observed drifting in practice.** The second half was met more than once (pin drift on 2026-09-29, a DNS deployment disagreeing with git on 2026-10-03), and the decision was reopened on 24 October 2026.
 
-The rejection carries its own reopen condition, written down rather than implied: **a second
-maintainer arriving, or configuration observed drifting in practice.** The second half has
-arguably been met twice since: the delivery pipeline found pin drift on 2026-09-29, and on
-2026-10-03 git and the live cluster disagreed about a DNS deployment. It was reopened on 24 October 2026, in stages: drift against git is now detected daily, secrets are in git, and rolling out from git on merge (Flux by default) will be decided by 1 December 2026 from the drift data. A decision without a
-stated trigger to revisit it is just procrastination wearing a decision's clothes, and a
-trigger that fires without anyone looking is not much better.
+**Outcome, 2026-11-10: the Flux decision is made and Flux is installed.** It runs on the new platform, pull-based, with prune on, and the 2026-12-01 decision date was met early. The history stays because the lesson is unchanged: a decision without a stated trigger to revisit it is procrastination wearing a decision's clothes, and a trigger that fires without anyone looking is not much better. Status: **built**, and reconciling since 2026-11-10; the live Ready count changes with every merge, so it is on [the status page](status.html) and not here. The one failure I saw on 2026-11-11 was the new monitoring tenant (see the gaps below). See [the choices page](choices.html#the-worked-example-argocd-and-flux-a-reopened-decision).
 
 ---
 
@@ -196,66 +114,48 @@ trigger that fires without anyone looking is not much better.
 
 Documentation rots silently. Nothing errors when a diagram describes a topology that changed
 six weeks ago, and the person best placed to notice is the one who already believes the
-diagram. So a single command re-derives the claims from the live system and fails if any has
-stopped being true: inventory against the actual node list, pinned versions against what is
-running, the public-edge allowlist against the two independent places it is declared, and four
-named standing scheduled jobs against whether they exist *and are not suspended*. The backup
-and prune jobs are not among the four; that is a gap. At the last count (2026-10-09) it ran 49
-assertions: 48 held, and one reported drift, because the storage cluster was in a health
-warning. A verifier that is red today is the verifier working.
+diagram.
 
-One check in it is worth describing, because building it taught more than running it. The
-delivery pipeline signs every image and verifies the signature before deploying. Nothing
-checked whether the images **actually running right now** are signed, a different claim, and
-the gap between them is where an unsigned image would live. Four things fell out of writing
-that check, and they generalise:
+**Previous platform (until 2026-11-10):** a single command lived in the old repository that re-derived claims from the live system (inventory against the node list, pinned versions against what was running, the public-edge allowlist, four scheduled jobs). Its last recorded count on 2026-10-09 was 49 assertions with 48 holding. That command did not move.
 
-**Verify the thing, not the label.** The obvious implementation verifies the image tag. A tag
-can be overwritten, so that proves something about whatever it points to *now*, not about the
-bytes in the running container. The check resolves each container's actual digest, what the
-kubelet pulled, and verifies that.
+**On the new platform (2026-11-11):** documentation is asserted against the inventory by **check scripts** run in the pull-request checks, and a **generated status page** states what the checks found. Status: **built**; the checks are days old and have not yet caught a lie that a person did not find first, so they are not yet seen to be good at it.
 
-**A check that has never failed is not known to work.** This one was mutation-tested:
-deliberately pointed at the wrong signing key to confirm all images are reported unsigned,
-then pointed back to confirm they verify. Both directions, or it is decoration.
+One check on the previous platform is worth describing, because building it taught more than running it. The
+delivery pipeline signed every image and verified the signature before deploying, but nothing checked whether the images **actually running right now** were signed. Four lessons fell out, and they apply to the new checks too:
 
-**An inert check is worse than an absent one.** If the signing tool or the public key is
-missing, the check *fails loudly* rather than skipping. A skipped check reports success, and a
-green line that means "I didn't look" is indistinguishable from one that means "I looked and
-it's fine", which is the failure mode this whole practice exists to prevent.
+**Verify the thing, not the label.** The obvious implementation verifies the image tag. A tag can be overwritten, so that proves something about whatever it points to *now*. The check resolved each container's actual digest and verified that.
 
-**The first result was wrong, and reporting it would have caused a fire drill.** The initial
-run said every first-party image was unsigned. That was a tooling default: the verifier was
-demanding a public transparency-log entry, and signing here is offline and key-based, so no
-such entry exists or should. The signatures were valid the whole time. **Reading the actual
-error instead of the exit code was the difference between a correct finding and an alarming
-false one.**
+**A check that has never failed is not known to work.** It was mutation-tested: pointed at the wrong signing key to confirm everything was reported unsigned, then pointed back. Both directions, or it is decoration.
 
-Result, as of {{ s.generated_at | date: "%Y-%m-%d" }}: {{ s.supply_chain.first_party_signed_verified }} of
-{{ s.supply_chain.images_first_party }} running first-party images verify against the release
-key. One does not, and this page does not claim otherwise. Note also that this is
-*detection*, not *enforcement* (see the gaps below).
+**An inert check is worse than an absent one.** If the tool or the key is missing, the check *fails loudly* rather than skipping. A green line that means "I didn't look" is indistinguishable from one that means "I looked and it's fine".
+
+**The first result was wrong, and reporting it would have caused a fire drill.** The initial run said every first-party image was unsigned: a tooling default demanded a public transparency-log entry that offline key-based signing never produces. **Reading the actual error instead of the exit code was the difference between a correct finding and an alarming false one.**
 
 ---
 
-## Grading our own maturity, weaknesses included
+## Grading our own maturity: the new platform
 
-Two independent scoring systems run against this platform and its siblings, on purpose, one
-for depth and the other for a comparable number:
+The new platform is **not scored on the old ladder**. It is scored against its own objectives and key results, and **that page is still a draft with no start date**, so there is no headline index to publish and none is invented. What exists is a generated register, the 2026-11-10 status file (written the evening before the 2026-11-11 merges, so it can lag them), that counts what has actually been done:
 
-- **A narrative ladder**, five levels from ad hoc to elite, scored per domain with the
-  evidence written out in prose.
-- **A weighted capability radar**, a small, purpose-built tool, not a third-party product,
-  scored 0 to 5 against a stated target and rendered as a chart.
+| Register | Count | Breakdown |
+|---|---|---|
+| Plan steps | 12 | 2 done, 2 done on a local cluster only, 5 partly, 2 not started, 1 gated |
+| Rules (the written-down requirements) | 109 | 3 built, 19 partly, 87 not built |
+| Run records | 35 | 26 pass |
 
-### The scoreboard, in full
+Read honestly: **the platform is early.** Three of 109 rules are fully built, and most of what the earlier pages call "built" is a first version, a day or a week old. Of the 35 run records, 26 pass; the other nine did not pass, and are counted rather than hidden. The December 2026 re-grade was the previous repository's plan and does not apply: **no dated re-grade of the new platform is scheduled until the objectives page has a start date** (open).
 
-Here is the narrative ladder's output, **graded 2026-09-09**: every domain, including the
-four that sit on the floor. `L3` is the bar a paid public product must clear; `L4` is elite
-and only worth reaching where the domain is core to the product's identity or risk. **The
-target column is deliberately not `L4` everywhere**: a stack can be elite at security and
-absent at analytics, and averaging that into a single headline number would hide exactly
-what the grade exists to surface.
+---
+
+## Self-grades of the previous platform (2026-08-06 to 2026-10-18)
+
+Everything below graded the previous platform and its sibling subjects. **None of it is the new platform's score.** It stays, dated, because a score you can revise silently is not a measurement, and because the shape of it (which rows were weak) is the best account of what the new platform was built to fix.
+
+Two independent scoring systems ran: a **narrative ladder**, five levels from ad hoc to elite, scored per domain with the evidence in prose, and a **weighted capability radar**, a small purpose-built, dependency-free Python tool scored 0 to 5 against a stated target.
+
+### The narrative ladder, graded 2026-09-09
+
+`L3` is the bar a paid public product must clear; `L4` is elite and only worth reaching where the domain is core to the product's identity or risk. **The target column is deliberately not `L4` everywhere.**
 
 | # | Domain | Current | Target | Trend |
 |---|---|:---:|:---:|:---:|
@@ -272,58 +172,22 @@ what the grade exists to surface.
 | 11 | Governance & org-scale | **L2** | L2 | → |
 | 12 | Business continuity / FinOps / vendor risk | **L2** | L2 | ↑ |
 
-Read honestly, that table says: **the infrastructure and operations half crossed the
-baseline; the product-facing half has not.** The supply-chain half of security is genuinely strong; whether the whole row is elite is contested (next paragraph). Reliability moved a
-full level between the 2026-06 and 2026-07 grades as backups, restore drills and host patching
-landed, and has not moved in the 2026-09 one.
+The infrastructure and operations half crossed the baseline; the product-facing half did not. Analytics was at zero, UX barely off the floor, legal at `L1` against `L3`. A maturity model that grades you green everywhere is measuring the wrong things, or is being read by its author. The three earlier ladder grades were 2026-06-05, 2026-07-31 and 2026-09-09.
 
-> **A second opinion on the security row, 2026-10-18.** An outside review of the whole estate
+> **A second opinion on the security row, 2026-10-18 (previous platform).** An outside review of the whole estate
 > graded security and supply chain **3 of 5** on its own scale (not this ladder): the supply chain
-> is elite for a homelab, signed and attested and re-proven live, but the application-security and
-> in-cluster layers are baseline, with a report-only habit that has not been broken (the
-> code-analysis results go nowhere, several gates never graduated from reporting to blocking, and
-> the cluster has no admission layer or network policies). The L4 above is dated 2026-09-09 and has
-> not been revised; the December grade has to answer this. Both numbers are self-generated
-> (the reviewer is an AI model); the evidence behind each, not the digit, is the part to weigh.
+> was elite for a homelab, but the application-security and in-cluster layers were baseline, with a report-only habit that had not been broken and no admission layer or network policies. Both numbers were self-generated
+> (the reviewer is an AI model); the evidence behind each, not the digit, is the part to weigh. **Two of those findings, the missing admission layer and the missing network policies, are closed on the new platform (2026-11-10 and 2026-11-11, built, about a day old); the report-only habit is not re-measured.**
 
-And then: **analytics is at zero.** Not "early": zero. Nothing measures whether anyone uses
-these applications or what they do in them. UX quality is barely off the floor: no
-accessibility audit, no internationalisation, no performance budget. Legal sits at `L1`
-against a target of `L3` and is the reason a lawful public launch is blocked; its terms and
-privacy policy are the one open top-priority gap.
+### The radar, assessment dated 2026-08-06
 
-Those four rows are the most useful thing on this page. A maturity model that grades you
-green everywhere is measuring the wrong things, or is being read by its author.
+The tool reads one assessment file (plain JSON: weighted capability *vectors*, each with a score, a target and the evidence behind both) and renders an SVG radar, a Markdown scorecard and, given two dated assessments, a diff. **The output is generated from one file in git**, so a scorecard six months old and one from today are diffable text, not two screenshots.
 
-> The grade is dated and old snapshots are never edited; a new file is added instead. It is
-> re-scored every six to eight weeks (the three grades so far are 2026-06-05, 2026-07-31 and
-> 2026-09-09), or when a top-priority gap closes. Corrections are dated in place. A score you
-> can revise silently is not a measurement. The "quarterly" on an earlier version of this page
-> was wrong.
+![Capability and maturity radar of the previous platform, weighted index 3.47 of 5, as of 2026-08-06](assets/maturity-radar.svg)
 
-### The radar is a tool, not a one-off spreadsheet
+*Caption: this radar is the previous platform's self-grade, dated 2026-08-06, kept as history. It is not the new platform's score.*
 
-The instrument that draws it is worth describing on its own. It's a few hundred lines of
-**dependency-free Python**, nothing to install, that reads one assessment file (plain JSON: a
-list of weighted capability *vectors*, each with a current score, a target, and the evidence
-behind both) and renders it as an SVG radar, a Markdown scorecard, and, given two dated
-assessments, a diff showing what moved and what didn't.
-
-It borrows deliberately from the tools this space already has: labelled sector arcs from the
-tech-radar format popularised by Thoughtworks and Zalando, per-vector level anchors from
-CMMI, weighting and evidence from the cloud providers' Well-Architected reviews. What makes it
-worth keeping over a slide deck: **the output is generated from one file in git**, so a
-scorecard six months old and one from today are diffable text, not two screenshots someone
-has to eyeball.
-
-**The live output, not a mock-up** (assessment dated 2026-08-06; the figures inside the image
-are from that date and predate the September work):
-
-![Capability and maturity radar: the-docker-swarm-ai, weighted index 3.47 of 5, as of 2026-08-06](assets/maturity-radar.svg)
-
-**On that snapshot, the platform's weighted index is 3.47 of 5, against a target of 4.47, 78%
-of the way there.** It has not been re-scored since, and the probe has not been re-run. The
-point of publishing the number is the shape around it, not the average:
+On that snapshot the previous platform's weighted index was 3.47 of 5, against a target of 4.47, 78% of the way there. The shape mattered more than the average:
 
 | Strongest | Score | Weakest | Score |
 |---|---|---|---|
@@ -332,49 +196,32 @@ point of publishing the number is the shape around it, not the average:
 | Security & supply chain | 4.0 | **AI operations & autonomy** | **3.0, largest gap to target** |
 | Availability & HA, SDLC, docs | 4.0 | Identity & access, performance | 3.0 |
 
-The single largest gap on the whole radar is the autonomy of [the ops agent](aiops.md)
-itself, which is consistent with everything that page says about it: useful, supervised, and
-deliberately not trusted further than that yet. A self-assessment that didn't put its own
-weakest-scored capability where the rest of the site already says it belongs would be the one
-worth doubting.
+### The portfolio, regenerated 2026-09-28
 
-**The same tool scores the wider portfolio, not just this repository**: the same JSON schema
-pointed at a different subject, rolled up into one comparison (regenerated 2026-09-28):
+The same tool scored the wider portfolio, rolled up into one comparison.
 
-![Portfolio maturity across four assessed subjects, average 2.72 of 5, as of 2026-09-28](assets/maturity-portfolio.svg)
+![Portfolio maturity across four assessed subjects of the previous platform era, average 2.72 of 5, as of 2026-09-28](assets/maturity-portfolio.svg)
 
-The platform is, honestly, the strongest-scoring member of its own family. Two of the other
-three assessments are still marked draft and date from July 2026, and those two have not been
-refreshed since, so the comparison is less current than the average suggests. The scoring is
-deliberately conservative, crediting only what is deployed and verified, never what is merely
-designed. Nothing on the whole radar sits at a perfect score, on purpose.
+*Caption: the previous platform's portfolio roll-up, dated 2026-09-28. Two of the other three assessments were still marked draft from July 2026.*
 
-The tool doesn't know or care what it's grading: the same schema has scored a
-{{ s.cluster.nodes }}-node Kubernetes platform, the application layer running on it, an
-embedded Linux image built from source, and an unrelated robotics safety system, each with its
-own vectors and weights. **A capability-maturity tool that only works on the thing it was
-written for isn't a tool, it's a spreadsheet with extra steps.**
+The scoring was deliberately conservative, crediting only what was deployed and verified. The tool does not know or care what it grades: the same schema scored a Kubernetes platform, the application layer on it, an embedded Linux image and an unrelated robotics safety system. **A capability-maturity tool that only works on the thing it was written for isn't a tool, it's a spreadsheet with extra steps.**
 
 ---
 
 ## Honest gaps
 
-- **Mutation testing and dependency-CVE sweeps are advisory, not blocking**, and the mutation
-  job is red most nights. A regression in either is visible the next morning, not stopped at
-  the gate: a deliberate throughput trade-off, tracked rather than hidden.
-- **Nothing on the server stops a merge.** Branch protection is not enforceable on this plan,
-  and the contract and DAST scans report without failing the build.
-- **Rollback is drilled, not armed.** The post-deploy health gate reports only.
-- **The cluster rebuild from git is proven on demand, not on a schedule.**
-- **No distributed tracing.** Metrics and logs answer *what* and *how often*; nothing yet
-  answers *why was this one request slow* across service boundaries.
-- **No client-side crash reporting.** The backend's health is well instrumented; a crash on a
-  device in someone's pocket is invisible until it's reported by hand.
-- **Signing is verified in the pipeline, not enforced at admission.** The guarantee is "the
-  delivery path will not ship an unsigned image", not "the cluster will not run one": an image
-  that was never checked runs if a manifest reaches `kubectl apply` by a path that skipped the
-  pipeline. Detection came first deliberately: a fail-closed admission webhook that breaks
-  means nothing deploys, including the fix for the webhook.
+Status as of 2026-11-11, on the new platform unless stated.
+
+- **Mutation testing and the dependency sweep do not exist** on the new repository (planned). The previous platform had them as advisory jobs.
+- **The aggregate gate job is deliberately not a required check yet**, and neither are the local-cluster gate or the app build and test (advisory). Proof B (2026-11-10) found that a red result from a cancelled run wins over a green re-run; the fix is open. Branch protection itself is proven only for the rules as read.
+- **Rollback is a git revert**, shown on a local cluster, not yet used on a live failure. Blue/green and canary are not built.
+- **No load generator**, so no capacity figure; autoscaling is built.
+- **Tracing is built.** A trace backend runs; no trace has been read, and the collector is not deployed. The monitoring tenant that would show metrics, alerts and dashboards was merged on 2026-11-11. Flux is applying it and it is not Ready: its first live run (2026-11-11) failed on a missing-namespace defect in the node exporter manifests, and a one-line fix is in review. It has never run, so the alert-rule and dashboard counts are not measured yet; no alert rules or dashboards exist to count.
+- **Admission is enforced, not yet fully tested.** The earlier gap, "signing is verified in the pipeline, not at admission", is **no longer true**: admission rules run in Deny mode since 2026-11-10. What is not shown is a negative test for every rule.
+- **The rebuild was by playbook, in order, with a person watching.** It was not a hands-off rebuild, and has been done once on real hardware. The local rehearsal on a throwaway cluster covers **one distribution only**, so a result from it says little about the differences between the real machines.
+- **Backups are one copy** on one small machine; a restore drill passed once on 2026-11-10.
+- **No client-side crash reporting**, unchanged.
+- **Identity runs in a development mode** (2026-11-11): good enough for a reference app, not a production claim.
 
 ---
 

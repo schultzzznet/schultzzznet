@@ -75,8 +75,8 @@ report "private LAN addresses" \
   "RFC1918 addressing (all of 10.0.0.0/8, 172.16/12, 192.168/16) describes the internal topology."
 
 report "fleet hostnames" \
-  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10)\b' \
-  "Real machine names; use role descriptions instead."
+  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10|theubuntu[0-9a-z-]*|thedebian[0-9a-z-]*|k3s-rehearsal[0-9a-z-]*)\b' \
+  "Real machine names (the home CI hosts and the rehearsal VMs included); use role descriptions instead."
 
 report "CGNAT / WAN addresses" \
   '\b100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]+\.[0-9]+' \
@@ -130,7 +130,7 @@ report "IPv6 addresses" \
 # vulnerabilities apply. Major versions ("PostgreSQL 18") say nothing of the kind and stay allowed;
 # the rule is name + major.minor, plus the k3s release-tag shape (v1.35.9+k3s1).
 report "infrastructure software versions" \
-  '\b(k3s|k8s|kubernetes|kubectl|kubelet|traefik|keycloak|rook|ceph|cloudnative-?pg|cnpg|kube-vip|dependency-?track|trivy|syft|cosign|etcd|containerd|metrics-server|prometheus|alertmanager|loki|grafana|sonarqube|defectdojo|nexus|minio|pitest|spotless|helm|ansible)[ -]?v?[0-9]+\.[0-9]+(\.[0-9]+)?\b|\bv[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]*' \
+  '\b(k3s|k8s|kubernetes|kubectl|kubelet|traefik|keycloak|rook|ceph|cloudnative-?pg|cnpg|kube-vip|dependency-?track|trivy|syft|cosign|etcd|containerd|metrics-server|prometheus|alertmanager|loki|grafana|sonarqube|defectdojo|nexus|minio|pitest|spotless|helm|ansible|flux|kyverno|cert-?manager|lima|sops|age|rauc|cilium|calico|postgres(ql)?|docker|podman|colima|renovate)[ -]?v?[0-9]+\.[0-9]+(\.[0-9]+)?\b|\bv[0-9]+\.[0-9]+\.[0-9]+\+k3s[0-9]*' \
   "An exact version of infrastructure software maps the stack to known vulnerabilities; say \"current\" or the major version."
 
 report "issue-tracker sites" \
@@ -140,9 +140,16 @@ report "issue-tracker sites" \
 # The prose names these repositories on purpose (index.md, the README). Generated data
 # has no reason to, and a name that arrives in docs/_data arrived from a script.
 report_at "private repo names in generated data" \
-  '[Tt]he(PrintingIn3D|SchultzYocto|Imx8Yocto|RoverPlatform|MowerRetrofit|VideoRover|DroneSwarm)|the-docker-swarm-ai' \
+  '[Tt]he(PrintingIn3D|SchultzYocto|Imx8Yocto|RoverPlatform|MowerRetrofit|VideoRover|DroneSwarm)|the-docker-swarm-ai|[s]chultz[ _-]?[c]luster' \
   "docs/_data is written by scripts; repository names belong in prose, chosen by a person." \
   docs/_data
+
+# The current private platform repository is never named on the public site, in prose or in data (the
+# previous platform's repository is named in prose on purpose, as history, and stays allowed). The
+# bracketed letters match the same text but keep this script from spelling the name out itself.
+report "private platform repo name in published files" \
+  '[s]chultz[ _-]?[c]luster' \
+  "The current private repository is not named publicly, not even in an image path; say 'the private platform repository'."
 
 # Jekyll has no native mermaid; each page bootstraps it itself, so a diagram on a
 # page without the script ships as raw source and nothing errors.
@@ -159,6 +166,21 @@ done < <(grep -rl '```mermaid' "${TARGETS[@]}" --include='*.md' 2>/dev/null || t
 check_stats() {
   local label="$1" mode="$2" why="$3" out
   if out=$(python3 "$here/gather-stats.py" --verify "$mode" --max-age-days "$STATS_MAX_AGE_DAYS" --data-dir docs/_data 2>&1); then
+    printf 'ok:   %s\n' "$label"
+  else
+    fail=1
+    echo "FAIL: $label"
+    echo "      $why"
+    printf '      %s\n' "${out//$'\n'/$'\n      '}"
+    echo
+  fi
+}
+
+# check_py <label> <why> <script> <args...>: a stdlib python check whose output is the evidence.
+check_py() {
+  local label="$1" why="$2" out
+  shift 2
+  if out=$(python3 "$here/$1" "${@:2}" 2>&1); then
     printf 'ok:   %s\n' "$label"
   else
     fail=1
@@ -187,6 +209,14 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
   # The page prints a method beside every figure; a figure with none is unexplained.
   check_stats "every stat has a published method" methods \
     "Add or remove the matching entry in docs/_data/stats_methods.yml."
+  # A value is a plain number, a quoted date, or the exact string 'not measured yet'; nothing else stands in for a number.
+  check_py "stats values are of an accepted kind" \
+    "Write a number unquoted, a date as \"YYYY-MM-DD\", or \"not measured yet\"; any other string where a number is expected is refused." \
+    check-stats-refs.py --values --stats docs/_data/stats.yml
+  # Jekyll renders a removed key as empty text without an error, so a page naming one reads 'has  nodes' and the build is green.
+  check_py "no page references a stats key that does not exist" \
+    "A page names a figure stats.yml does not have; Jekyll would print nothing in its place. Fix the page or add the figure." \
+    check-stats-refs.py --docs docs --readme README.md --stats docs/_data/stats.yml
 fi
 
 # A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one

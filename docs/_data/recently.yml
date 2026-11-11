@@ -2,6 +2,22 @@
 # Each entry is a date and one or two sentences (markdown allowed); the full account lives on the page it links to.
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
+- date: 2026-11-11
+  text: "Both home CI builder hosts started jobs in parallel for the first time, one job virtual machine at a time on each. The gates were still running when this was written, so this records that they started, not that they passed."
+- date: 2026-11-11
+  text: "The new cluster's monitoring was merged on 2026-11-11 and the reconciler is applying it, but it is not Ready: its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix is in review. It has never run, so no alert reaches a person yet. [Status](status.html)."
+- date: 2026-11-11
+  text: "This site now describes the new platform. Figures that cannot be measured yet say \"not measured yet\" instead of keeping an old number, the previous platform's facts sit in dated notes, and a new page, [How we work](how-we-work.html), covers the ways of working and the failures that shaped them. Public claims changed in this edit; the status page shows what is measured and what is not."
+- date: 2026-11-10
+  text: "The previous cluster was taken down in stages after a base backup of every database and a recorded baseline: pause, drain, storage down, uninstall, no failed task. The stock uninstaller left a virtual address on one node and a password file on every node; both were removed by hand and written down. Its restore drills were waived on purpose, so its data was not proven restorable at the end."
+- date: 2026-11-10
+  text: "A new cluster was built on the same six machines, by playbook, in order, with a person watching: about four and a half hours from the first merge to a converged site. The first live run found five faults, three in the cluster layer and two in the host layer, each fixed in git. Monitoring, alerts to a person, a public name and replicated storage are not there yet. [Status](status.html)."
+- date: 2026-11-10
+  text: "A restore drill passed on the new cluster: a scratch database came back from the object store alone with a marker row and all six tables in about a minute, on a database of a few megabytes. It was blocked three times first by the platform's own quota, network rules and reconciler. It does not prove real-size time, a scheduled-backup restore, or a copy off the one backup machine. [How we work](how-we-work.html)."
+- date: 2026-11-10
+  text: "The default-deny network probe on the new cluster is recorded as a fail. After about 30 seconds every blocked path is blocked, but a new pod is open for roughly one to three seconds after it starts. Whether another network engine or a start-up wait closes the gap is untested. [Status](status.html)."
+- date: 2026-11-10
+  text: "The host layer was rehearsed on three blank local virtual machines: ready in 4 minutes 11 seconds from creation, and a second full run changed nothing. It found four defects on the way. It is one distribution, no node failure and no three-member quorum test, so it shows flow and idempotence, not the real topology. [How we work](how-we-work.html)."
 - date: 2026-10-30
   text: "Alerting and monitoring is now written down as one loop: alerts straight to chat, an hourly post composed by code, a morning digest, and a daily second reader that is a cloud model, with a person approving every action and grading a monthly sample. It also corrects two statements: a cloud model now sees a day's alert text, and the local model no longer writes the hourly post. [The loop](aiops.html#the-loop-two-models-one-human)."
 - date: 2026-10-27
@@ -10,19 +26,3 @@
   text: "The printing page's parts list was regenerated: 29 parts in 14 models, including the camera mount's calibration flags and tilt parts. The publisher now skips any model git does not track. [The parts](printing.html#the-parts)."
 - date: 2026-10-27
   text: "This site was reviewed from the outside for clarity and completeness. Every page now opens with an *In short* block, the build fails if one goes stale, and seven statements that had gone out of date or were never true are corrected ([the corrections](#corrections-2026-10-27))."
-- date: 2026-10-26
-  text: "The operations agent was hardened and put under measurement: tool arguments validated (a model-supplied name had reached a command run as root), only named approvers count, every executed action audited, and a quality loop with a graded sample. [The account](aiops.html#the-agent-since-2026-10-26)."
-- date: 2026-10-25
-  text: "No plaintext Secret is left in the manifests: all fourteen are encrypted with SOPS and age. Rotating the old values, which stay in git history, is open. [The staged plan](platform.html#how-a-change-reaches-the-cluster)."
-- date: 2026-10-24
-  text: "Git became the only way a change may reach the cluster. A daily read-only diff of every plain manifest found six differences on its first run, all resolved the same day. Sixteen guards now run daily."
-- date: 2026-10-23
-  text: "Fault injection was unlatched after ten days paused, by breaking two latches in the safety gate. It has not fired since 13 October, because the gate keeps pausing it. [Why](reliability.html#fault-injection-is-paused-by-its-own-safety-gate)."
-- date: 2026-10-22
-  text: "SSH on the nodes became key-only, one node at a time, proven by a fresh login. An outside attack-path review found no direct path from the internet to cluster-admin and a soft inside. [What reviews found](lessons.html#13-what-outside-reviews-found)."
-- date: 2026-10-21
-  text: "The daily guards found three states that were committed but never applied, and all three were applied the same day."
-- date: 2026-10-20
-  text: "Everything reaches the cluster through its floating address, not through one machine's name, after a nine-hour network loss on the primary node broke three CI jobs the day before."
-- date: 2026-10-19
-  text: "Pull requests became the practice: 112 of the next 133 commits carry a number. They are still merged by the person who wrote them. [Who reviews, honestly](ai-dev.html#who-reviews-honestly)."

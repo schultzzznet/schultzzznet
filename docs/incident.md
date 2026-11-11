@@ -1,18 +1,17 @@
 ---
 title: One incident, in full
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
   - "**What happened:** on 20 August 2026 mains power to the building dropped for under a minute. Two of the three control-plane machines hard-crashed, and for 9 minutes 12 seconds the survivor was the only reachable member of the cluster's state store, one vote short of a quorum. By this platform's own taxonomy that is a SEV1."
   - "**How it ended:** no data lost, no user impact, full recovery with no human action. **Nothing detected it, and nothing could have:** it was found because a person felt the lights go out and asked for a status check."
   - "**Why it is published:** a summary of an incident is the easy part to write and the part that teaches least. This is a condensed rewrite of the private post-mortem with the machine names removed and nothing softened. Its sharpest line: the outage was the experiment the drills had not run, run for real by the electricity company."
-  - "**Since then:** state-store monitoring on 3 September, and the control plane rebuilt on a different set of three machines on 4 September. Item statuses were last checked on 9 October, and the body of the page was last read in full that day."
+  - "**Since then:** state-store monitoring was added on 3 September, but that was a capability of the previous platform, retired on 2026-11-10. **On 2026-11-11 the monitoring tenant for the new cluster is merged but not yet applied, so no monitoring runs there and nothing would fire on a quorum loss.** I have no record of a drill that cut power to a control-plane member."
+  - "**Reliability numbers:** I have no record of an enforced SLO on the new platform, as of 2026-11-11, and its storage recovery point has no basis beyond the database layer. The old numbers are kept, labelled previous platform, 2026-10-09."
 ---
 
-{% assign s = site.data.stats %}
 {% assign open_items = 2 %}
 {% assign checked = "2026-10-09" %}
-{% assign asof = s.generated_at | date: "%Y-%m-%d" %}
 
 # A nine-minute quorum loss that nothing detected
 
@@ -20,8 +19,9 @@ summary:
 
 ![open items](https://img.shields.io/badge/open%20items-{{ open_items }}%20as%20of%20{{ checked | replace: "-", "--" }}-orange)
 
-*Happened 20 August 2026. The status of every item below was last checked on 9 October 2026,
-and says so where it matters.*
+*Happened 20 August 2026, on the previous platform. The status of every item below was last
+checked on 9 October 2026 unless it says 2026-11-11; the platform was wiped and rebuilt on
+2026-11-10, and the notes headed "Previous platform" or dated 2026-11-11 say what that changed.*
 
 Every other page here summarises incidents. This one is a single real post-mortem, shortened
 but not softened, because a summary of an incident is the part that is easy to write and the
@@ -58,12 +58,13 @@ one.
 | **Data lost** | None. Seven database clusters, the number there were that day, verified fully replicated afterwards. (An earlier version said eight; the post-mortem says seven.) |
 | **User impact** | None observed. Already-scheduled pods keep running without the state store |
 | **Recovery** | Fully automatic, no human action, no runbook invoked |
-| **Fixed since** | State-store monitoring, on 3 September. See [Afterwards](#afterwards) |
+| **Fixed since** | State-store monitoring, on 3 September, on the previous platform only. It is gone with that platform; see [Afterwards](#afterwards) |
 
 **Since then:** the control plane was rebuilt on a different set of three machines on 4
-September. Today the cluster has {{ s.cluster.control_plane }} control-plane nodes and
-{{ s.cluster.agents }} agents ({{ s.cluster.nodes_ready }} of {{ s.cluster.nodes }} Ready, as of
-{{ asof }}). Everything below about "the three" describes the
+September. On 2026-11-10 the whole cluster was wiped and a new one was built on the same
+three control-plane machines and three laptop agents. It is a new cluster, about 14 hours old at
+06:50 on 2026-11-11, not the one that lost quorum. Today it has 3 control-plane
+nodes and 3 agents (6 of 6 Ready, kubectl, 2026-11-11). Everything below about "the three" describes the
 three of 20 August.
 
 ---
@@ -155,6 +156,12 @@ long they bridge. Nobody has timed either.
 | Establish why the surviving node kept power | Me | The post-mortem | ✅ Closed. It has a working, badly degraded battery. Verified directly rather than inferred |
 | Establish why that node's cluster process restarted *without* the OS rebooting | Me | **Nothing yet** | **Still open.** Consistent with a brief under-voltage event, never confirmed. Left open rather than closed with a plausible guess |
 
+*Update, 2026-11-11:* the battery facts are hardware, not platform, so they survived the
+rebuild: one of the three control-plane machines has no battery. Bridge time is still not
+re-timed. I have no record of a UPS, and a single power feed was accepted as a risk on 2026-11-08. The
+monitoring row above is closed only in the sense that it was done on a platform that no longer
+exists.
+
 *Retraction, 9 October 2026:* this page used to say "every item has a link and an owner". The
 table had neither column, and in the private post-mortem the owner column was empty on all
 four rows. The owner is me, on all four, and is now written down. The last row still has no
@@ -173,11 +180,18 @@ difference between those two is the entire discipline.
 
 ## Afterwards
 
-The first row above closed on 3 September. As of 9 October 2026 the state store has
+**On 2026-11-11, plainly: nothing would fire on a quorum loss.** Monitoring on the new cluster
+is not live: its tenant was merged on 2026-11-11 but is not yet applied, and no monitoring runs on
+the cluster as of this check. The only check of state-store membership I know of is the host
+layer's own health play, and I found no schedule for it, so I treat it as run by a person. What follows
+is the previous platform, measured 2026-10-09; those scrape targets and that alert group no
+longer exist.
+
+The first row above closed on 3 September. As of 9 October 2026 the previous platform's state store had
 3 of 3 etcd scrape targets up and an `etcd` alert group of 15 alerting rules (13 distinct
 names), none firing. Two of them: no leader for 60 seconds, and too few members for 180
 seconds, both critical. Either would have fired inside a 9 minute 12 second loss, **if**
-Prometheus, Alertmanager and the notification route had stayed up. That has not been tested
+Prometheus, Alertmanager and the notification route had stayed up. That was never tested
 by taking a member down on purpose.
 
 It also did not stay fixed by itself. A later rebuild did not restore the drop-in that
@@ -189,8 +203,9 @@ dropped. The same blind spot reopened with the next change. etcd was fine throug
 
 ## The uncomfortable part: this was the test that was never run
 
-The platform runs a scheduled fault injector with a safety controller, and it works: pod
-kills and network faults, proven end to end, soaking continuously.
+*Previous platform, 2026-10-09:* the platform ran a scheduled fault injector with a safety
+controller, and it worked: pod kills and network faults, proven end to end, soaking
+continuously. It was retired with that platform on 2026-11-10.
 
 *Retraction, 9 October 2026:* this page used to say the injector had "never once been pointed
 at hardware" and that "nothing has ever deliberately powered off a machine". That was false,
@@ -204,9 +219,10 @@ Nodes have been powered off to measure a change, as [the estate page](index.md) 
 with its target. After this incident, drills also stopped the agent process on real workers
 and measured the outage.
 
-What is still true is narrower. The **scheduled** injector only ever hits disposable pods.
-A script that cuts a node's power as a drill exists, and is held at draft, unvalidated. No
-drill has cut power to a control-plane member, and none has taken two at once.
+What is still true, stated plainly on 2026-11-11, is narrower. The previous platform's
+**scheduled** injector only ever hit disposable pods, and it no longer exists. I have no record of a
+drill that cut power to a control-plane member on the new platform: of 16 power-off proofs on the old one, 0 carried over.
+And none has taken two members at once, on either.
 
 So the honest framing is this: **the outage was the experiment the drills had not run, run
 for real, unplanned, by the electricity company.** It passed, but "passed" means "survived a
@@ -224,12 +240,28 @@ the survivor is the one that drops?
 
 ## The reliability numbers, stated exactly
 
-Conflating these two scenarios is the most common way to overstate a recovery posture.
+### The new platform, 2026-11-11
+
+- **Storage recovery point:** the claim of RPO 0 for storage has **no basis** now. Volumes are
+  node-local, the only storage class is the single-node provisioner, and replication exists
+  only in the database layer. A lost machine takes its volumes with it. This is a stated,
+  deferred gap: replicated block storage is the planned fix and is not built. It is recorded as
+  straining the recover objective.
+- **Database restore:** tested **once, by hand, on 2026-11-10**: 60 seconds for a few MB, restoring an on-demand backup into a scratch cluster. The scheduled backup was not restored, and the backup store is one machine. The
+  recovery point is bound by write-ahead-log archiving and is **not measured yet**. One small
+  restore is a first data point, not a drill.
+- **Service levels:** I have **no record of an enforced SLO** on the new platform as of 2026-11-11; the fault injector's
+  recovery budget was the only one and it is gone. I also have no record of user-facing SLOs, as before.
+
+### Previous platform, 2026-10-09
+
+Kept as typed then (2026-10-09; figures marked otherwise were taken on 2026-10-27), not re-measured. Conflating these two scenarios is the most common way to
+overstate a recovery posture.
 
 | Scenario | RPO | RTO |
 |---|---|---|
-| **A single node or storage daemon is lost** | **Storage: 0.** Every block is stored {{ s.storage.replica_size }} times, {{ s.storage.pgs_clean }} of {{ s.storage.pgs }} placement groups active and clean (as of {{ asof }}). **Databases: 0 only while commits are synchronous, and for 23 days they were not** (below) | Automatic failover, not separately timed |
-| **A whole database must be restored from backup** | **≤ 5 minutes**: continuous write-ahead-log archiving, {{ s.databases.archiving_clusters }} of {{ s.databases.clusters }} clusters archiving | **About 2 minutes for one 13 MB database on 2 July**, restored into a scratch namespace and fingerprint-verified against the live copy. That is one measurement of a small database; a large one will take longer |
+| **A single node or storage daemon is lost** | **Storage: 0.** Every block was stored three times, 129 of 129 placement groups active and clean (2026-10-27, previous platform). **Databases: 0 only while commits are synchronous, and for 23 days they were not** (below) | Automatic failover, not separately timed |
+| **A whole database must be restored from backup** | **≤ 5 minutes**: continuous write-ahead-log archiving, 13 of 13 clusters archiving (2026-10-27, previous platform) | **About 2 minutes for one 13 MB database on 2 July**, restored into a scratch namespace and fingerprint-verified against the live copy. That is one measurement of a small database; a large one will take longer |
 
 *Retraction, 9 October 2026:* this table used to say RPO 0 for a lost node, on the grounds that
 "synchronous commit and three-way replication mean surviving copies were never behind". The
@@ -241,10 +273,9 @@ October, and at about 09:21 CEST that day gave those four clusters synchronous c
 (any one of two standbys; `sync_state=quorum` checked on each primary), along with resource
 limits and failover tolerations that went missing the same way. A guard now fails when a
 successor cluster does not mirror its predecessor's settings. The two-instance clusters were
-asynchronous by design and still are, so a small RPO above zero is the stated cost there. As
-of {{ asof }}, {{ s.databases.synchronous_clusters }} of
-{{ s.databases.clusters }} clusters report a synchronous standby right now. That count
-includes the PostgreSQL 16 copies kept for rollback. The long version is in
+asynchronous by design and still are, so a small RPO above zero is the stated cost there. On
+2026-10-27, 8 of 13 clusters reported a synchronous standby; that count
+included the PostgreSQL 16 copies kept for rollback, and is previous-platform history. The long version is in
 [reliability](reliability.md#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee).
 
 On the restore time: in September I found that the repeatable drill behind the 2 July number
@@ -254,12 +285,12 @@ concluded success; I did not read which database each one restored, and the run 
 the whole job, not the restore. The drill is described in
 [reliability](reliability.md#restore-is-drilled-not-assumed).
 
-And on service levels, the honest version: **there is exactly one enforced SLO, and it is not
+And on service levels, the previous platform's honest version (2026-10-09): **there was exactly one enforced SLO, and it was not
 user-facing.** It is the fault injector's recovery budget: if an injected fault has not
 self-healed within 300 seconds, the system escalates loudly instead of quietly re-pausing.
 Availability and latency objectives with error-budget burn-rate alerting for the user-facing
-apps **do not exist yet**. The design is written down, the work is not done, and it is on the
-register as an open gap rather than implied by the presence of dashboards.
+apps **did not exist**. The design was written down and the work was not done; that is still true
+on 2026-11-11, and the gap register it sat on was retired with the old platform.
 
 ---
 
@@ -287,6 +318,5 @@ and get written up the least.
 
 <sub>Written for publication. Machines, addresses, hostnames and credential locations are
 absent by construction and enforced by a guard that fails its check on any push or pull
-request. As of {{ asof }} the guard's last run was
-"{{ s.site.guard_last_run }}"; it is a separate workflow from the Pages deploy, so it
+request. I did not read its last result on 2026-11-11. It is a separate workflow from the Pages deploy, so it
 reports a leak rather than preventing the publish.</sub>

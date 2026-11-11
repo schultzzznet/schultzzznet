@@ -1,12 +1,12 @@
 ---
-title: Printing — parts as code, previewed by a pod and on the workstation
-reread: 2026-10-27
+title: Printing — parts as code, previewed on the workstation
+reread: 2026-11-11
 body_read: 2026-10-09
 summary:
   - "**What it is:** the mechanical layer of the estate. Every part is source (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters; the mesh, G-code and previews are build output, rebuilt from it."
   - "**The idea:** buy the interfaces and print everything between them. Motors, boards and batteries come off a shelf; the brackets, decks and docks are a parameter change and a few hours away."
-  - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page."
-  - "**The parts list is current:** regenerated on 2026-10-27, 29 parts in 14 models, including the servo mount for the camera with its calibration flags, a sign, and the camera tilt parts. The tilt mount has not been printed yet."
+  - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page. The gallery pod that also rendered previews ran on the previous platform and is gone (2026-11-10)."
+  - "**The parts list is dated:** regenerated 2026-10-27, 29 parts in 14 models. Newer frame, plate and marker-holder work in the printing repository is not yet listed (2026-11-11)."
 ---
 
 # Parts as code: from a parameter to a spinning preview
@@ -15,7 +15,7 @@ summary:
 
 ![OpenSCAD](https://img.shields.io/badge/OpenSCAD-code%20CAD-F9D72C)
 ![Prusa](https://img.shields.io/badge/printer-CORE%20One%2B-FA6831)
-![k3s](https://img.shields.io/badge/internal%20gallery%20on-k3s-FFC61C?logo=k3s&logoColor=black)
+![k3s](https://img.shields.io/badge/gallery%20pod-previous%20platform-lightgrey)
 
 The mechanical layer of the estate. Every part is **source**: an OpenSCAD file or a
 standard-library Python generator, with its bolt patterns and clearances as named
@@ -24,8 +24,10 @@ source. The G-code is never committed. The rover's meshes and previews are, sinc
 2026-10-07, so they are available offline, and the previews on this page are copies
 committed to this public site repository. The source repository, {{ site.data.stats.hardware.printing_commits }} commits as of
 {{ site.data.stats.generated_at | slice: 0, 10 }}, is private. This page is published from it by one command that
-renders the previews on the workstation, not on the cluster. Only the internal gallery
-renders on the cluster, in a pod.
+renders the previews on the workstation, not on a cluster. Until 2026-11-10 an internal gallery
+also rendered them in a pod on the previous platform; **no gallery pod runs on the new cluster**
+(checked 2026-11-11), and none is planned in the platform repository (checked 2026-11-11).
+Rendering on the workstation is the path now.
 
 The design idea is the one in the first decision record: **buy the interfaces, print
 everything between them**. Motors, boards and batteries come off a shelf; the brackets,
@@ -34,29 +36,34 @@ mechanics into the same fast-iteration loop as the software.
 
 ## The chain
 
+*Previous platform (retired 2026-11-10), as last read 2026-10-27: the gallery pod, the print-job
+CronJob and the ingress in the diagram below and the first two bullets after it. The workstation
+path in the diagram is the one in use now (2026-11-11). Everything about the pod is kept as dated
+history; the lessons below are why.*
+
 ```mermaid
 flowchart LR
-  SRC[".scad / .py<br/>private repo"] -->|"clone · read-only key"| POD["gallery pod<br/>OpenSCAD · ffmpeg"]
+  SRC[".scad / .py<br/>private repo"] -->|"clone · read-only key"| POD["gallery pod<br/>previous platform, gone 2026-11-10"]
   POD --> STL[".stl"]
   STL --> GIF["turntable .gif<br/>36 frames"]
-  GIF --> WEB["internal gallery"]
+  GIF --> WEB["internal gallery<br/>previous platform"]
   STL -->|PrusaSlicer| GC[".gcode"]
   GC -->|PrusaLink| PR["printer"]
   SRC -->|"make publish · renders locally"| WS["workstation render"]
   WS --> PAGES["this page"]
 ```
 
-- **One toolchain image**: OpenSCAD, PrusaSlicer, ffmpeg and a virtual X server. Its tag
+- **One toolchain image** (previous platform): OpenSCAD, PrusaSlicer, ffmpeg and a virtual X server. Its tag
   is the content hash of its own Containerfile, so the tag changes exactly when the
-  toolchain does. The parts are *not* baked in; the pod clones the repository at run time,
+  toolchain does. The parts were *not* baked in; the pod cloned the repository at run time,
   so a push changes what gets rendered without a rebuild.
-- **The gallery** is a Deployment that re-clones the repository every fifteen minutes,
-  re-renders every part only when the commit has changed, and serves the result behind the
-  cluster's ingress. That is the design; lesson 7 says what it does today. The **print job**
-  is a CronJob running the same chain through slicing and upload. It is suspended, and was
-  when I checked on 2026-10-09.
-- Both run as non-root on a **read-only root filesystem**, with every capability dropped.
-- **Everything is a make target.** `make deploy` gates on the unit tests, the real renderer
+- **The gallery (previous platform)** was a Deployment that re-cloned the repository every fifteen minutes,
+  re-rendered every part only when the commit had changed, and served the result behind the
+  cluster's ingress. That was the design; lesson 7 says what it did in practice. The **print job**
+  was a CronJob running the same chain through slicing and upload. It was suspended when I
+  checked on 2026-10-09, and it is gone with the cluster.
+- Both ran as non-root on a **read-only root filesystem**, with every capability dropped.
+- **Everything is a make target.** `make deploy` (previous platform) gates on the unit tests, the real renderer
   in the real image under the pod's limits, the access test and strict server-side
   validation, then applies. `make smoke` fetches the gallery through the ingress and
   compares its part count with the parts on disk, because "the API server accepted the
@@ -125,7 +132,7 @@ the loop deletes its working directory while standing in it. The container test 
 single pass, so it could not see a second one. The fix needs a test that runs two
 iterations first.
 
-*Re-read 2026-10-27: unchanged, and now demonstrated twice.* The pod was redeployed on about 20
+*Re-read 2026-10-27: unchanged, and demonstrated twice. The pod is gone since 2026-11-10, so the bug is no longer running anywhere, but it was never fixed.* The pod was redeployed on about 20
 October, rendered once at start (it now serves a newer revision), and has failed every poll since
 with the same error. The bug is a property of the loop, not of that pod, and it is still unfixed.
 
@@ -138,7 +145,7 @@ test's expected count wrong: it counts every `.stl` under `models`, which is 28 
 ## The parts
 
 Every part in the repository, rendered from the committed source. The list below was generated on
-2026-10-27 from `aa1c78e`: 29 parts in 14 models. A model that exists only on the workstation, such as a
+2026-10-27 from `aa1c78e`: 29 parts in 14 models. **Parts list regenerated 2026-10-27; newer frame, plate and marker-holder work in the printing repository is not yet listed (2026-11-11).** A model that exists only on the workstation, such as a
 third-party download, is never published; the generator now skips anything git does not track. The camera
 tilt mount is modelled but not yet printed, and its horn and shaft dimensions are assumed. The drone frame and its
 floats are **finished work, not roadmap**: a later decision narrowed the scope to ground

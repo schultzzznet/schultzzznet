@@ -14,7 +14,7 @@
 <text x="700.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">4</text>
 <line x1="800.0" y1="94" x2="800.0" y2="324.0" stroke="#eceff3" stroke-width="1"/>
 <text x="800.0" y="88" text-anchor="middle" font-size="10" fill="#9ca3af">5</text>
-<text x="30" y="127.0" font-size="15" font-weight="700" fill="#1f2937">the-docker-swarm-ai</text>
+<text x="30" y="127.0" font-size="15" font-weight="700" fill="#1f2937">Previous platform (retired 2026-11-10)</text>
 <text x="30" y="143.0" font-size="10" fill="#9ca3af">15 vectors · top: AI-Ops &amp; Autonomy</text>
 <rect x="300" y="117.0" width="500" height="22" rx="4" fill="#eef2f7"/>
 <rect x="300" y="117.0" width="346.7" height="22" rx="4" fill="#84cc16"/>
@@ -26,13 +26,13 @@
 <rect x="300" y="173.0" width="288.2" height="22" rx="4" fill="#84cc16"/>
 <line x1="717.6" y1="169.0" x2="717.6" y2="199.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
 <text x="814" y="188.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#84cc16">2.88</tspan>/5 · 69%</text>
-<text x="30" y="239.0" font-size="15" font-weight="700" fill="#1f2937">theSchultzYocto (DRAFT)</text>
+<text x="30" y="239.0" font-size="15" font-weight="700" fill="#1f2937">an embedded Linux image (draft)</text>
 <text x="30" y="255.0" font-size="10" fill="#9ca3af">10 vectors · top: Signing &amp; Boot</text>
 <rect x="300" y="229.0" width="500" height="22" rx="4" fill="#eef2f7"/>
 <rect x="300" y="229.0" width="256.2" height="22" rx="4" fill="#84cc16"/>
 <line x1="739.6" y1="225.0" x2="739.6" y2="255.0" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 3"/>
 <text x="814" y="244.0" font-size="13" fill="#374151"><tspan font-weight="700" fill="#84cc16">2.56</tspan>/5 · 58%</text>
-<text x="30" y="295.0" font-size="15" font-weight="700" fill="#1f2937">theMowerRetrofit (DRAFT)</text>
+<text x="30" y="295.0" font-size="15" font-weight="700" fill="#1f2937">a robotics safety system (draft)</text>
 <text x="30" y="311.0" font-size="10" fill="#9ca3af">10 vectors · top: Safety &amp; E-stop</text>
 <rect x="300" y="285.0" width="500" height="22" rx="4" fill="#eef2f7"/>
 <rect x="300" y="285.0" width="195.7" height="22" rx="4" fill="#f59e0b"/>

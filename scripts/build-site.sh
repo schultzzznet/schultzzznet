@@ -8,6 +8,12 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 out="$root/_site"
+# Jekyll prints nothing, and no error, for a Liquid key that does not exist ("has  nodes"). Refuse before building.
+python3 "$root/scripts/check-stats-refs.py" --docs "$root/docs" --readme "$root/README.md" ||
+  { echo "FAIL: a page references a stats figure that stats.yml does not have"; exit 1; }
+python3 "$root/scripts/check-stats-refs.py" --values --stats "$root/docs/_data/stats.yml" ||
+  { echo "FAIL: stats.yml holds a value of an unaccepted kind"; exit 1; }
+
 # Pin to whatever GitHub runs today, so a local pass means the same thing there.
 version="$(curl -fsS https://pages.github.com/versions.json |
   python3 -c 'import json,sys; print(json.load(sys.stdin)["github-pages"])')"
@@ -37,6 +43,12 @@ for md in "$root"/docs/*.md; do
   if [ ! -s "$html" ]; then echo "FAIL: $name.md produced no $name.html"; fail=1; continue; fi
   grep -q 'class="site-nav"' "$html" || { echo "FAIL: $name.html has no site nav"; fail=1; }
   current="$(grep -c 'aria-current="page"' "$html" || true)"
+  # Liquid that survived into the output, or an error Jekyll wrote into the page, means a tag did not run.
+  if grep -qE '\{\{|\{%|Liquid (error|Exception)' "$html"; then
+    echo "FAIL: $name.html still contains Liquid source or a Liquid error:"
+    grep -nE '\{\{|\{%|Liquid (error|Exception)' "$html" | head -3 | sed 's/^/      /'
+    fail=1
+  fi
   [ "$current" = 1 ] || { echo "FAIL: $name.html marks $current nav entries as current (want 1)"; fail=1; }
 done
 grep -q '\.site-nav' "$out/assets/css/style.css" || { echo "FAIL: nav styles missing from the compiled CSS"; fail=1; }

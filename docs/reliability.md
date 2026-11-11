@@ -1,56 +1,170 @@
 ---
 title: High availability — what has it, what does not, and how we know
-reread: 2026-10-27
-body_read: 2026-10-09
+reread: 2026-11-11
+body_read: 2026-11-11
 summary:
-  - "**What it is:** an audit of which failure domains survive losing one machine, which do not, and which are deliberately not replicated. The inventory table below is read off the live cluster and gives the current count; the rows for the public edge, the switch and the ops agent are not cluster-measured and say so."
-  - "**The three best stories:** a patching loop that never rebooted anything for weeks; a database replica that was Running, Ready and fourteen days out of the stream; and an alert that was correct, deployed, and structurally unable to fire."
-  - "**New since 18 October:** the whole estate was shut down on purpose for four days (14 to 18 October, while I was away) and its first cold start exposed catch-up jobs that failed and went unnoticed. The uptime badges counted the planned shutdown as downtime. And the fault-injection schedules have not fired since 13 October, because their own safety gate keeps pausing them."
-  - "**Open, stated plainly:** the registry, the public edge and monitoring depth are single points; the physical layer is an accepted risk; secrets are not yet rotated."
+  - "**Where it stands, 2026-11-11:** the platform was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day. Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
+  - "**No current count:** the old page scored 7 of 13 failure domains. That count belonged to the retired platform. No new score is derived until the tests have been run. The app pods restarted 10 times each during bring-up; the cause was not checked."
+  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring is merged and being applied, not Ready."
+  - "**Tried so far:** one restore drill (pass, 2026-11-10) and one default-deny probe (fail: a new pod is open for 1 to 3 seconds). Not tried: node loss, power cut, loss of one server, failover of the floating address."
+  - "**Kept as record:** the old platform's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
-
-{% assign s = site.data.stats %}
-{% assign asof = s.generated_at | date: "%Y-%m-%d" %}
-{%- capture inventory -%}
-Control plane|ha|3-member embedded quorum with all three members on the fastest disks in the fleet, and a floating API address; the address-holding service runs on all three members and the address fails over between them (shipped 2026-08-16, below)~
-Relational data|ha|{{ s.databases.clusters }} clusters under an operator, every one archiving its write-ahead log continuously ({{ s.databases.archiving_clusters }} of {{ s.databases.clusters }}). The four application and identity clusters commit with <strong>quorum-synchronous</strong> replication again since 2026-10-09 (<a href="#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee">they had been asynchronous for 23 days</a>). The two-instance clusters are asynchronous by design~
-Block storage|ha|Every block is stored {{ s.storage.replica_size }} times over {{ s.storage.osds }} disk daemons, one per host, read back from the live cluster~
-Stateless applications|ha|2 replicas each, <strong>hard</strong> topology spread, and a disruption budget on all but one (the missing one is tracked)~
-Identity|ha|2 replicas (read 2026-10-21) with database-backed cluster discovery. The cross-pod login exchange that proves it was last run 2026-07-03, not today~
-Ingress|ha|2 of 2 replicas ready~
-Cluster DNS|ha|2 of 2 replicas ready, with a disruption budget~
-Object store|partial|One pod. Its volume sits on replicated block storage, so the data survives a node and the service does not~
-Monitoring|partial|Alert routing has 2 replicas. The metrics store, the dashboards and the log store are one replica each~
-Image registry|single|One pod on one read-write-once volume; see below~
-Public edge|single|One small machine (not cluster-measured). Automatic failover needs a DNS or tunnel-level answer that does not exist yet~
-Physical layer|single|One switch, one power feed (not cluster-measured). An explicit <em>accept</em>, written down as such~
-Operations agent|single|One instance (not cluster-measured). Losing it degrades autonomy, not availability{%- endcapture -%}
-{%- assign inv_rows = inventory | split: "~" -%}
-{%- assign n_ha = 0 -%}{%- assign n_partial = 0 -%}{%- assign n_single = 0 -%}
-{%- for r in inv_rows -%}
-{%- assign f = r | split: "|" -%}
-{%- assign st = f[1] | strip -%}
-{%- if st == "ha" -%}{%- assign n_ha = n_ha | plus: 1 -%}{%- elsif st == "partial" -%}{%- assign n_partial = n_partial | plus: 1 -%}{%- else -%}{%- assign n_single = n_single | plus: 1 -%}{%- endif -%}
-{%- endfor -%}
-{%- assign n_all = inv_rows | size -%}
 
 # Single-fault tolerance, measured rather than assumed
 
 {% include in-short.html %}
 
-![domains](https://img.shields.io/badge/failure%20domains-{{ n_ha }}%20of%20{{ n_all }}%20genuinely%20HA-326CE5?logo=kubernetes&logoColor=white)
-![nodes](https://img.shields.io/badge/nodes%20Ready-{{ s.cluster.nodes_ready }}%20of%20{{ s.cluster.nodes }}-2EA44F)
-![gaps](https://img.shields.io/badge/gap%20register-{{ s.repo.gaps_open }}%20open-orange)
-
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
 true. This page is the audit: which failure domains survive losing one machine, which do not,
-which are *deliberately* not replicated, and what happened when the untested assumptions were
-exercised in anger. Every status below was read off the live cluster with a query where a cluster can answer, not off an
-architecture diagram; the rows for the public edge, the switch and power, and the operations agent are not
-cluster-measured and say so. The score today is **{{ n_ha }} of {{ n_all }}**, the badge figures are
-rendered from the [measured snapshot](status.md) of {{ asof }}, and
-the replica counts and spread rules in the table were read back from the cluster on 2026-10-09. Anything below with a date on it is
-history, not a reading.
+and what happened when the assumptions were exercised. It has two parts. The first is the
+**new platform, read on 2026-11-11**. The second is the **previous platform, until 2026-11-10**,
+kept whole because what it taught still applies and because deleting history is how a page
+stops being honest.
+
+Status words used in the first part: **proven** (seen working on a live run, with a date),
+**built** (in place, nothing has been switched off to see),
+**planned**, **open**. Defined once on [how we work](how-we-work.html).
+
+---
+
+## The new platform, 2026-11-11
+
+The old platform was torn down on 2026-11-10 and replaced by a new cluster of six machines:
+three control-plane servers and three laptop agents. The nodes were 13 to 14 hours old when read on that day on 2026-11-11. That
+is too young to say anything about uptime and this page does not. Every row below is a reading of
+one moment, taken from the live cluster (read-only) and from the register of single points of
+failure that the new platform keeps.
+
+**There is no count of tolerant domains here, on purpose.** The old page scored itself 7 of 13
+on 2026-09-09. A new score needs the failure tests to have been run, and none has been.
+Counting configuration as tolerance is the mistake the old platform spent months correcting.
+
+| Domain | State on 2026-11-11 | Status |
+|---|---|---|
+| Control plane | Three servers with embedded quorum storage, none tainted (they also run workloads), and a floating API address held by a small pod on each server. No power-off and no loss-of-one-server test has been run. The register's 22 rows all read `proof: none`, so no power-off proof exists. One of the three floating-address pods restarted twice during bring-up (cause not checked). | Built |
+| Relational data | One database cluster of three instances on three different machines (a hard anti-affinity rule), a two-pod connection pooler, 5 GiB of local disk each. The cluster spec read live on 2026-11-11 says durability required, synchronous method any, number 1 (quorum-synchronous: one standby of two must confirm), with required pod anti-affinity. No replication state (`pg_stat_replication`) was read and no failover was observed. A switchover on update is by configuration, not yet observed. | Proven for placement (2026-11-11); commit mode built |
+| Block storage | Not replicated. Volumes are node-local, so the database survives the loss of a machine only through its three instances. This is a reviewed trade, and it strains the objective to recover quickly; it is not a pass. | Open (accepted trade) |
+| Stateless apps | The warning app runs 2 replicas, may scale from 2 to 4, and has a disruption budget. The live deployment carries a hard spread rule (skew 1 per machine, do not schedule otherwise), read 2026-11-11. Both pods restarted 10 times each during bring-up, the last about 11 hours before the read and none since; cause not checked. | Built |
+| Identity | One Keycloak replica in development mode on an in-memory database: a restart loses its state (from the probe record, not a live read). | Open |
+| Ingress | Two replicas of the ingress controller, plain HTTP, reachable on the home network only. There is no public name. | Built |
+| Cluster DNS | Two replicas read on 2026-11-11, scalable from 2 to 4. Placement across machines was not checked beyond that read. The register carries this row as open (cluster DNS). | Built |
+| Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as accepted (backup store), not open. | Open (accepted by the owner) |
+| Monitoring | None running. The metrics, alert and log stack was merged on 2026-11-11 and Flux is applying it, but it is not Ready: its first live run failed on a missing-namespace defect in the node exporter manifests, and a one-line fix is in review. It has never run. Alerts reach no person. In the register as accepted (monitoring). | Open |
+| Image registry | External (the code host's). A node without an image cached cannot start the pod if the registry is unreachable. | Open (accepted by the owner, 2026-11-08) |
+| Public edge | None on this platform. The single public entrance is an accepted decision (2026-11-08), not a built thing. | Open (accepted by the owner, 2026-11-08) |
+| Physical layer | One switch, one router, one provider line, one mains supply. | Open (accepted by the owner, 2026-11-08) |
+| Operations agent | Not wired to the new platform. | Open |
+
+### The register of single points
+
+The new platform keeps a machine-checked list of every single point of failure it knows of, each
+with a decision: fixed, accepted by the owner with a date and an end condition, or open. Read on
+2026-11-11 it held 22 rows: **13 accepted, 0 fixed and 9 open**. None is fixed because "fixed" requires a
+record that powered the first one off and saw the app go on, and every row reads `proof: none`.
+
+- **Open (9):** cluster DNS, ingress, admission, the warning app's pods, its database, the database
+  operator, the backup plugin, its login, its scaling.
+- **Accepted (13), all dated 2026-11-08 where they are on the shared path:** the single public entrance and
+  the entry node, one mains supply, one internet line, the core switch, the home router, the external image
+  registry, and, as supporting points, monitoring, the backup store, the signing key, the owner and
+  two rehearsal stores.
+- **End conditions differ.** The shared-path points are accepted until the first launch gate is passed
+  for a business app. Monitoring ends when a critical alert is missed because of it or the first business
+  app launches. The registry ends when a mirror serves the cluster. The two rehearsal stores never end.
+- **Only the owner accepts**, and only on the shared path and for supporting points. A point on a
+  business app's own function path is never accepted: it is fixed, or open.
+
+### Restore on the new platform
+
+**Drill of 2026-11-10: pass.** A scratch cluster was built from the object store alone, with no
+help from the live cluster. A marker row written beforehand came back, with all six tables, in
+about 60 seconds on a few megabytes of data.
+
+What it does **not** prove: restore time at a realistic size, restore from a scheduled backup
+(the drill used an on-demand one), point-in-time restore, restore after losing the live cluster
+itself, that an app works against the restored database (none was pointed at it), or that the backups keep arriving on schedule.
+
+It hit three walls, each an honest finding:
+
+- **The quota refused the recovery pod.** The namespace's memory quota was nearly used up, so the
+  second set of pods did not fit.
+- **Default-deny blocked the recovery job** from the API server and from the store, because the
+  allow rules selected only the live cluster's label and the recovery pod carries another.
+- **Flux reverted every hand patch of the quota within minutes.** Only a change in git held.
+  That is the reconciler working as intended, and it also means the drill cannot be fixed at the
+  console.
+
+The first backup had also **failed**: the store had been given as a LAN-only name that resolves by
+broadcast (mDNS), and cluster DNS does not do mDNS, so the backup agent could not connect. Giving the
+store by address fixed it. The bootstrap now refuses such an endpoint,
+and its self-test proves that the refusal can itself fail, so it is not a check that always
+says yes.
+
+No weekly restore job exists on the new platform. The weekly drill described further down
+belongs to the previous platform.
+
+### Default-deny held, except for the first one to three seconds
+
+*2026-11-10. Result: **fail**.*
+
+Network policy on the new cluster denies by default. Probed on the live site about 30 seconds
+after a pod started, everything was blocked as intended: a pod in a test namespace could not
+reach the app's database or pooler, could not use any port but two on the internet, and could
+not reach the store or the router. The control (a pod carrying the app's labels reaching the
+pooler) worked.
+
+But a probe started the moment a pod ran got through. In three timed runs, 1, 2 and 2 probes
+were open before the first block, 0.5 to 1.5 seconds apart. So a new pod is **not** under
+default-deny for the first one to three seconds. A workload that connects at once, such as a
+compromised image calling home on start, can use that. Fix candidates exist (a different network
+engine, or an init-time wait); **none has been tried**. Ingress from outside the cluster and
+DNS egress limits were not tested either.
+
+### What has not been tried
+
+- Losing a node (power switched off, not a drain).
+- A power cut of the whole site and the cold start after it.
+- Losing one control-plane server.
+- Failover of the floating API address.
+- Restoring a scheduled backup, as opposed to an on-demand one.
+- A point-in-time restore.
+
+Fault injection and the reboot loop of the previous platform are not part of the new platform's records (not checked on the live cluster). The
+principle from the old drain incident is applied again: kubeconfig is meant to point at the floating
+address, never at one machine's name (not checked here). One related fix is dated: the host layer's first check
+expected an HTTP 200 from the API server where it answers 401, and was corrected on 2026-11-10 (merge date not checked).
+
+### What is still open, 2026-11-11
+
+The register's 9 open rows: cluster DNS, ingress, admission, the warning app's pods, its database, the
+database operator, the backup plugin, its login and its scaling.
+
+Visible and accepted by the owner (register, 2026-11-08), so not open but not fixed: no live
+monitoring and no alerts to a person, the single public entrance, one backup store machine with
+no off-site copy, the single switch, router, line and mains supply.
+
+Findings that are **not register rows**:
+
+- No replicated block storage (a reviewed trade).
+- A one to three second gap at the start of every pod before default-deny applies.
+- Keycloak in development mode on an in-memory database.
+- No power-off proof for any domain.
+
+A reliability page that only lists wins is marketing. This list is the one the next tests are
+for.
+
+---
+
+## The previous platform, until 2026-11-10
+
+*Torn down on 2026-11-10 and kept as the record of what was learned. Everything below this line
+describes the old platform, as it was on the dates given, and none of it exists now. Figures are
+hand-typed from the last readings, not regenerated.*
+
+The old platform scored itself **7 of 13** failure domains genuinely tolerant on 2026-09-09. Its
+block storage kept three copies over four disk daemons. The restore drills of its eight
+databases were waived at the wipe: three of the eight had been restored from the NAS copy on
+2026-11-08 (134 s, 179 s and 968 s for 1.8 GB), five had not.
 
 > **Retraction, 2026-10-09.** This page said four of thirteen failure domains were tolerant,
 > and in one place nine gaps open against fifty-one in two others. Both were wrong. The
@@ -59,34 +173,40 @@ history, not a reading.
 > synchronously, which was untrue from 2026-09-16 to 2026-10-09 ([below](#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)).
 > An audit page that is itself unaudited is the failure it describes.
 
----
+### The old inventory (cluster replica counts read 2026-10-21)
 
-## The inventory
-
-Thirteen failure domains. **{{ n_ha }} are genuinely single-fault tolerant, {{ n_partial }} are partly so, and
-{{ n_single }} are not, all of them tracked in the open.** A domain is only marked tolerant once the
-running replica count and the placement rules have been read back from the live API, never
-from the manifest that was supposed to produce them. The exceptions are the rows marked as not cluster-measured.
+Thirteen failure domains. A domain was only marked tolerant once the running replica count and
+the placement rules had been read back from the live API, never from the manifest. The rows for
+the public edge, the switch and power, and the operations agent were not cluster-measured.
 
 <table>
   <thead>
-    <tr><th>Domain</th><th>Verdict</th><th>Shape (cluster replica counts read 2026-10-21)</th></tr>
+    <tr><th>Domain</th><th>Verdict</th><th>Shape</th></tr>
   </thead>
   <tbody>
-{%- for r in inv_rows %}
-{%- assign f = r | split: "|" %}
-{%- assign st = f[1] | strip %}
-    <tr><td>{{ f[0] | strip }}</td><td>{% case st %}{% when "ha" %}<strong>Tolerant</strong>{% when "partial" %}Partly{% else %}Single{% endcase %}</td><td>{{ f[2] | strip }}</td></tr>
-{%- endfor %}
+    <tr><td>Control plane</td><td><strong>Tolerant</strong></td><td>3-member embedded quorum on the fastest disks in the fleet, and a floating API address; the address-holding service ran on all three members and the address failed over between them (shipped 2026-08-16, below)</td></tr>
+    <tr><td>Relational data</td><td><strong>Tolerant</strong></td><td>Every cluster archived its write-ahead log continuously. The four application and identity clusters committed with <strong>quorum-synchronous</strong> replication again from 2026-10-09 (<a href="#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee">they had been asynchronous for 23 days</a>). The two-instance clusters were asynchronous by design</td></tr>
+    <tr><td>Block storage</td><td><strong>Tolerant</strong></td><td>Every block stored three times over four disk daemons, read back from the live cluster</td></tr>
+    <tr><td>Stateless applications</td><td><strong>Tolerant</strong></td><td>2 replicas each, <strong>hard</strong> topology spread, and a disruption budget on all but one</td></tr>
+    <tr><td>Identity</td><td><strong>Tolerant</strong></td><td>2 replicas (read 2026-10-21) with database-backed cluster discovery. The cross-pod login exchange that proved it was last run 2026-07-03</td></tr>
+    <tr><td>Ingress</td><td><strong>Tolerant</strong></td><td>2 of 2 replicas ready</td></tr>
+    <tr><td>Cluster DNS</td><td><strong>Tolerant</strong></td><td>2 of 2 replicas ready, with a disruption budget</td></tr>
+    <tr><td>Object store</td><td>Partly</td><td>One pod. Its volume sat on replicated block storage, so the data survived a node and the service did not</td></tr>
+    <tr><td>Monitoring</td><td>Partly</td><td>Alert routing had 2 replicas. The metrics store, the dashboards and the log store were one replica each</td></tr>
+    <tr><td>Image registry</td><td>Single</td><td>One pod on one read-write-once volume; see below</td></tr>
+    <tr><td>Public edge</td><td>Single</td><td>One small machine (not cluster-measured)</td></tr>
+    <tr><td>Physical layer</td><td>Single</td><td>One switch, one power feed (not cluster-measured). An explicit accept</td></tr>
+    <tr><td>Operations agent</td><td>Single</td><td>One instance (not cluster-measured). Losing it degrades autonomy, not availability</td></tr>
   </tbody>
 </table>
 
-The physical layer is an accepted gap, not an oversight. One switch and one power feed are
-genuinely hard problems at {{ s.cluster.nodes }} machines in a house, and pretending otherwise would be the worst
-kind of documentation. The honest score is {{ n_ha }} of {{ n_all }}, and it is the number that makes the rest
-fixable.
+The physical layer was an accepted gap, not an oversight, and it still is: the new platform has
+the same one switch and one power feed.
 
-### Two things that are deliberately **not** replicated
+
+---
+
+### Two things that were deliberately **not** replicated (previous platform)
 
 Replication is not automatically an improvement, and a register that treats "1 replica" as a
 defect everywhere teaches you nothing.
@@ -102,11 +222,10 @@ of the backup are different properties, and only one of them is wanted here.
 scoring them as gaps. Being honest about what does not need to be redundant is what makes the
 rest of the register credible.
 
----
 
 ## The replication that would have been theatre
 
-The image registry is the last stateful single point in the delivery path, and it cannot be
+*(Previous platform, 2026-09.)* The image registry was the last stateful single point in the delivery path, and it cannot be
 replicated as built: one pod, one read-write-once volume.
 
 The obvious fix, two registry replicas over shared object storage, was rejected after being
@@ -143,6 +262,8 @@ storage side.
 
 ## Scheduling by fact, not by hope
 
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
+
 Machines spanning a decade of hardware generations (chosen as a handicap, on purpose: if it runs here, it runs anywhere) do not schedule safely under a single
 "a node is a node" model, so nodes carry labels for disk speed and CPU class, and workloads
 are steered toward suitable nodes with a *soft* preference, never a hard requirement: the ideal
@@ -151,7 +272,7 @@ node being full or cordoned should degrade placement, not block it.
 > **Correction, 2026-10-09.** This page used to say those labels were *measured*, along with
 > thermal headroom. They were assigned by eye at inventory time and have never been checked
 > against a benchmark; that check is an open gap. The labels for disk speed and CPU class are
-> on all {{ s.cluster.nodes }} nodes. A thermal label is on one.
+> on all six nodes of that fleet. A thermal label was on one.
 
 One label is different in kind: a single node is labelled by **role** as the deliberate
 fault-injection target, so that chaos tooling can be pinned to it specifically.
@@ -171,13 +292,14 @@ of truth is a bug with a delay on it, not a redundancy.**
 
 ## Restore is drilled, not assumed
 
-A backup nobody has restored is a belief, not a control. So restoring one is a standing,
-non-destructive drill: any database can be restored from object storage into a scratch
-namespace, fingerprinted against the live one, and torn down again, on demand.
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
+
+A backup nobody has restored is a belief, not a control. So restoring one was a standing,
+non-destructive drill: any database could be restored from object storage into a scratch
+namespace, fingerprinted against the live one, and torn down again, on demand. No such weekly job exists on the new platform.
 
 **What was measured, and when.** Write-ahead log shipping is configured to bound the recovery
-point at five minutes, and archiving is healthy on {{ s.databases.archiving_clusters }} of {{ s.databases.clusters }} clusters
-as of {{ asof }}. A real timed restore came back in **about two minutes** on 2026-07-02, on the
+point at five minutes, and archiving is healthy on every cluster in the last snapshot taken before the teardown (2026-10-27). It also ran as a weekly drill. No weekly restore job exists on the new platform. A real timed restore came back in **about two minutes** on 2026-07-02, on the
 previous major version and before the September rebuild. It has not been re-timed since, and
 the drill itself was found reading a path the cluster no longer writes to, and fixed on
 2026-09-29, which is how a drill rots when nobody runs it. Until it is re-timed, the two
@@ -208,6 +330,8 @@ proxies are deliberately not backed up, because they re-download.
 
 ## The cluster must not need itself to start
 
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
+
 The home network's DNS resolver moved **onto** the cluster. Two failure modes came with it, and
 one of them happened.
 
@@ -231,7 +355,7 @@ cluster. The rest of the house does; the cluster itself does not.
 
 ## The monitoring stack was the single point that mattered most
 
-*(History, 2026-08-14. The placement below has since been fixed.)*
+*(Previous platform. History, 2026-08-14. The placement below was fixed before the teardown. There is no monitoring on the new platform on 2026-11-11: the stack was merged on 2026-11-11 and Flux is applying it, but it is not Ready and has never run.)*
 
 Metrics, alerting, dashboards and logs all ran on one node, with their volumes pinned to that
 host's disk. When that node was cordoned for planned maintenance, **alerting went dark for
@@ -246,7 +370,7 @@ most.
 > observability. It is a report that stops arriving at the moment it becomes interesting.
 
 The mitigation was deliberately unglamorous: a retention cap so the metrics store cannot fill
-its own disk (today {{ s.observability.retention_days }} days or {{ s.observability.retention_size_gib }} GiB, whichever comes first), alert-router discovery instead of a
+its own disk (a cap by days and a cap by size, whichever came first), alert-router discovery instead of a
 hardcoded address, and a scheduled capacity check that **bypasses the metrics stack entirely**
 and posts into the alert router's own API. If the primary path is what broke, the check that
 finds it must not run through the primary path. The components have since been spread across
@@ -256,6 +380,8 @@ alert routing, which is why monitoring stays *partly* tolerant in the table.
 ---
 
 ## The drain that removed its own control surface
+
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
 
 This is the incident worth the whole page.
 
@@ -279,7 +405,7 @@ flowchart LR
 
 Four things came out of it, and only one is the obvious one:
 
-- **A floating control-plane address** is the permanent fix, and **it shipped on
+- **A floating control-plane address** was the permanent fix, and **it shipped on
   2026-08-16.** It had a prerequisite that bites hard if missed: the virtual address must be
   present in the API server's certificate *before* it is announced, or every client fails
   certificate validation and you have converted a partial outage into a total one. The
@@ -291,12 +417,14 @@ Four things came out of it, and only one is the obvious one:
 - **A non-destructive drain drill**, so the procedure is exercised on a schedule instead of
   being discovered during the emergency.
 
-There is a general shape here. **Redundancy in the data plane does not imply redundancy in the
+The same principle is applied again on the new platform: kubeconfig goes through the floating address, never one machine's name. It has not been tested by losing a server. There is a general shape here. **Redundancy in the data plane does not imply redundancy in the
 control plane, and the control plane is what you need during the failure.**
 
 ---
 
 ## The patching loop *is* the chaos experiment
+
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
 
 Automated OS patching usually gets filed under hygiene. On a cluster designed to survive
 losing any one machine, it is more valuable than that. The design claim is: lose one node and
@@ -339,20 +467,22 @@ applications block for seconds instead of receiving errors. Each database took b
 142 seconds. One of them was the identity provider, which every other service authenticates
 against, so it was also the one with the least room to be wrong.
 
-What that cost, stated plainly. The five old clusters are still running as the rollback path,
-idle, as of {{ asof }}. A "temporary" double footprint that is still there weeks later is a gap;
-a decommission runbook is drafted and blocked. Logical replication ran old to new only and was retired on 2026-09-28, so
+What that cost, stated plainly. The five old clusters were still running as the rollback path,
+idle, as of 2026-10-27. A "temporary" double footprint that was still there weeks later was a gap;
+a decommission runbook was drafted and blocked. They went with the platform at the wipe on 2026-11-10. Logical replication ran old to new only and was retired on 2026-09-28, so
 nothing flows back: by construction (not by a rollback test) the old copies are frozen at the
 cutover, and undoing the migration now is a data-loss decision, not a connection-string
-change. Retiring them is the real deadline.
+change. Retiring them was the real deadline.
 
-Dedicated fault injection still exists and is worth having, since it covers fault classes the
-reboot loop never produces. But the *most representative* single-fault test on this platform
-is the one that was already running.
+Dedicated fault injection existed on that platform and was worth having, since it covers fault classes the
+reboot loop never produces. But the *most representative* single-fault test on that platform
+was the one that was already running. Whether the new platform gets an equivalent patching loop is not claimed here; none is running on 2026-11-11.
 
 ---
 
 ## The upgrade that kept the uptime and lost the guarantee
+
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
 
 The cutover above kept the applications up. It also, silently, kept less than it replaced.
 
@@ -373,12 +503,14 @@ cluster is missing something its predecessor had, which is the check the cutover
 two-instance clusters (the fleet database and the security tools') are asynchronous *by
 design*, and are not part of this regression.
 
-The stats page carries both questions side by side, what the configuration asks for and what
+The stats page of that platform carried both questions side by side, what the configuration asks for and what
 each primary says now, so the next disagreement is a number rather than a discovery.
 
 ---
 
 ## …except it had never rebooted anything
+
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
 
 Which is the second half of the story, and the better half.
 
@@ -439,7 +571,7 @@ surfaced three real things, exactly the way an unannounced fault should:
   container erases the evidence needed to diagnose why. That refusal is written into its rules
   on purpose; an unattended agent doing *nothing* was the load-bearing behaviour.
 
-It is happening again as this is written. On 2026-10-09 the audit behind this rewrite found
+It was happening again on 2026-10-09, when the audit behind this rewrite found
 five of the six nodes flagged for reboot within about an hour and the daemon already working
 through them, and the nodes were then running three kernel builds: two on the 6.8 series,
 four on the 7.0 series in two builds. The wave was mid-flight at read-back, which is the loop
@@ -463,6 +595,8 @@ instance not ready.
 ---
 
 ## The alert that was correct, deployed, and could not fire
+
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
 
 One more in the same family, and the most instructive to read as code, because nothing about it
 looks wrong.
@@ -518,14 +652,14 @@ seconds**, and package power from 8.23 W to 3.35 W.
 > An alert description that lists the wrong causes will send you to do the expensive ones
 > first. The description is part of the control, not documentation attached to it.
 
-The runnable rule, with a second worked example applying the same shape to HTTP error rates,
+*On 2026-11-11 this rule is not loaded anywhere: the monitoring tenant is not Ready and has never run.* The runnable rule, with a second worked example applying the same shape to HTTP error rates,
 is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/duty-cycle-alert.yaml).
 
 ---
 
 ## The estate was shut down on purpose for four days
 
-*Added 2026-10-27. 14 to 18 October 2026.*
+*Previous platform. Added 2026-10-27. 14 to 18 October 2026.* The same pause path was used once more at the teardown on 2026-11-10.
 
 I took the whole estate down on purpose while I was away, and brought it back on the 18th. This
 was a planned shutdown, not an outage, and an earlier version of this page treated it as an
@@ -559,7 +693,7 @@ are that class exactly. A planned shutdown was the cheapest way to find them.
 
 ## Fault injection is paused by its own safety gate
 
-*Added 2026-10-27.*
+*Previous platform. Added 2026-10-27. Fault injection is not running on the new platform on 2026-11-11.*
 
 Two Chaos Mesh schedules (a pod kill and a 25 percent packet loss, hourly on weekdays in the
 daytime) run against a sandbox workload, behind a safety controller that pauses them whenever the
@@ -586,7 +720,9 @@ cluster is not in steady state. That controller is the part of this page worth c
 
 ## The gap register, and why closing things you will never do matters
 
-Gaps are tracked in one register, ordered by **risk × leverage** rather than by technology
+*Previous platform, until 2026-11-10; not running now. Read it as history.*
+
+Gaps were tracked in one register, ordered by **risk × leverage** rather than by technology
 area:
 
 | Tier | Meaning |
@@ -600,10 +736,10 @@ Each row carries what the gap is, why it matters and an effort estimate. Since 2
 closed row collapses to a single line and its full story, with how it was verified, moves to a
 frozen archive; nothing is deleted, because the reasoning is the valuable part.
 
-**The register holds {{ s.repo.gaps_open }} open items and {{ s.repo.gaps_closed }} closed ones as of {{ asof }}**, counted by
-the [stats script](status.md) from the register itself. That number is
+**The old repository's register held 87 open items and 44 closed ones on 2026-10-27**, hand-typed here, counted by
+the stats script of the time. The new platform's register of single points is above and counts differently. That number is
 published deliberately, and it is meant to be read as a *positive* figure rather than a
-confession. {{ s.repo.gaps_open }} known weaknesses in a system this size does not mean {{ s.repo.gaps_open }} things are broken;
+confession. 87 known weaknesses in a system this size did not mean 87 things were broken;
 it means they have been **found, written down, argued about and prioritised** instead of
 being discovered later by someone else, or never. A project with a short register has usually
 not looked. Its length is a measure of attention, not of decay.
@@ -629,7 +765,7 @@ real item look less urgent.
 > a different way, which is the only reason this paragraph exists rather than a quietly wrong
 > badge, **and it is the same failure this whole page is about: a plausible measurement,
 > produced by a method nobody checked.** This page has since done it again, with a hand-typed
-> nine, so the figure above is now generated.
+> nine, so the figure was generated until the teardown.
 
 **The register grew by eight on 25 August 2026, and that is the mechanism working.** Those
 eight came from writing down, for every tool in the stack, *which parts of it are deliberately
@@ -665,20 +801,7 @@ rather than by reading it:
   2026-10-25 every Secret in git became encrypted (SOPS and age). What remains open is
   rotating the old values and encryption at rest in the cluster, so this is half closed, not closed.
 
----
 
-## What is still open, stated plainly
-
-A reliability page that only lists wins is marketing. The {{ n_single }} single domains and {{ n_partial }}
-partial ones are in [the table](#the-inventory) and need no second list here. The ones that
-matter most: the registry is blocked behind the object service, the public edge needs an
-answer at the DNS or tunnel level, and monitoring is one replica deep apart from alert
-routing. The physical layer is accepted, in writing.
-
-{{ n_ha }} of {{ n_all }} is not a perfect score. It is an *honest* one, and the rest of this page
-is about why the previous scores were not.
-
----
 
 ## Read next
 
