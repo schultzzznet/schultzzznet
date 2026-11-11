@@ -3,7 +3,7 @@ title: Alerting and monitoring — two models, one human
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**Previous platform (retired 2026-11-10):** this page describes the operations agent and alerting loop as measured up to 2026-10-30. No alert is known to reach a person today (open). The new cluster's monitoring was merged on 2026-11-11 and is being applied, but it is not Ready and has never run (open)."
+  - "**V1.0 (retired 2026-11-10):** this page describes the operations agent and alerting loop as measured up to 2026-10-30. No alert is known to reach a person today (open). The new cluster's monitoring was merged on 2026-11-11 and its pods were Running at 07:00 UTC, but nothing from it has been read (open)."
   - "**What it is:** alerts go straight to chat; a small local model on a separate machine answers questions, writes a morning digest and *proposes* fixes; a large cloud model reads the local one's posts once a day and grades them. Nothing either says is executed: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
   - "**Where the people are:** a click on every action, a monthly graded sample of eight posts, and a guard that goes red after 35 days without one. The cloud model's grades are drafts and cannot satisfy that guard. The first graded sample cannot be produced without alerts to read (2026-11-11)."
   - "**What it may do alone:** two rules, both on-demand database backups, and only if auto-apply is switched on. It is not. Everything else is a proposal."
@@ -15,29 +15,29 @@ summary:
 
 {% include in-short.html %}
 
-> **Previous platform (retired 2026-11-10).** Everything on this page describes the operations agent
-> and its alerting loop **as built and measured on the previous platform, up to 2026-10-30.** The
-> loop depended on that cluster's alert rules, metrics and chat routing. The previous platform was
+> **V1.0 (retired 2026-11-10).** Everything on this page describes the operations agent
+> and its alerting loop **as built and measured on V1.0, up to 2026-10-30.** The
+> loop depended on that cluster's alert rules, metrics and chat routing. V1.0 was
 > retired on 2026-11-10 and none of those exist on the new one.
 >
 > - **No alert reaches a person from the new cluster** (open, 2026-11-11). Its monitoring (rules,
 >   configuration and 12 unit tests under the real rule tool) was merged into the platform
->   repository on 2026-11-11 with its secrets encrypted, and the reconciler is applying it. It is
->   not Ready: its first live run failed on a missing namespace in the node exporter manifests,
->   and a one-line fix is in review. It has never run.
-> - **The agent process and its local model** ran on the previous platform. They were retired with
+>   repository on 2026-11-11 with its secrets encrypted. Its first live run failed on a missing
+>   namespace in the node exporter manifests; the fix landed the same day, and at 07:00 UTC its
+>   pods were Running. It is built, not proven: nothing from it has been read.
+> - **The agent process and its local model** ran on V1.0. They were retired with
 >   it, or are unknown, as of 2026-11-11 (not checked). The new
 >   platform gives them no inputs: the objective for AI in production (eight rules: approval
 >   before change, a closed action list, facts written by code, blind sources reported as unknown,
 >   a monthly graded sample, and so on) has 0 of 8 built as of 2026-11-11.
 > - **No alert is known to reach a person from anywhere today.** A liveness check for the home CI
 >   runner was shown to raise and clear an alert on 2026-11-10 (about three minutes after the
->   controller was stopped), but it posted to the previous cluster's alert manager, which was torn
+>   controller was stopped), but it posted to V1.0's alert manager, which was torn
 >   down that day. Its target on the new platform is not set (open), and delivery to a phone was
 >   never seen.
 > - **Policy on the new platform:** no agent holds a standing cluster credential. The new
 >   objectives plan this; the rules for it are not built (2026-11-11).
-> - The numbers below are dated measurements (2026-10-26 to 2026-10-29) of the previous platform.
+> - The numbers below are dated measurements (2026-10-26 to 2026-10-29) of V1.0.
 >   They stay true as such and say nothing about the new one.
 
 {% assign skills = 6 %}{% assign rules = 5 %}{% assign restarts = 3 %}{% assign additive = 2 %}{% assign refused = 16 %}{% assign tests = 690 %}
@@ -65,7 +65,7 @@ written against the agent as it stood on 2026-10-09; the section
 
 ## The loop: two models, one human
 
-Alerting is not one thing, and the models are in only part of it. *Previous platform.* As read
+Alerting is not one thing, and the models are in only part of it. *V1.0.* As read
 from the deploy configuration and the host on 2026-10-30:
 
 ```mermaid
@@ -137,7 +137,7 @@ text; that is a choice I made on 2026-10-27, and it is the reason for the correc
 
 ## It runs outside the cluster, deliberately
 
-*Previous platform (retired 2026-11-10), as last read 2026-10-30.*
+*V1.0 (retired 2026-11-10), as last read 2026-10-30.*
 
 > A monitor that dies with the thing it monitors is not a monitor.
 
@@ -160,7 +160,7 @@ manifests.
 
 ## What it read
 
-*Previous platform, up to 2026-10-30. None of these inputs exist on the new cluster (2026-11-11).*
+*V1.0, up to 2026-10-30. None of these inputs exist on the new cluster (2026-11-11).*
 
 ```mermaid
 flowchart LR
@@ -214,7 +214,7 @@ however additive the request looks. An approval that nobody clicks expires after
 
 ### Alert path
 
-*Previous platform, as last read 2026-10-30.*
+*V1.0, as last read 2026-10-30.*
 
 A firing alert triggered a lookup, and the model was not in this loop at all. A small,
 hand-written table maps specific alerts to one of the same {{ skills }} skills. An alert is
@@ -326,7 +326,7 @@ action.
 
 ## The chaos safety controller, and fail-closed as a default
 
-*Previous platform, as last read 2026-10-30. None of this runs on the new cluster (2026-11-11).*
+*V1.0, as last read 2026-10-30. None of this runs on the new cluster (2026-11-11).*
 
 Scheduled fault injection ran against a staging target on the platform: call it the
 resident **provocateur**. Its entire job is manufacturing exactly the kind of trouble
@@ -350,7 +350,7 @@ not self-healed inside its recovery budget (five minutes by default) escalates l
 the correct framing: the alarming thing is not the fault, it is that **the automatic
 recovery loop is not recovering.**
 
-*Previous platform: the schedules and the fault-injection tooling were removed with the previous cluster on 2026-11-10. The design lesson below, fail-closed, is what stays.* There were two schedules, a pod kill and a packet-loss fault, each hourly on weekdays in the
+*V1.0: the schedules and the fault-injection tooling were removed with V1.0 on 2026-11-10. The design lesson below, fail-closed, is what stays.* There were two schedules, a pod kill and a packet-loss fault, each hourly on weekdays in the
 daytime, and the controller paused and re-armed each one as the steady-state check changed. As of
 2026-10-27 both were paused, and they last fired on 2026-10-13: the gate vetoes on any
 warning-level alert, and two have been firing since the previous morning. That is the controller
@@ -497,7 +497,7 @@ has never made. The loop's first review was due by 2026-11-26; as of 2026-11-11 
 
 ## Honest limits
 
-*Written for the previous platform, as last read 2026-10-30; the first two apply only if the agent is brought back. The last bullet describes the setup as it was: the approval channel is not checked on 2026-11-11.*
+*Written for V1.0, as last read 2026-10-30; the first two apply only if the agent is brought back. The last bullet describes the setup as it was: the approval channel is not checked on 2026-11-11.*
 
 - **It is one instance.** Losing it degrades autonomy, not availability, which is why it is
   ranked below the storage and registry gaps rather than above them.
@@ -517,7 +517,7 @@ has never made. The loop's first review was due by 2026-11-26; as of 2026-11-11 
 
 ## Read next
 
-The delivery pages linked here also describe the previous platform unless they say otherwise.
+The delivery pages linked here also describe V1.0 unless they say otherwise.
 
 - **[High availability, audited](reliability.md)**: the single-fault inventory and the drain
   that removed its own control surface.

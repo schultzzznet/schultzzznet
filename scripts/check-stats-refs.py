@@ -111,7 +111,7 @@ def value_problem(raw):
 
 
 # The monitoring tenant is not merged or live yet, so these figures cannot have been measured. Until it is, anything but the
-# exact string is a leftover from the previous platform. When monitoring goes live, empty this set in the same change.
+# exact string is a leftover from V1.0. When monitoring goes live, empty this set in the same change.
 UNMEASURED_UNTIL_MONITORING = {
     ("observability", k)
     for k in ("scrape_targets", "alert_rules", "recording_rules", "dashboards", "metric_history_days", "alerts_reaching_a_person")

@@ -5,7 +5,7 @@ body_read: 2026-10-09
 summary:
   - "**What it is:** the mechanical layer of the estate. Every part is source (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters; the mesh, G-code and previews are build output, rebuilt from it."
   - "**The idea:** buy the interfaces and print everything between them. Motors, boards and batteries come off a shelf; the brackets, decks and docks are a parameter change and a few hours away."
-  - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page. The gallery pod that also rendered previews ran on the previous platform and is gone (2026-11-10)."
+  - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page. The gallery pod that also rendered previews ran on V1.0 and is gone (2026-11-10)."
   - "**The parts list is dated:** regenerated 2026-10-27, 29 parts in 14 models. Newer frame, plate and marker-holder work in the printing repository is not yet listed (2026-11-11)."
 ---
 
@@ -25,7 +25,7 @@ source. The G-code is never committed. The rover's meshes and previews are, sinc
 committed to this public site repository. The source repository, {{ site.data.stats.hardware.printing_commits }} commits as of
 {{ site.data.stats.generated_at | slice: 0, 10 }}, is private. This page is published from it by one command that
 renders the previews on the workstation, not on a cluster. Until 2026-11-10 an internal gallery
-also rendered them in a pod on the previous platform; **no gallery pod runs on the new cluster**
+also rendered them in a pod on V1.0; **no gallery pod runs on the new cluster**
 (checked 2026-11-11), and none is planned in the platform repository (checked 2026-11-11).
 Rendering on the workstation is the path now.
 
@@ -36,34 +36,34 @@ mechanics into the same fast-iteration loop as the software.
 
 ## The chain
 
-*Previous platform (retired 2026-11-10), as last read 2026-10-27: the gallery pod, the print-job
+*V1.0 (retired 2026-11-10), as last read 2026-10-27: the gallery pod, the print-job
 CronJob and the ingress in the diagram below and the first two bullets after it. The workstation
 path in the diagram is the one in use now (2026-11-11). Everything about the pod is kept as dated
 history; the lessons below are why.*
 
 ```mermaid
 flowchart LR
-  SRC[".scad / .py<br/>private repo"] -->|"clone · read-only key"| POD["gallery pod<br/>previous platform, gone 2026-11-10"]
+  SRC[".scad / .py<br/>private repo"] -->|"clone · read-only key"| POD["gallery pod<br/>V1.0, gone 2026-11-10"]
   POD --> STL[".stl"]
   STL --> GIF["turntable .gif<br/>36 frames"]
-  GIF --> WEB["internal gallery<br/>previous platform"]
+  GIF --> WEB["internal gallery<br/>V1.0"]
   STL -->|PrusaSlicer| GC[".gcode"]
   GC -->|PrusaLink| PR["printer"]
   SRC -->|"make publish · renders locally"| WS["workstation render"]
   WS --> PAGES["this page"]
 ```
 
-- **One toolchain image** (previous platform): OpenSCAD, PrusaSlicer, ffmpeg and a virtual X server. Its tag
+- **One toolchain image** (V1.0): OpenSCAD, PrusaSlicer, ffmpeg and a virtual X server. Its tag
   is the content hash of its own Containerfile, so the tag changes exactly when the
   toolchain does. The parts were *not* baked in; the pod cloned the repository at run time,
   so a push changes what gets rendered without a rebuild.
-- **The gallery (previous platform)** was a Deployment that re-cloned the repository every fifteen minutes,
+- **The gallery (V1.0)** was a Deployment that re-cloned the repository every fifteen minutes,
   re-rendered every part only when the commit had changed, and served the result behind the
   cluster's ingress. That was the design; lesson 7 says what it did in practice. The **print job**
   was a CronJob running the same chain through slicing and upload. It was suspended when I
   checked on 2026-10-09, and it is gone with the cluster.
 - Both ran as non-root on a **read-only root filesystem**, with every capability dropped.
-- **Everything is a make target.** `make deploy` (previous platform) gates on the unit tests, the real renderer
+- **Everything is a make target.** `make deploy` (V1.0) gates on the unit tests, the real renderer
   in the real image under the pod's limits, the access test and strict server-side
   validation, then applies. `make smoke` fetches the gallery through the ingress and
   compares its part count with the parts on disk, because "the API server accepted the

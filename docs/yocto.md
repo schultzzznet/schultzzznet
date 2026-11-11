@@ -3,7 +3,7 @@ title: Embedded — a custom Linux image with a real supply chain
 reread: 2026-11-11
 body_read: 2026-10-09
 summary:
-  - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and producing a bill of materials. The tracker it fed was inside the previous cluster and is gone since 2026-11-10; a new one is planned, not built."
+  - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and producing a bill of materials. The tracker it fed was inside V1.0 and is gone since 2026-11-10; a new one is planned, not built."
   - "**The best story:** making a scanner tell the truth. The obvious implementation reports zero findings on an image that demonstrably has known vulnerabilities; getting from zero, to about a hundred raw matches, to a short list a person can act on is the engineering."
   - "**Two claims were false on 27 October** (nightly upload refused since at least 24 September; no device reporting since 1 September). The fix was never shown to have run, and the tracker is now gone (2026-11-10), which supersedes the device-reporting claim as well: see [below](#two-claims-on-this-page-were-false-on-27-october)."
   - "**Still true, and used lately:** the A/B path now carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots."
@@ -22,7 +22,7 @@ summary:
 
 A custom Yocto layer that boots on a Raspberry Pi 3 B+, takes **signed A/B updates over the
 air** with a live rollback proven on hardware, and produces a bill of materials for
-vulnerability tracking. The tracker it was fed to ran inside the previous cluster and was removed
+vulnerability tracking. The tracker it was fed to ran inside V1.0 and was removed
 with it on 2026-11-10; a tracker on the new platform is planned, not built (2026-11-11). The board launched at $35, about a takeaway
 dinner; the supply-chain discipline around it does not know that. Getting the last part to
 work is where the interesting engineering is, because the obvious implementation produces a
@@ -62,12 +62,12 @@ host and the fleet service. The sections they sit in are left as written, with a
 
 ---
 
-## Open items after the previous cluster was removed (2026-11-11)
+## Open items after V1.0 was removed (2026-11-11)
 
 *Added 2026-11-11. The image, signing, A/B and rollback content below does not depend on any
 cluster and stands as written. The delivery side did, and it is gone.*
 
-- **The vulnerability tracker is gone.** It ran inside the previous cluster, which was torn down on
+- **The vulnerability tracker is gone.** It ran inside V1.0, which was torn down on
   2026-11-10. The nightly upload targeted it, so the upload cannot succeed now. A tracker on the new
   platform is planned, not built.
 - **The 2026-10-27 fix was never shown to have run.** Nothing recorded the 03:30 run on 2026-10-28,
@@ -94,15 +94,15 @@ flowchart LR
   IMG --> BUNDLE["signed update bundle"]
   BUNDLE --> OTA["A/B update over the air"]
   OTA --> DEV["device"]
-  DEV -.-> HB["heartbeat to a fleet service<br/>removed with the previous cluster, 2026-11-10"]
+  DEV -.-> HB["heartbeat to a fleet service<br/>removed with V1.0, 2026-11-10"]
   IMG --> SBOM["CycloneDX SBOM"]
   CC --> SBOM
   CC --> VEX["VEX"]
-  SBOM -.-> DT[("vulnerability tracker<br/>removed with the previous cluster, 2026-11-10")]
+  SBOM -.-> DT[("vulnerability tracker<br/>removed with V1.0, 2026-11-10")]
   VEX -.-> DT
 ```
 
-Dotted arrows are paths that existed on the previous platform and have no target today.
+Dotted arrows are paths that existed on V1.0 and have no target today.
 
 Two partitions, one active. An update is written to the inactive slot, the bootloader
 switches, and a failed boot falls back. That was demonstrated with a real update *and* a
@@ -139,7 +139,7 @@ control. (The traps section has what happens when the check looks at the wrong t
 
 ### Shared build cache
 
-*Previous platform: the artefact repository and dependency mirror described here ran in the previous cluster and were removed on 2026-11-10; what serves the build host now is not measured yet.* The downloaded **sources** were mirrored to the same artefact repository the cluster used;
+*V1.0: the artefact repository and dependency mirror described here ran in V1.0 and were removed on 2026-11-10; what serves the build host now is not measured yet.* The downloaded **sources** were mirrored to the same artefact repository the cluster used;
 they genuinely disappear upstream, so that copy is a reproducibility guarantee. The
 intermediate **task outputs** are not copied anywhere: the build host serves its own cache
 read-only, in place. They used to be mirrored too, until the copy filled the repository, and a
@@ -379,7 +379,7 @@ scanner: configured, plausible, inert.
 
 ## The device reports back
 
-*(Previous platform. As of 2026-10-27 this section described a capability that was not deployed, and since 2026-11-10 the fleet service it reported to is gone: see [above](#two-claims-on-this-page-were-false-on-27-october). A fleet service is planned on the new platform, not built.)*
+*(V1.0. As of 2026-10-27 this section described a capability that was not deployed, and since 2026-11-10 the fleet service it reported to is gone: see [above](#two-claims-on-this-page-were-false-on-27-october). A fleet service is planned on the new platform, not built.)*
 
 A fielded device that cannot be seen is a device you are guessing about. Each one runs a small
 agent (a couple of hundred lines, **standard library only, no dependencies**, which is itself
@@ -456,7 +456,7 @@ that the first device had not:
 ## Read next
 
 - **[DevSecOps, end to end](devsecops.md)**: the same supply chain pointed at a cluster.
-- **[How the platform builds and ships things](platform.md)**: the delivery chain this page shares (previous platform, retired 2026-11-10; read it with that label).
+- **[How the platform builds and ships things](platform.md)**: the delivery chain this page shares (V1.0, retired 2026-11-10; read it with that label).
 - **[High availability, audited](reliability.md)**: the *configured, plausible, inert* class.
 - **[Legal, licensing, and the regulatory posture](compliance.md)**: where connected devices sit against a real regulation.
 

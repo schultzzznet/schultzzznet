@@ -145,7 +145,7 @@ report_at "private repo names in generated data" \
   docs/_data
 
 # The current private platform repository is never named on the public site, in prose or in data (the
-# previous platform's repository is named in prose on purpose, as history, and stays allowed). The
+# V1.0's repository is named in prose on purpose, as history, and stays allowed). The
 # bracketed letters match the same text but keep this script from spelling the name out itself.
 report "private platform repo name in published files" \
   '[s]chultz[ _-]?[c]luster' \

@@ -3,11 +3,11 @@ title: DevSecOps — the whole chain, and what it actually proves
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The platform was rebuilt on 2026-11-10; this page is rewritten for it, and the old material is kept under a labelled previous-platform heading (§8)."
+  - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The platform was rebuilt on 2026-11-10; this page is rewritten for it, and the old material is kept under a labelled V1.0 heading (§8)."
   - "**Gates now (2026-11-11):** pre-commit with a secret scan over the whole history, check scripts that each plant their own failure, a local-cluster gate, and a pull-request objectives check that runs from the base commit. Contract fuzzing found eight faults in the reference app when it was added (around 2026-11-07 and 11-08), since fixed; one more, a repeated `radius` parameter accepted, was open on 2026-11-11."
   - "**Live and checked today:** two admission policies in Deny mode, default-deny network policy in the four tenant namespaces, restricted Pod Security on six of thirteen namespaces. First-party images are signed with a CI key only the main branch can use."
   - "**Not proven:** the default-deny probe failed on 2026-11-10 (a one to three second gap at pod start), encryption at rest is configured but not read back, the Flux artifact is unsigned, and vendor images are trusted by pinned digest, not by vendor signature."
-  - "**Not there yet:** no host scan, no SBOM job, no monitoring running (merged on 2026-11-11 and being applied, but not Ready and never run), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
+  - "**Not there yet:** no host scan, no SBOM job, no monitoring read (merged on 2026-11-11 and Running since 07:00 UTC, but no scrape target, alert or dashboard has been read), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
 ---
 
 {% include in-short.html %}
@@ -28,14 +28,15 @@ control-plane servers and three laptop agents). Sections 1 to 5 and 7 describe t
 platform. Every claim there carries a date and one of four words: **proven** (seen working on a live run, with a date), **built** (in place, not yet seen working),
 **planned**, or **open** (defined once on [how we work](how-we-work.html)). The cluster is about a day old, so nothing here says anything about
 how it behaves over weeks. Figures that are not measured yet say so; none is carried over from
-the old platform. The old platform's gates, scanning, exposure and host material is in §8, in
+V1.0. V1.0's gates, scanning, exposure and host material is in §8, in
 full, dated, and labelled as history. Section 6, the measurement traps, is kept in place
 because its lessons did not depend on the platform.
 
-> **Not running: monitoring.** The monitoring tenant was merged into the main
-> branch on 2026-11-11 once its two secret files were added, and Flux is applying it. It is not
-> Ready: its first live run failed on a missing-namespace defect in the node exporter manifests,
-> and a one-line fix is in review. It has never run, so there are no alert rules or dashboards to count. Anything that
+> **Built, not proven: monitoring.** The monitoring tenant was merged into the main
+> branch on 2026-11-11 once its two secret files were added. Its first live run failed on a
+> missing-namespace defect in the node exporter manifests, and a one-line fix landed the same day.
+> At 07:00 UTC all 19 Kustomizations were Ready and the monitoring pods were Running, but no scrape
+> target, alert rule or dashboard has been read, so there is nothing to count. Anything that
 > would need them says "not measured yet".
 
 ---
@@ -169,7 +170,7 @@ they stay out of shell history and process lists.
 
 - **Recovery of the encrypted values from the recovery key has not been tested. Open.** An off-machine copy
   and a tested restore are planned.
-- **Rotation of the old values is open.** The values from the previous platform remain in the
+- **Rotation of the old values is open.** The values from V1.0 remain in the
   previous repository's history until rotated.
 - **Encryption at rest** is configured in the API server's configuration. It has not been
   read back from the live API server, so the status is **built**.
@@ -196,8 +197,8 @@ home.
 
 ## 6. Measurement traps found by checking
 
-Each of these produced *confident, wrong* numbers. They were found on the previous platform,
-on a vulnerability tracker that **no longer runs** (it went with the old cluster on
+Each of these produced *confident, wrong* numbers. They were found on V1.0,
+on a vulnerability tracker that **no longer runs** (it went with V1.0 on
 2026-11-10). The lessons did not depend on the tracker, so they stay. The dated figures are
 receipts from the time; I cannot re-measure them.
 
@@ -266,7 +267,7 @@ Stated plainly, because a control you misunderstand is worse than one you lack. 
   dependency merges clean. That is a gap, not coverage.
 - **No host scan and no reboot coordination exist on the new platform. Open.** The host layer
   applies, by playbook, a firewall profile, key-only SSH and a timer for disk wear. It does not
-  patch kernels, scan them or schedule reboots. §8.5 describes what the old platform did.
+  patch kernels, scan them or schedule reboots. §8.5 describes what V1.0 did.
 - **No SBOM job runs.** A weekly scan from the live pods is **planned**.
 - **Runtime behaviour is not monitored for exploitation**, and monitoring is not running (see the note at the top).
 - **The default-deny gap, the unsigned Flux artifact, the vendor-digest trust and the
@@ -276,14 +277,14 @@ Stated plainly, because a control you misunderstand is worse than one you lack. 
 
 ---
 
-## 8. The previous platform (retired 2026-11-10)
+## 8. V1.0 (retired 2026-11-10)
 
 Everything in this section describes the platform that was torn down on 2026-11-10, written
 as of the dates in each part (2026-10-09 to 2026-10-27). **None of it is current.** It is kept
 because findings and lessons should not vanish with the machines they came from. Hand-typed
 counts below are the last values measured on that platform, not live figures.
 
-### 8.1 The previous platform's gates, until 2026-11-10
+### 8.1 V1.0's gates, until 2026-11-10
 
 Every CI job ran on self-hosted runners inside the LAN, across the workflow files of the
 platform repository. Seven of the eight gates triggered on pull requests, and all but the secret
@@ -429,7 +430,7 @@ did not have, silently, in the reassuring direction.
 ### 8.5 Below the application: hosts, kernels, and what "patched" means (as of 2026-10-09)
 
 **On the new platform no host scan and no reboot coordination exist (open, §7).** This is what
-the old platform did, measured on 2026-10-09.
+V1.0 did, measured on 2026-10-09.
 
 Every node's root filesystem is inventoried and tracked continuously, alongside the
 container images. This was the one layer an otherwise strong supply-chain posture did not
@@ -541,7 +542,7 @@ forced.
 Every prior section answers *is something wrong*. None of them answer the next question:
 does anything happen about it, or does it sit in a dashboard nobody opens?
 
-On the old platform, a scheduled agent, the one described on [its own page](aiops.md), was
+On V1.0, a scheduled agent, the one described on [its own page](aiops.md), was
 configured to poll both vulnerability trackers every 30 minutes and keep a matching set of
 tickets open in the work tracker: a new Critical or High finding opened one, a finding that
 disappeared closed it automatically. I could not find that agent running in the cluster on

@@ -3,10 +3,11 @@ title: The estate
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**What it is:** a training system, on purpose. A new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). It is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
+  - "**What it is:** a training system, on purpose. V2.0, a new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). It is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
   - "**Proven (dated):** admission policies refuse off-list or undigested images (one real refusal, 2026-11-10); one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10, with limits. The default-deny probe failed (a 1-3 s gap at pod start)."
-  - "**Not live:** monitoring and alerts (merged 2026-11-11, Flux is applying it, not Ready, never run), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
-  - "**Previous platform (retired 2026-11-10):** its figures stay lower on this page under dated headings. None is a claim about the new cluster. Next: [Where to start](#where-to-start) and [How we work](how-we-work.html)."
+  - "**Not live:** monitoring and alerts (merged 2026-11-11, pods Running at 07:00 UTC, nothing read from it yet), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
+  - "**V1.0 (retired 2026-11-10):** its figures stay lower on this page under dated headings. None is a claim about the new cluster. Next: [Where to start](#where-to-start) and [How we work](how-we-work.html)."
+  - "**V1.0 against V2.0:** [a dated diff list](versions.html) of what changed between the retired cluster and this one, area by area, including where V1.0 did better and what is not rebuilt yet."
 ---
 {% assign s = site.data.stats %}
 {% assign c = s.cluster %}
@@ -29,23 +30,23 @@ deeply and as hands-on as possible, on a system that is actually running. **The 
 the handicap, chosen on purpose:** retired laptops and small desktops (the ones audited date from 2011
 to 2020), running the current stack. If it runs here, it runs anywhere, and any other hardware is an upgrade. **AI is
 involved on purpose:** a frontier cloud model helps build it, with a person approving what is merged. The
-small local model that helped run the previous platform is not part of this one.
+small local model that helped run V1.0 is not part of this one.
 
 **Why: two things at once.** Learn as much as possible until the day a killer app appears, and be
 ready to take that opportunity when it does. Until then everything here is learning, and nothing
 is protected for uptime's sake. On that day the direction changes on purpose: production becomes
 the main line and the experiments move to a branch.
 
-**It is running, and it is new.** On 2026-11-10 the previous cluster was torn down, and the same
+**It is running, and it is new.** On 2026-11-10 V1.0 was torn down, and the same
 six machines were rebuilt as a new K3s cluster that day and the next. As of 2026-11-11 it is about
 {{ c.age_days }} days old by the count below, so no uptime is claimed. One of the three reference apps (the hazard-warning
 one) is deployed on it. Admission control and default-deny between tenant namespaces are live. A restore
-drill passed on 2026-11-10, with limits. Everything the previous platform measured, and every
+drill passed on 2026-11-10, with limits. Everything V1.0 measured, and every
 correction it made, is kept further down under a dated heading and is not a claim about this cluster.
 
 **There are no paying customers, no users and no load at all.** The synthetic load generator went
-with the old cluster. There is no public entrance and no public name. **Monitoring is not live**: the
-metrics, alert and dashboard stack was merged on 2026-11-11 and Flux is applying it, but it is not Ready. Its first live run failed on a missing-namespace defect in the node exporter manifests; a one-line fix is in review. It has never run, so no alert
+with V1.0. There is no public entrance and no public name. **Monitoring is built, not proven**: the
+metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 19 Kustomizations were Ready and its pods were Running. Nothing from it has been read, so no alert
 reaches a person today. Where a figure below cannot be measured yet, it says *not measured yet*.
 
 {% include in-short.html %}
@@ -55,15 +56,16 @@ reaches a person today. Where a figure below cannot be measured yet, it says *no
 | You have | Read |
 |---|---|
 | **2 minutes** | The *In short* block above, then *Recently* below |
+| **What changed since V1.0** | [V1.0 and V2.0: what changed](versions.html): the diff list, area by area, with a status word on every V2.0 row |
 | **How it works today** | [How we work](how-we-work.html): changes, secrets, admission, approvals, home CI, and the restore drill, each dated and marked proven or not |
-| **5 minutes** | Add [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert (found on the previous platform, retired 2026-11-10; the habit carries over) |
-| **20 minutes** | Add [reliability](reliability.html), which describes the new platform as of 2026-11-11 (no uptime, no machine switched off yet), and [what outside reviews found](lessons.html#13-what-outside-reviews-found), which is about the previous platform (retired 2026-11-10) |
-| **One story** | [One incident, in full](incident.html), from 2026-08-20 on the previous platform (retired 2026-11-10): a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
-| **An hour** | Add [the delivery chain](platform.html), which describes the new platform (its previous-platform parts are labelled), and [the operations agent](aiops.html), which is the previous platform (retired 2026-11-10); [AI in development](ai-dev.html) is the cloud half of the AI story |
+| **5 minutes** | Add [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert (found on V1.0, retired 2026-11-10; the habit carries over) |
+| **20 minutes** | Add [reliability](reliability.html), which describes the new platform as of 2026-11-11 (no uptime, no machine switched off yet), and [what outside reviews found](lessons.html#13-what-outside-reviews-found), which is about V1.0 (retired 2026-11-10) |
+| **One story** | [One incident, in full](incident.html), from 2026-08-20 on V1.0 (retired 2026-11-10): a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
+| **An hour** | Add [the delivery chain](platform.html), which describes the new platform (its V1.0 parts are labelled), and [the operations agent](aiops.html), which is V1.0 (retired 2026-11-10); [AI in development](ai-dev.html) is the cloud half of the AI story |
 | **Code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples), four extracted, runnable, commented artifacts, one with a self-test that demonstrates its own bug |
 | **Tooling arguments** | [Why these tools, and what got rejected](choices.html) |
 | **Hiring** | [What I'd do differently](lessons.html) is probably the most informative page here |
-| **The rest** | [Quality and self-graded maturity](quality.html), [legal and regulatory posture](compliance.html), [the embedded side](yocto.html), [the mechanical side](printing.html), [live status](status.html). Pages that still describe the previous platform (retired 2026-11-10) say so at the top or carry its dates |
+| **The rest** | [Quality and self-graded maturity](quality.html), [legal and regulatory posture](compliance.html), [the embedded side](yocto.html), [the mechanical side](printing.html), [live status](status.html). Pages that still describe V1.0 (retired 2026-11-10) say so at the top or carry its dates |
 
 ## Recently
 
@@ -103,7 +105,7 @@ database cluster. Both the 2026-11-10 restore drill (last recorded {{ ev.restore
 
 | Measured on the new cluster | State on 2026-11-11 |
 |---|---|
-| Metric scrape targets up | **not measured yet** (the metrics stack was merged 2026-11-11, is not Ready, and has never run) |
+| Metric scrape targets up | **not measured yet** (the metrics stack was merged 2026-11-11 and its pods were Running at 07:00 UTC, but no target has been read) |
 | Alert rules loaded, alerts firing | **not measured yet**; no alert reaches a person |
 | Dashboards | **not measured yet** |
 | Metric history held | **not measured yet** |
@@ -112,11 +114,10 @@ database cluster. Both the 2026-11-10 restore drill (last recorded {{ ev.restore
 | First-party images that verify against the release key | admission checks this at creation; a count is **not measured yet** |
 
 **The three outside-referee badges are retired.** The scheduled-jobs heartbeat and the two public-endpoint
-uptime probes graded the previous platform from outside it. Their monitors were paused when the old
-cluster was torn down on 2026-11-10, and there is no public endpoint for a probe to watch. There is no external referee on the new cluster
+uptime probes graded V1.0 from outside it. Their monitors were paused when V1.0 was torn down on 2026-11-10, and there is no public endpoint for a probe to watch. There is no external referee on the new cluster
 yet (open). Until there is one, the figures above are the cluster describing itself, and the page says so.
 
-{% comment %}Previous-platform material follows after the new-platform sections.{% endcomment %}
+{% comment %}V1.0 material follows after the new-platform sections.{% endcomment %}
 
 ## None of this is a demo
 
@@ -133,9 +134,9 @@ restore drill pass (2026-11-10, with limits, described in [how we work](how-we-w
 copy, or a failover under load on this cluster. The satellite application is not running. It is a home-built platform
 with {{ c.nodes }} bare-metal nodes from retired laptops and small desktops, run with production habits and with no production duties.
 
-**Previous platform (retired 2026-11-10).** The old cluster was torn down in stages after a base backup of every database; the
-machines were kept and now run the new cluster. Eight restore drills that were due were waived by the owner, because the old cluster
-was by then being treated as a test. Of the previous platform's 257 alerts, 74 mechanisms and 16 power-off proofs (as of 2026-10), **none is carried
+**V1.0 (retired 2026-11-10).** V1.0 was torn down in stages after a base backup of every database; the
+machines were kept and now run the new cluster. Eight restore drills that were due were waived by the owner, because V1.0
+was by then being treated as a test. Of V1.0's 257 alerts, 74 mechanisms and 16 power-off proofs (as of 2026-10), **none is carried
 over**, and the cutover gate (the checklist that must pass before this cluster is treated as the platform) has **not** been passed.
 The status register generated on 2026-11-10 counts 12 steps (2 done, 2 done only on a local test cluster, 5 partly done,
 2 not started, 1 gated) and 109 rules (3 built, 19 partly built, 87 not built). Those numbers, not the old self-grades, are the
@@ -143,7 +144,7 @@ current maturity claim.
 
 ## A testing ground, not yet load-bearing
 
-On the previous platform this was both a testing ground and load-bearing. Today only the first is true: nobody depends on
+On V1.0 this was both a testing ground and load-bearing. Today only the first is true: nobody depends on
 the new cluster. These pages describe *a* way through, written down with the
 alternatives passed over, and each rejection names the condition that would change the
 answer, because a rejection without a reopen-trigger is just an opinion. The damage would
@@ -185,9 +186,9 @@ flowchart TB
   style OFF fill:#f5f5f5
 ```
 
-No public edge, no running metrics stack (merged 2026-11-11, not Ready, never run), no tracker, no fault injector, no outside referee and no operations agent
-appear above because none of them exists on the new cluster today. The previous platform had all of them; its picture is
-described in words in [the previous platform section](#previous-platform-retired-2026-11-10) below.
+No public edge, no metrics stack read from (merged 2026-11-11, pods Running at 07:00 UTC), no tracker, no fault injector, no outside referee and no operations agent
+appear above because none of them exists on the new cluster today. V1.0 had all of them; its picture is
+described in words in [V1.0 section](#v10-retired-2026-11-10) below.
 
 ## What it costs
 
@@ -195,7 +196,7 @@ described in words in [the previous platform section](#previous-platform-retired
 |---|---|
 | **Hardware** | The same {{ c.nodes }} machines, all retired or second-hand: laptops and small desktops. Old on purpose: the handicap is the point, because if it runs here it runs on anything better. It also cost next to nothing. |
 | **Software licences** | **Zero.** Every tool is open source, a community edition, or a free tier. That is a standing constraint, and a filter: a tool that cannot be self-hosted for nothing does not get evaluated on features. |
-| **Power** | One measurement exists. Previous platform (retired 2026-11-10), 2026-10: fixing the frequency governor on the two busiest nodes cut about 13.1 W continuously (about 115 kWh/year). It was measured with the CPUs' own energy counters, **not re-measured** on the new cluster, so no power figure is claimed for it. |
+| **Power** | One measurement exists. V1.0 (retired 2026-11-10), 2026-10: fixing the frequency governor on the two busiest nodes cut about 13.1 W continuously (about 115 kWh/year). It was measured with the CPUs' own energy counters, **not re-measured** on the new cluster, so no power figure is claimed for it. |
 | **Time** | Evenings and weekends, over months. The up-front cost is real: {{ rp.adrs }} decision records so far in the new repository, refusing shortcuts that would have worked in the short run. |
 | **Cloud spend** | Not zero any more. The included hosted CI minutes ran out on 2026-11-09 and a $20 budget is being spent, at about $0.15 per hosted gate. The Mac runners were retired on 2026-11-10. Heavy CI that holds no secrets now runs on a fresh virtual machine per job on a Linux host at home; jobs that carry keys stay hosted. Two builder hosts run one job VM at a time each. Both took jobs in parallel for the first time on 2026-11-11; those gates had started, not passed, when this was written. Status: built; the saving is not measured. |
 
@@ -222,13 +223,13 @@ a mowing robot, a drone swarm, a rover platform, a video rover and an i.MX8 laye
 counts, as of {{ gen_date }}: embedded Linux {{ hw.yocto_commits }},
 mechanical {{ hw.printing_commits }}, mower {{ hw.mower_commits }}, rover platform
 {{ hw.rover_platform_commits }}, video rover {{ hw.video_rover_commits }}, i.MX8
-{{ hw.imx8_commits }}. They shared a registry, signing keys and a vulnerability tracker on the previous platform; on the new
+{{ hw.imx8_commits }}. They shared a registry, signing keys and a vulnerability tracker on V1.0; on the new
 one the registry and signing exist and the tracker does not (planned).
 
-The satellite was the proof, on the previous platform, that **an application does not have to live in the
+The satellite was the proof, on V1.0, that **an application does not have to live in the
 platform's repository to run on it.** It brought two files, a Dockerfile and a conformant
 manifest. **It is not running on the new cluster** (as of 2026-11-11: not redeployed, open), so "deploys from outside" is a statement about
-the past until it is. *History:* the old platform's repository name was a fossil: it began on Docker Swarm and ran on k3s
+the past until it is. *History:* V1.0's repository name was a fossil: it began on Docker Swarm and ran on k3s
 from some point on, and renaming would have broken every inbound link.
 
 ---
@@ -246,7 +247,7 @@ All of this was read from the cluster or its records on 2026-11-11 unless it say
   volume dies with its machine. (proven 2026-11-11: one default class, read back)
 - **Databases: {{ db.clusters }} PostgreSQL cluster, {{ db.instances }} instances on 3 nodes, PostgreSQL {{ db.postgres_major }}**, behind a
   connection pooler. Quorum-synchronous commit is **built but not read back** on this cluster (built; the spec asks for one synchronous standby with required durability, and the failover-quorum safety check is off), unlike the
-  previous platform, where it was read back on 2026-10-09. Backups go through the barman-cloud plugin to an S3-compatible store
+  V1.0, where it was read back on 2026-10-09. Backups go through the barman-cloud plugin to an S3-compatible store
   on a small always-on Mac outside the cluster: one machine, one copy, no off-site copy (open). The nightly backup completed at 02:00 UTC
   on 2026-11-11 (proven 2026-11-11: the backup object reads completed). One restore drill passed on 2026-11-10 with limits (proven 2026-11-10, with limits; see [how we work](how-we-work.html)).
 - **Identity: one Keycloak pod in development mode on an in-memory database** (open). Users and sessions do not survive a restart.
@@ -258,13 +259,13 @@ All of this was read from the cluster or its records on 2026-11-11 unless it say
   signature-checked** (open): the list and the digest pin are the control, not a signature. **The Flux artifact is unsigned**
   (open). **There is no SBOM or vulnerability tracker** on the new cluster (planned). The regulatory picture (CRA, GDPR,
   app-store labels) is on [the compliance page](compliance.html).
-- **Not live on 2026-11-11:** monitoring, alerts and dashboards (merged 2026-11-11, being applied by Flux, not Ready, never run), any public name or HTTPS, replicated storage, durable
+- **Not live on 2026-11-11:** monitoring, alerts and dashboards (merged 2026-11-11, pods Running at 07:00 UTC, nothing read from them), any public name or HTTPS, replicated storage, durable
   identity, an off-site backup copy, a second Linux distribution in the host rehearsal, the host pull timer, any input to the
   operations agent, fault injection, a vulnerability tracker, and two of the three reference apps.
 - **Retired from the present tense:** the chaos schedules, the operations agent, the reboot daemon and the 49-assertion audit were
-  features of the previous platform. Their history is in the dated section below.
+  features of V1.0. Their history is in the dated section below.
 
-**Failure domains and maturity:** the 7-of-13 self-grade of 2026-09-09 is Previous platform (retired 2026-11-10) material and is not a claim about
+**Failure domains and maturity:** the 7-of-13 self-grade of 2026-09-09 is V1.0 (retired 2026-11-10) material and is not a claim about
 this one. For the new platform, use the status register of 2026-11-10 quoted above (12 steps, 109 rules, 3 rules built).
 
 **Security is structural, not a layer at the end,** and on the new repository some of it is now enforced. As of 2026-11-11 `main` is
@@ -272,7 +273,7 @@ protected: a pull request and the checks run are required, history stays linear,
 administrators (proven 2026-11-11, setting read back). Required checks on `main` are two: the main check and the objectives line. The aggregate gate is deliberately not required yet: a red result from a cancelled run beat a green re-run in a test, and the fix is open. **Review is not enforced.** Required approvals are 0. A proposal for an owner's approval on
 important changes and a reviewer agent's on the rest is written down (the decision record is still Proposed) and the reviewer identity does not
 exist yet. A single person authors and merges. 76 of the first 77 commits, over the first six days, came through a pull request. On the
-previous platform the repository was private on the free plan and nothing could be enforced.
+V1.0 the repository was private on the free plan and nothing could be enforced.
 Details are in [DevSecOps](devsecops.html) and [how we work](how-we-work.html).
 
 Concrete addresses, machines and topology stay in the private repository. What is here is
@@ -292,9 +293,9 @@ On the new repository that is enforced for the pull request and the checks, not 
 reviewed. [The fuller account is on its own page](ai-dev.html), including the time it confidently told a
 reviewer two things about this platform that were not true.
 
-**Run time: nothing, today (previous platform only).** The operations agent and its local model, and the cloud reader that graded the
-agent's posts, were off-cluster pieces of the previous platform. The alert-to-agent chain has **no inputs** on the new cluster because there is
-no monitoring to feed it. They are described, dated, under the previous platform below and in [the agent's page](aiops.html); none of it is a present claim.
+**Run time: nothing, today (V1.0 only).** The operations agent and its local model, and the cloud reader that graded the
+agent's posts, were off-cluster pieces of V1.0. The alert-to-agent chain has **no inputs** on the new cluster because there is
+no monitoring to feed it. They are described, dated, under V1.0 below and in [the agent's page](aiops.html); none of it is a present claim.
 
 ---
 
@@ -310,7 +311,7 @@ to be here did. Status as of 2026-11-11.
 | Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin, an S3-compatible store (Garage) on a small Mac outside the cluster, Keycloak in dev mode | One copy of the backups; identity is not durable |
 | Change and secrets | Flux from a CI-built artifact, SOPS with age | The artifact is unsigned. Restoring secrets from the recovery key has not been tested (open) |
 | Supply chain | cosign, Kyverno admission (Deny), gitleaks, Renovate, pre-commit | Renovate is configured and not yet seen acting. Vendor images are not signature-checked. No tracker |
-| Observability | Tempo only | Built, not Ready: merged 2026-11-11, first live run failed on a manifest defect, never run |
+| Observability | Tempo only | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day, pods Running at 07:00 UTC, nothing read |
 | Applications | Java 25, Spring Boot 4 for the reference app | No load |
 | Embedded | Yocto, RAUC signed A/B OTA, Raspberry Pi | Unchanged; the heartbeat to the cluster is planned |
 
@@ -319,16 +320,16 @@ their badges return 404 to anyone but me, and a badge nobody else can verify is 
 
 ---
 
-## Previous platform (retired 2026-11-10)
+## V1.0 (retired 2026-11-10)
 
 Everything from here down was measured on, or says something about, the cluster that ran until it was torn down on 2026-11-10. It
 is kept because the record is the point, with the dates it was true on. **None of it is a claim about the new cluster.** Where a
 sentence names a figure, it was read on the date given and not re-measured since.
 
 
-### Previous platform (retired 2026-11-10): what the page said and what it measured, as of 2026-10-27
+### V1.0 (retired 2026-11-10): what the page said and what it measured, as of 2026-10-27
 
-The previous platform was a running estate of six nodes with a public entrance, real identity flows, a synthetic load generator, scheduled
+V1.0 was a running estate of six nodes with a public entrance, real identity flows, a synthetic load generator, scheduled
 chains, and a local model that helped run it. The figures in this section are hand-typed from the last generated run of
 2026-10-27: 186 of 216 pods running, 22 namespaces, 124 of 124 scrape targets up, 227 alert rules loaded (78 written here), 31 dashboards,
 replica-3 block storage with Ceph health at warn, 13 PostgreSQL clusters (5 on 16, 8 on 18), 7 first-party images of which 6 verified against the release key, and 1,943 commits in
@@ -362,7 +363,7 @@ the connection pooler so clients blocked for a few seconds instead of erroring. 
 database: 87 to 142 seconds, zero errors, at the time. Five PostgreSQL 16
 predecessors were still running as the rollback path on 2026-10-27; the operator is what made this a scripted procedure instead of a project.
 
-### Previous platform (retired 2026-11-10): a correction on those databases, 2026-10-09
+### V1.0 (retired 2026-11-10): a correction on those databases, 2026-10-09
 
 Until 2026-10-09 the page said the application and identity databases ran synchronous
 replication. **They did not.** The 18 cutover on 2026-09-16 silently dropped the synchronous
@@ -381,9 +382,9 @@ streaming, a container crash-looping, an instance not ready) were added. The acc
 [the reliability page](reliability.html) and
 [the lessons page](lessons.html#11-three-wrong-claims-in-one-diagnosis).
 
-## Previous platform (retired 2026-11-10): corrections, 2026-10-27
+## V1.0 (retired 2026-11-10): corrections, 2026-10-27
 
-*These corrections were made on 2026-10-27 about the previous platform. They are kept as written, with that date.*
+*These corrections were made on 2026-10-27 about V1.0. They are kept as written, with that date.*
 A second read of this site against the estate, nine days after the first, found statements that
 had turned stale in the *pessimistic* direction (things that had since been fixed) and two that
 were false the whole time. They are retracted here rather than quietly edited:
@@ -413,9 +414,9 @@ were false the whole time. They are retracted here rather than quietly edited:
 - **Fault injection** was described as running hourly on weekdays. It last fired on 2026-10-13. See
   [reliability](reliability.html#fault-injection-is-paused-by-its-own-safety-gate).
 
-## Previous platform (retired 2026-11-10): corrections, 2026-10-09
+## V1.0 (retired 2026-11-10): corrections, 2026-10-09
 
-*These corrections were made on 2026-10-09 about the previous platform, and are kept as written.*
+*These corrections were made on 2026-10-09 about V1.0, and are kept as written.*
 A fact audit measured the live system against this page. Some claims were wrong, and they
 are retracted here rather than quietly edited:
 
@@ -442,7 +443,7 @@ are retracted here rather than quietly edited:
   [security policy](https://github.com/schultzzznet/schultzzznet/blob/main/SECURITY.md) with
   private reporting switched on. See [compliance](compliance.html).
 
-### Previous platform (retired 2026-11-10): what it ran, as of 2026-10-27
+### V1.0 (retired 2026-11-10): what it ran, as of 2026-10-27
 
 - **Six nodes with placement labels** for CPU class, disk class and disk health; no node carried a taint.
 - **Replicated block storage**, 3-way, host-level failure domain, as the sole storage class. All of it is gone: the machines now run
@@ -466,30 +467,30 @@ are retracted here rather than quietly edited:
 **Failure domains (self-grade of 2026-09-09):** seven of thirteen single-fault tolerant, up from four in early July. That was a self-grade I did not re-derive, and
 it contradicted the four on other pages dated earlier. It is not carried over to the new platform.
 
-**Security on the previous platform:** branch protection could not be enforced on a private repository under GitHub's free plan, so "gates" were CI
+**Security on V1.0:** branch protection could not be enforced on a private repository under GitHub's free plan, so "gates" were CI
 workflows and pre-commit hooks that one maintainer was bound to follow, and GitHub-native code scanning and secret scanning were off.
 
-### Previous platform (retired 2026-11-10): its diagram and two dotted lines, 2026-10-27
+### V1.0 (retired 2026-11-10): its diagram and two dotted lines, 2026-10-27
 
-The previous platform's picture had a development side (workstation, self-hosted runners, a daily cloud reader), a public edge outside the
+V1.0's picture had a development side (workstation, self-hosted runners, a daily cloud reader), a public edge outside the
 cluster on purpose (a relay and a reverse proxy with a default-deny allowlist), six nodes (three-member control plane, Spring Boot services,
 Postgres clusters, replica-3 block storage, metrics and dashboards, a vulnerability tracker, a scheduled fault injector), and two things
 outside it: the operations agent with its local model, and the external referees. The two dotted lines that mattered were the agent's narrow,
 allowlisted write path and the referees grading from outside. *A monitor that dies with the thing it monitors is not a monitor.*
 
-## Previous platform (retired 2026-11-10): why build it this way
+## V1.0 (retired 2026-11-10): why build it this way
 
 **Why build it this way instead of stopping at a tutorial:** a system nobody has to operate
 teaches a smaller skill than one that is running, with real incidents and a real pager. The
 scars (a nine-day silent outage, a drain that removed its own control surface, a reboot
 daemon that quietly never rebooted anything) exist only because the thing they happened to
-was live. **On the previous platform the load was synthetic; the incidents were not.** Power cuts, thermal throttling,
+was live. **On V1.0 the load was synthetic; the incidents were not.** Power cuts, thermal throttling,
 disks reporting `FAILING_NOW`, a carrier-grade-NAT boundary, an ISP, a public entrance that
 had actually been down, and kernel upgrades rolling across the machines unattended, one node
 at a time, at whatever hour the kernel lands. The failures were never the part that needed
 simulating.
 
-### Previous platform (retired 2026-11-10): AI
+### V1.0 (retired 2026-11-10): AI
 
 AI was in three roles: a cloud model that helped build it, a small local model that helped run it, and a cloud model that graded the local one.
 
@@ -525,12 +526,12 @@ severity line was written by code and not by the model, and every call was recor
 graded sample and a set of golden test cases could say whether a change helped. The account, with
 the numbers, is on [the agent's page](aiops.html#the-agent-since-2026-10-26).
 
-### The habit the whole thing is built on (examples from the previous platform, retired 2026-11-10)
+### The habit the whole thing is built on (examples from V1.0, retired 2026-11-10)
 
 > **Assert the property. Do not trust the report.**
 
 The recurring defect is not the crash. It is the thing *configured, plausible-looking and
-quietly inert*. All found on the previous platform by checking rather than reading:
+quietly inert*. All found on V1.0 by checking rather than reading:
 
 - A chaos schedule that had never once fired. Every dashboard was green; the field that
   would have revealed it, *when did this last run?*, was on none of them.
@@ -552,7 +553,7 @@ of 2026-11-10 recorded a fail (a one-to-three-second gap at start), and it stays
 
 ---
 
-## Previous platform (retired 2026-11-10): why go to this much trouble
+## V1.0 (retired 2026-11-10): why go to this much trouble
 
 > Quality isn't a tax on speed. Past a very early point, it is the only source of speed.
 
@@ -581,12 +582,12 @@ Then the same migration dropped the replication guarantee and I found out three 
 Both facts belong together. The operator made the migration a script; it did not make the
 script right.
 
-Two things assumed expensive were not, on the previous platform: **high availability cost nothing in hardware**
+Two things assumed expensive were not, on V1.0: **high availability cost nothing in hardware**
 (loopback-file storage daemons gave real replication on a single-disk fleet; the new cluster has dropped replicated storage on purpose), and **an elite
 supply chain was mostly wiring**, since every component is open source and the work was
 connecting them once.
 
-### The condition that made it possible: no pressure (previous platform, retired 2026-11-10)
+### The condition that made it possible: no pressure (V1.0, retired 2026-11-10)
 
 
 There was no commercial pressure of any kind: no runway, no board, no launch date, no
@@ -602,12 +603,12 @@ while nothing forces the shortcut, so that on the day a killer app arrives the p
 patterns and the habits are already in place, and a shortcut is a choice rather than the only
 option.
 
-Rigor did not transfer to every domain at once. Previous platform (retired 2026-11-10), as of 2026-10-27: open items remained for rotating the secrets that sat in git in plaintext, encryption at rest in the cluster, and a hosted privacy policy ([gaps](reliability.html), [legal posture](compliance.html)).
+Rigor did not transfer to every domain at once. V1.0 (retired 2026-11-10), as of 2026-10-27: open items remained for rotating the secrets that sat in git in plaintext, encryption at rest in the cluster, and a hosted privacy policy ([gaps](reliability.html), [legal posture](compliance.html)).
 
 
 ---
 
-## Previous platform (retired 2026-11-10): so what happens to it now? (assessed 2026-10)
+## V1.0 (retired 2026-11-10): so what happens to it now? (assessed 2026-10)
 
 
 | | | |
@@ -619,12 +620,12 @@ Rigor did not transfer to every domain at once. Previous platform (retired 2026-
 
 An unearned *can* makes the whole chain weightless.
 
-**Can it? Very nearly, on the previous platform (retired 2026-11-10).** Replicated storage under every volume, three control-plane
+**Can it? Very nearly, on V1.0 (retired 2026-11-10).** Replicated storage under every volume, three control-plane
 members, databases that fail over during a drain, backups with a timed restore, automated
 patching with coordinated reboots, an incident practice with real postmortems. What is
 missing is written down and mostly unglamorous.
 
-**Should it? Not yet** (previous platform, as of 2026-10-27). Legal and regulatory sits well below its target in the
+**Should it? Not yet** (V1.0, as of 2026-10-27). Legal and regulatory sits well below its target in the
 [self-assessment](quality.html), secrets are encrypted in git but not yet rotated or encrypted at rest in the cluster, the public entrance is one
 small machine and one relay, and product analytics is at zero. Nothing here is one weekend
 from being a business.

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1120" font-family="Segoe UI, Helvetica, Arial, sans-serif">
 <rect width="1280" height="1120" fill="white"/>
 <text x="640" y="42" text-anchor="middle" font-size="25" font-weight="700" fill="#111827">Capability &amp; Maturity Probe</text>
-<text x="640" y="66" text-anchor="middle" font-size="13" fill="#6b7280">Previous platform (retired 2026-11-10) · 2026-08-06 · maturity index <tspan font-weight="700" fill="#2563eb">3.47</tspan>/5 (<tspan fill="#16a34a">78%</tspan> to target 4.47) · Now (filled) vs Target (dashed) · dots RAG-coloured by band</text>
+<text x="640" y="66" text-anchor="middle" font-size="13" fill="#6b7280">V1.0 (retired 2026-11-10) · 2026-08-06 · maturity index <tspan font-weight="700" fill="#2563eb">3.47</tspan>/5 (<tspan fill="#16a34a">78%</tspan> to target 4.47) · Now (filled) vs Target (dashed) · dots RAG-coloured by band</text>
 <path d="M640,600 L573.5,287.0 A320,320 0 0 1 958.2,566.6 Z" fill="#2563eb" fill-opacity="0.09"/>
 <text x="752.9" y="450.7" text-anchor="middle" font-size="19" font-weight="800" letter-spacing="3" fill="#2563eb" fill-opacity="0.22">RELIABILITY</text>
 <path d="M640,600 L958.2,566.6 A320,320 0 0 1 877.8,814.1 Z" fill="#7c3aed" fill-opacity="0.09"/>
