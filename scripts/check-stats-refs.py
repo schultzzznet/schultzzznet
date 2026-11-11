@@ -18,7 +18,13 @@ Two checks, both read-only and standard library only:
 
 Usage: scripts/check-stats-refs.py [--docs DIR] [--readme FILE] [--stats FILE]
        scripts/check-stats-refs.py --values [--stats FILE]
+       scripts/check-stats-refs.py --typed-counts [--docs DIR] [--readme FILE] [--stats FILE]
        scripts/check-stats-refs.py --self-test
+
+The third check, --typed-counts, covers prose that cannot use Liquid (the README, and sentences in front matter): where a page states
+the single-points register's counts in words ("22 rows, 13 accepted, 0 fixed and 9 open", "the register's 9 open rows"), the figures
+must equal evidence.single_points_* in stats.yml, which the generator reads from the private repository's status page. A stale
+sentence fails with file:line.
 """
 import argparse
 import datetime as dt
@@ -258,6 +264,46 @@ def check_refs(docs, readme, stats_path):
     return problems
 
 
+# ------------------------------------------------------------------------------------------------ typed counts
+SP_FULL = re.compile(r"(\d+) rows[:,] (\d+) accepted,(?: (\d+) fixed(?:,| and))? (?:and )?(\d+) open")
+SP_OPEN_ROWS = re.compile(r"(\d+) open rows")
+
+
+def sp_problems(text, label, want):
+    """want: dict with accepted, fixed, open from stats.yml."""
+    rows = want["accepted"] + want["fixed"] + want["open"]
+    found = []
+    for n, line in enumerate(text.replace("*", "").splitlines(), 1):
+        for m in SP_FULL.finditer(line):
+            have = (int(m.group(1)), int(m.group(2)), int(m.group(4)))
+            if have != (rows, want["accepted"], want["open"]) or (m.group(3) is not None and int(m.group(3)) != want["fixed"]):
+                found.append(f"{label}:{n}: says {m.group(0)!r}; stats.yml has {rows} rows, {want['accepted']} accepted, "
+                             f"{want['fixed']} fixed, {want['open']} open. Reread the register and fix the sentence")
+        for m in SP_OPEN_ROWS.finditer(line):
+            if int(m.group(1)) != want["open"]:
+                found.append(f"{label}:{n}: says {m.group(0)!r}; stats.yml has {want['open']} open. Reread the register and fix the sentence")
+    return found
+
+
+def check_typed_counts(docs, readme, stats_path):
+    if not os.path.isfile(stats_path):
+        return [f"{stats_path} is missing, so no typed count can be checked"]
+    groups, _ = scan_stats(stats_path)
+    ev = groups.get("evidence", {})
+    try:
+        want = {k: int(ev[f"single_points_{k}"][0]) for k in ("accepted", "fixed", "open")}
+    except (KeyError, ValueError):
+        return [f"{stats_path}: evidence.single_points_accepted, _fixed and _open are missing or not numbers"]
+    files = sorted(glob.glob(os.path.join(docs, "*.md")))
+    if readme and os.path.isfile(readme):
+        files.append(readme)
+    problems = []
+    for f in files:
+        with open(f, encoding="utf-8") as fh:
+            problems += sp_problems(fh.read(), f, want)
+    return problems
+
+
 # ------------------------------------------------------------------------------------------------ self test
 def self_test():
     ok = True
@@ -314,6 +360,23 @@ def self_test():
         expect("a malformed date is refused", vals('"2026-13-45"'), "calendar date")
         expect("an unquoted date is refused", vals("2026-11-10"), "unquoted date")
         expect("a negative number is refused", vals("-3"), "non-negative")
+
+        with open(stats, "w") as fh:
+            fh.write('generated_at: "2026-11-11T00:00:00Z"\nevidence:\n  single_points_accepted: 13\n  single_points_fixed: 0\n'
+                     '  single_points_open: 9\n')
+
+        def typed(body):
+            with open(page, "w") as fh:
+                fh.write(body)
+            return check_typed_counts(os.path.join(tmp, "docs"), None, stats)
+
+        expect("typed counts that match pass", typed("22 rows, 13 accepted, 9 open\n**22 rows: 13 accepted, 0 fixed and 9 open**\nthe register's 9 open rows\n"), want_pass=True)
+        expect("a stale open count fails with file:line", typed("one\n22 rows, 13 accepted, 8 open\n"), "a.md:2:")
+        expect("a stale accepted count fails", typed("22 rows, 12 accepted, 9 open\n"), "says")
+        expect("a stale total fails", typed("21 rows, 13 accepted, 0 fixed and 9 open\n"), "says")
+        expect("a stale fixed count fails", typed("22 rows, 13 accepted, 1 fixed and 9 open\n"), "says")
+        expect("a stale 'open rows' sentence fails", typed("The register's 7 open rows: DNS\n"), "7 open rows")
+        expect("a missing stats key is refused", [] if False else check_typed_counts(os.path.join(tmp, "docs"), None, os.path.join(tmp, "none.yml")), "missing")
     return 0 if ok else 1
 
 
@@ -323,12 +386,18 @@ def main():
     ap.add_argument("--readme", default="README.md")
     ap.add_argument("--stats", default=None, help="default: DOCS/_data/stats.yml")
     ap.add_argument("--values", action="store_true", help="check the kinds of the values in stats.yml instead of the page references")
+    ap.add_argument("--typed-counts", action="store_true", help="check the single-points counts written in prose against stats.yml")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
     if a.self_test:
         return self_test()
     stats = a.stats or os.path.join(a.docs, "_data", "stats.yml")
-    problems = check_values(stats) if a.values else check_refs(a.docs, a.readme, stats)
+    if a.values:
+        problems = check_values(stats)
+    elif a.typed_counts:
+        problems = check_typed_counts(a.docs, a.readme, stats)
+    else:
+        problems = check_refs(a.docs, a.readme, stats)
     if problems:
         print("\n".join(problems))
         return 1

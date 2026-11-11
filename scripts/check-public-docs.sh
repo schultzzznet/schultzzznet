@@ -217,6 +217,10 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
   check_py "no page references a stats key that does not exist" \
     "A page names a figure stats.yml does not have; Jekyll would print nothing in its place. Fix the page or add the figure." \
     check-stats-refs.py --docs docs --readme README.md --stats docs/_data/stats.yml
+  # The README and front matter cannot use Liquid, so the register's counts typed there are compared with stats.yml.
+  check_py "typed single-point counts match the generated figures" \
+    "A page states the single-points counts (rows, accepted, fixed, open) in words and they differ from stats.yml. Reread the register and fix the sentence." \
+    check-stats-refs.py --typed-counts --docs docs --readme README.md --stats docs/_data/stats.yml
   # V1.0's history is frozen, so no freshness rule: its kinds, its sums and a method for every figure instead.
   check_py "history data is consistent and every figure has a method" \
     "docs/_data/history.yml is written by 'make history'; fix the generator or the history block of stats_methods.yml, not the file." \

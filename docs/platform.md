@@ -388,7 +388,7 @@ was committed.
 ## Read next
 
 - **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *V1.0 until rewritten.*
-- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *V1.0 until rewritten.*
+- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *Rewritten for V2.0 on 2026-11-11; no machine has been switched off yet.*
 - **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *V1.0 until rewritten.*
 - **[The embedded side](yocto.md)**: from zero findings to a hundred raw matches on one image.
 

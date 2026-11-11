@@ -102,6 +102,7 @@ cluster. What each figure counts, and the command behind it, is on the
 | Database instances ready | 3 of 3 |
 | Backup objects completed in the last 24 hours | 1 |
 | Latest restore drill on the home site | 2026-11-10, pass |
+| Single points accepted, fixed, open | 13, 0, 9 |
 | Alert rules | 12 |
 | Decision records | 8 |
 | Run records (pass of total) | 26 of 35 |
@@ -125,9 +126,13 @@ requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with recei
   on 2026-11-10 and 11, after the previous k3s cluster (built on 2026-09-04) was torn down on 2026-11-10; it had followed an earlier k3s build and a
   Docker Swarm cluster decommissioned on 2026-06-09. The platform and its practice date from 2025-12-21; no single cluster
   does. "Months of uptime" would not be true.
-- **Is not highly available throughout.** The new cluster has three control-plane servers, but storage is node-local and
-  the database has one backup machine, so a node loss is not yet survivable everywhere. The failure-domain review of 2026-09-09
-  belonged to V1.0 and is not carried over.
+- **Is not highly available throughout.** The rule is that a single point of failure on an app's own path (the app, its login,
+  its database, what its writes and failover depend on, its object store) is never accepted; only the shared way in, power, the
+  network, the internet line and supporting systems may be. Read on 2026-11-11, the register of single points holds 22 rows: 13
+  accepted, 0 fixed and 9 open, and 6 of the open ones are on the warning app's own path (pods, database, operator, backup plugin,
+  login, scaling). Storage is node-local, and no machine has been switched off to see what survives. The failure-domain review of
+  2026-09-09 belonged to V1.0 and is not carried over; redoing it for this cluster (kill each machine role on a throwaway cluster,
+  then on the home site, and record what survived) is a written plan item, not yet run. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
 - **Is not zero-loss.** The one database cluster has three instances and a nightly backup; a restore drill passed on 2026-11-10
   on a database of a few megabytes. A scheduled-backup restore and an off-site copy are untested. V1.0's
   synchronous-commit figures are not carried over.

@@ -83,6 +83,11 @@ evidence:
   inventory_total: 95
   inventory_proven: 15
   inventory_built: 5
+  single_points_accepted: 13
+  single_points_fixed: 0
+  single_points_open: 9
+  single_points_open_app: 6
+  single_points_open_shared: 3
 observability:
   scrape_targets: 18
   alert_rules: 12

@@ -158,6 +158,8 @@ SCHEMA = [
         ("steps_partly", "int"), ("steps_not_started", "int"), ("steps_gated", "int"),
         ("rules_total", "int"), ("rules_built", "int"), ("rules_partly", "int"),
         ("inventory_total", "int"), ("inventory_proven", "int"), ("inventory_built", "int"),
+        ("single_points_accepted", "int"), ("single_points_fixed", "int"), ("single_points_open", "int"),
+        ("single_points_open_app", "int"), ("single_points_open_shared", "int"),
     ]),
     ("observability", [
         ("scrape_targets", "int"), ("alert_rules", "int"), ("recording_rules", "int"),
@@ -853,6 +855,10 @@ def status_parse(text):
              r"([0-9]+) partly built and ([0-9]+) not built", "rules")
     inv = one(r"\*\*Inventory:\*\* ([0-9]+) components\. ([0-9]+) are proven on the new platform, ([0-9]+) built,",
               "inventory")
+    sp = one(r"\*\*Single points:\*\* ([0-9]+) accepted, ([0-9]+) fixed and ([0-9]+) open "
+             r"\(([0-9]+) on an app's path, ([0-9]+) on the shared path\)", "single points")
+    if sp[3] + sp[4] != sp[2]:
+        raise Fail("status page: the single points open on an app's path and on the shared path do not add up to the open count")
     done, total, kind, partly, notstarted, gated = st[0], st[1], st[2], st[3], st[4], st[5]
     if done + kind + partly + notstarted + gated != total:
         raise Fail("status page: the step counts do not add up")
@@ -873,6 +879,8 @@ def status_parse(text):
         "steps_not_started": notstarted, "steps_gated": gated,
         "rules_total": ru[0], "rules_built": ru[1], "rules_partly": ru[2],
         "inventory_total": inv[0], "inventory_proven": inv[1], "inventory_built": inv[2],
+        "single_points_accepted": sp[0], "single_points_fixed": sp[1], "single_points_open": sp[2],
+        "single_points_open_app": sp[3], "single_points_open_shared": sp[4],
     }
 
 
@@ -1168,6 +1176,7 @@ def readme_block(stats, generated_at):
         ("Database instances ready", f"{d['instances_ready']} of {d['instances']}"),
         ("Backup objects completed in the last 24 hours", num(d["backups_24h"])),
         ("Latest restore drill on the home site", f"{e['restore_drill_home_last']}, {e['restore_drill_home_result']}"),
+        ("Single points accepted, fixed, open", f"{e['single_points_accepted']}, {e['single_points_fixed']}, {e['single_points_open']}"),
         ("Alert rules", o["alert_rules"]),
         ("Decision records", num(r["adrs"])),
         ("Run records (pass of total)", f"{r['records_pass']} of {r['records']}"),
