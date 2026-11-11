@@ -86,6 +86,11 @@ evidence:
   rules_partly: { label: "Rules partly built", how: "Same page; rules marked partly built." }
   inventory_total: { label: "Components in the inventory", how: "Same page; every component in the inventory." }
   inventory_proven: { label: "Components proven on the new platform", how: "Same page; components whose state is proven." }
+  single_points_accepted: { label: "Single points accepted by the owner", how: "Parsed from the Single points line of the private repository's generated status page, which counts the decision lines of its single-points register. Shared-path and supporting points only: a point on an app's own path is never accepted." }
+  single_points_fixed: { label: "Single points fixed", how: "Same line; rows whose decision is fixed, which needs a record that powered off the node that held the first one." }
+  single_points_open: { label: "Single points open", how: "Same line; rows whose decision is open." }
+  single_points_open_app: { label: "Open single points on an app's own path", how: "Same line; open rows whose scope is app (the app, its login, its database, what its writes and failover depend on). The rule says these are never accepted." }
+  single_points_open_shared: { label: "Open single points on the shared path", how: "Same line; open rows whose scope is shared-path (cluster DNS, ingress, admission)." }
   inventory_built: { label: "Components built, not proven", how: "Same page; components whose state is built." }
 observability:
   scrape_targets: { label: "Scrape targets", how: "Active targets the metrics store is scraping that report up, read from its own targets list (a target that is down or not yet scraped is not counted)." }

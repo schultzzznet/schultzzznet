@@ -48,7 +48,7 @@ Counting configuration as tolerance is the mistake V1.0 spent months correcting.
 | Identity | One Keycloak replica in development mode on an in-memory database: a restart loses its state (from the probe record, not a live read). | Open |
 | Ingress | Two replicas of the ingress controller, plain HTTP, reachable on the home network only. There is no public name. | Built |
 | Cluster DNS | Two replicas read on 2026-11-11, scalable from 2 to 4. Placement across machines was not checked beyond that read. The register carries this row as open (cluster DNS). | Built |
-| Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as accepted (backup store), not open. | Open (accepted by the owner) |
+| Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as a supporting point, accepted (backup store), not open; see the register section for its end condition. | Open (accepted by the owner) |
 | Monitoring | Running and read. The metrics, alert and dashboard stack was merged on 2026-11-11; its first live run failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. Read on 2026-11-11: 18 of 18 scrape targets up, 12 alert rules, no dashboards. There is no log store. Alerts reach no person. In the register as accepted (monitoring). | Open |
 | Image registry | External (the code host's). A node without an image cached cannot start the pod if the registry is unreachable. | Open (accepted by the owner, 2026-11-08) |
 | Public edge | None on this platform. The single public entrance is an accepted decision (2026-11-08), not a built thing. | Open (accepted by the owner, 2026-11-08) |
@@ -72,7 +72,16 @@ record that powered the first one off and saw the app go on, and every row reads
   for a business app. Monitoring ends when a critical alert is missed because of it or the first business
   app launches. The registry ends when a mirror serves the cluster. The two rehearsal stores never end.
 - **Only the owner accepts**, and only on the shared path and for supporting points. A point on a
-  business app's own function path is never accepted: it is fixed, or open.
+  business app's own function path (the app, its login, its database, what its writes and failover depend on, and the
+  object store the app itself uses) is never accepted: it is fixed, or open. Six of the nine open rows are on that
+  path, which by the platform's own rule is not a state to live with.
+- **The backup store is a supporting point, not an app-path one,** so it may be accepted. It is the one
+  accepted row that could reach the app: if the store is down the write-ahead log waiting to be archived fills the
+  database volume and writes stop. How long that takes is not measured, so the acceptance ends when it is measured
+  to be under a day or real user data lives in the app.
+- **No review of node loss exists for this cluster yet.** The failure-domain review of 2026-09-09 was V1.0's. A plan
+  item to redo it (kill each machine role on a throwaway cluster, then on the home site, and write down what
+  survived) is written and not run; the register rows are to be updated from its record.
 
 ### Restore on the new platform
 
