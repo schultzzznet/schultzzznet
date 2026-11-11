@@ -16,19 +16,19 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
   it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
   changes on purpose, and production becomes the main line.
 
-- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). It is about a day old, so no uptime is claimed. Monitoring is built (pods Running since 2026-11-11, nothing read from it yet); alerts to a person, replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
+- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). It is about a day old, so no uptime is claimed. Monitoring is running and read (18 of 18 scrape targets up, 12 alert rules, no dashboards, about an hour of history on 2026-11-11); alerts to a person, replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
 - A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to V1.0 and is not part of this one (see the AI paragraph below).
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
 - The rule of the whole thing: assert the property, do not trust the report.
 
-> **Not measured yet (2026-11-11):** alert rules, dashboards, metric history, SBOM projects, alerts reaching a person, and electricity cost.
+> **Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
 >
 > **In short, as of 2026-11-11.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
 > paying customers, no users and no load. **Proven 2026-11-10, with limits:** admission policies are Ready and refused an off-list image once;
 > one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10 (a few megabytes, not real size,
 > and only one backup machine). **Failed:** the default-deny network probe, because a new pod is open for one to three seconds.
-> **Not live:** monitoring and alerts (merged 2026-11-11, pods Running at 07:00 UTC, nothing read from it yet), replicated storage, durable identity, an off-site backup copy, a public name. Figures
+> **Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name. Figures
 > that cannot be measured yet say "not measured yet". V1.0 is described in dated notes. Start with
 > [*V1.0 and V2.0: what changed*](https://schultzzznet.github.io/schultzzznet/versions.html) (the diff list),
 > [*How we work*](https://schultzzznet.github.io/schultzzznet/how-we-work.html), the
@@ -93,20 +93,20 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 28 |
-| Kustomizations ready | 13 of 18 |
+| Pods running | 38 |
+| Kustomizations ready | 18 of 18 |
 | Admission policies ready | 2 of 2 |
-| Tenants with default-deny (structural count) | 4 of 5 |
+| Tenants with default-deny (structural count) | 6 of 6 |
 | Database instances ready | 3 of 3 |
 | Backup objects completed in the last 24 hours | 1 |
 | Latest restore drill on the home site | 2026-11-10, pass |
-| Alert rules | not measured yet |
+| Alert rules | 12 |
 | Decision records | 8 |
 | Run records (pass of total) | 26 of 35 |
 | Test definitions (counted, not run) | 58 |
 | CI workflows | 9 |
 
-*Measured 2026-11-11T05:59:42Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-11T07:49:50Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 ## What this is, and is not
@@ -144,7 +144,7 @@ cluster. What each figure counts, and the command behind it, is on the
 ## The parts, briefly
 
 **Platform.** K3s on six nodes built by playbook and reconciled from git, node-local storage, an operator-managed PostgreSQL cluster
-with backups to an S3-compatible store on a small always-on Mac, admission policies and default-deny network rules (one probe failed, see above). Monitoring was merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and its pods were Running at 07:00 UTC) and nothing from it has been read. V1.0 (retired 2026-11-10): it ran Ceph, MinIO, Prometheus, Loki, Grafana and Alertmanager; that is history. Apps are Spring Boot and
+with backups to an S3-compatible store on a small always-on Mac, admission policies and default-deny network rules (one probe failed, see above). Monitoring was merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and its pods were Running at 07:00 UTC) and on 2026-11-11 it was read: 18 of 18 scrape targets up, 12 alert rules, no dashboards. V1.0 (retired 2026-11-10): it ran Ceph, MinIO, Prometheus, Loki, Grafana and Alertmanager; that is history. Apps are Spring Boot and
 Flutter. It is standard Kubernetes, but I have not tested it on a managed distribution, so I do
 not claim it would move unchanged.
 

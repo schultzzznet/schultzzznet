@@ -5,7 +5,7 @@ body_read: 2026-11-11
 summary:
   - "**Where it stands, 2026-11-11:** the platform was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day. Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
   - "**No current count:** the old page scored 7 of 13 failure domains. That count belonged to the retired platform. No new score is derived until the tests have been run. The app pods restarted 10 times each during bring-up; the cause was not checked."
-  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring is merged and its pods were Running at 07:00 UTC on 2026-11-11; nothing from it has been read."
+  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring was running on 2026-11-11 and was read: 18 of 18 scrape targets up, 12 alert rules."
   - "**Tried so far:** one restore drill (pass, 2026-11-10) and one default-deny probe (fail: a new pod is open for 1 to 3 seconds). Not tried: node loss, power cut, loss of one server, failover of the floating address."
   - "**Kept as record:** V1.0's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
@@ -49,7 +49,7 @@ Counting configuration as tolerance is the mistake V1.0 spent months correcting.
 | Ingress | Two replicas of the ingress controller, plain HTTP, reachable on the home network only. There is no public name. | Built |
 | Cluster DNS | Two replicas read on 2026-11-11, scalable from 2 to 4. Placement across machines was not checked beyond that read. The register carries this row as open (cluster DNS). | Built |
 | Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as accepted (backup store), not open. | Open (accepted by the owner) |
-| Monitoring | Built, not proven. The metrics, alert and dashboard stack was merged on 2026-11-11; its first live run failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. No scrape target, alert or dashboard has been read. There is no log store. Alerts reach no person. In the register as accepted (monitoring). | Open |
+| Monitoring | Running and read. The metrics, alert and dashboard stack was merged on 2026-11-11; its first live run failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. Read on 2026-11-11: 18 of 18 scrape targets up, 12 alert rules, no dashboards. There is no log store. Alerts reach no person. In the register as accepted (monitoring). | Open |
 | Image registry | External (the code host's). A node without an image cached cannot start the pod if the registry is unreachable. | Open (accepted by the owner, 2026-11-08) |
 | Public edge | None on this platform. The single public entrance is an accepted decision (2026-11-08), not a built thing. | Open (accepted by the owner, 2026-11-08) |
 | Physical layer | One switch, one router, one provider line, one mains supply. | Open (accepted by the owner, 2026-11-08) |
@@ -355,7 +355,7 @@ cluster. The rest of the house does; the cluster itself does not.
 
 ## The monitoring stack was the single point that mattered most
 
-*(V1.0. History, 2026-08-14. The placement below was fixed before the teardown. On the new platform on 2026-11-11 the monitoring stack is built but nothing from it has been read: it was merged that day and its pods were Running at 07:00 UTC.)*
+*(V1.0. History, 2026-08-14. The placement below was fixed before the teardown. On the new platform on 2026-11-11 the monitoring stack runs and was read that day: 18 of 18 scrape targets up, 12 alert rules.)*
 
 Metrics, alerting, dashboards and logs all ran on one node, with their volumes pinned to that
 host's disk. When that node was cordoned for planned maintenance, **alerting went dark for
@@ -652,7 +652,7 @@ seconds**, and package power from 8.23 W to 3.35 W.
 > An alert description that lists the wrong causes will send you to do the expensive ones
 > first. The description is part of the control, not documentation attached to it.
 
-*On 2026-11-11 this rule is not shown to be loaded anywhere: the monitoring tenant's pods were Running at 07:00 UTC, but no rule has been read from it.* The runnable rule, with a second worked example applying the same shape to HTTP error rates,
+*On 2026-11-11 this rule is not shown to be loaded anywhere: 12 alert rules were loaded in the monitoring stack, but this rule is not among those counted as shown.* The runnable rule, with a second worked example applying the same shape to HTTP error rates,
 is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/duty-cycle-alert.yaml).
 
 ---

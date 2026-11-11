@@ -110,11 +110,12 @@ def value_problem(raw):
     return f"{raw!r} is not a plain non-negative number; text must be quoted and one of an accepted kind"
 
 
-# The monitoring tenant is not merged or live yet, so these figures cannot have been measured. Until it is, anything but the
-# exact string is a leftover from V1.0. When monitoring goes live, empty this set in the same change.
-UNMEASURED_UNTIL_MONITORING = {
+# Where alerts go is not measurable yet (a chat channel pages nobody), so this one must stay the exact string.
+UNMEASURED_STILL = {("observability", "alerts_reaching_a_person"), ("observability", "sbom_projects")}
+# The monitoring stack runs and these are measured from it: 'not measured yet' here is a leftover, and is refused.
+MEASURED_NOW = {
     ("observability", k)
-    for k in ("scrape_targets", "alert_rules", "recording_rules", "dashboards", "metric_history_days", "alerts_reaching_a_person")
+    for k in ("scrape_targets", "alert_rules", "recording_rules", "dashboards", "metric_history_days")
 }
 
 
@@ -128,8 +129,10 @@ def check_values(stats_path):
             why = value_problem(raw)
             if why:
                 problems.append(f"{stats_path}:{n}: {g}.{k}: {why}")
-            elif (g, k) in UNMEASURED_UNTIL_MONITORING and strip_comment(raw.strip()).strip("\"'") != NM:
-                problems.append(f"{stats_path}:{n}: {g}.{k}: monitoring is not live, so this must be '{NM}', not a carried-over number")
+            elif (g, k) in UNMEASURED_STILL and strip_comment(raw.strip()).strip("\"'") != NM:
+                problems.append(f"{stats_path}:{n}: {g}.{k}: this cannot be measured yet, so it must be '{NM}', not a number")
+            elif (g, k) in MEASURED_NOW and strip_comment(raw.strip()).strip("\"'") == NM:
+                problems.append(f"{stats_path}:{n}: {g}.{k}: the thing it measures exists, so '{NM}' is refused: write the measured number")
     for name, (raw, n) in scalars.items():
         why = value_problem(raw)
         if why:

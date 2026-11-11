@@ -5,7 +5,7 @@ body_read: 2026-11-11
 summary:
   - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The platform was brought up on 2026-11-10/11, so nothing here claims uptime."
   - "**Seen working (dated):** a hand patch on the live site was reverted by Flux (2026-11-10); a restore from the backup store alone worked once (2026-11-10); a throwaway ruleset blocked a pull request on a red gate (2026-11-10)."
-  - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 but no scrape target, alert or dashboard has been read; no alert has reached a person."
+  - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert has reached a person."
   - "**The failures that taught me** are below, with dates."
 ---
 

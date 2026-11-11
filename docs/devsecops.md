@@ -7,7 +7,7 @@ summary:
   - "**Gates now (2026-11-11):** pre-commit with a secret scan over the whole history, check scripts that each plant their own failure, a local-cluster gate, and a pull-request objectives check that runs from the base commit. Contract fuzzing found eight faults in the reference app when it was added (around 2026-11-07 and 11-08), since fixed; one more, a repeated `radius` parameter accepted, was open on 2026-11-11."
   - "**Live and checked today:** two admission policies in Deny mode, default-deny network policy in the four tenant namespaces, restricted Pod Security on six of thirteen namespaces. First-party images are signed with a CI key only the main branch can use."
   - "**Not proven:** the default-deny probe failed on 2026-11-10 (a one to three second gap at pod start), encryption at rest is configured but not read back, the Flux artifact is unsigned, and vendor images are trusted by pinned digest, not by vendor signature."
-  - "**Not there yet:** no host scan, no SBOM job, no monitoring read (merged on 2026-11-11 and Running since 07:00 UTC, but no scrape target, alert or dashboard has been read), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
+  - "**Not there yet:** no host scan, no SBOM job, no alert that reaches a person, no dashboards (monitoring runs; 18 of 18 scrape targets were up on 2026-11-11), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
 ---
 
 {% include in-short.html %}
@@ -35,9 +35,8 @@ because its lessons did not depend on the platform.
 > **Built, not proven: monitoring.** The monitoring tenant was merged into the main
 > branch on 2026-11-11 once its two secret files were added. Its first live run failed on a
 > missing-namespace defect in the node exporter manifests, and a one-line fix landed the same day.
-> At 07:00 UTC all 19 Kustomizations were Ready and the monitoring pods were Running, but no scrape
-> target, alert rule or dashboard has been read, so there is nothing to count. Anything that
-> would need them says "not measured yet".
+> At 07:00 UTC all 18 Kustomizations were Ready and the monitoring pods were Running. It was read the same day (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert is
+> known to reach a person and there are no dashboards. Anything with nothing to count says "not measured yet".
 
 ---
 

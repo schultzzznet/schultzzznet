@@ -25,7 +25,11 @@ runs with may well be cluster-admin, so the only barrier is the allowlist in kub
 `get` (never of secrets, never watching), `get --raw` under the metrics API, `version` and
 `top`. Everything else (exec, logs, port-forward, apply, patch, delete, create, edit,
 label, annotate, cp, debug, ...) is refused before a process is spawned. Do not widen it
-without a reason written next to the change.
+without a reason written next to the change. The one exception is class PrometheusForward:
+a port-forward to the metrics store's own service (fixed namespace and service, loopback
+only), used for three GET requests of its read-only HTTP API (targets, rules, one query) and
+closed again. It starts its own process and does NOT go through kubectl(), so the allowlist
+above does not cover it; the fixed arguments in that class are its only barrier.
 
 Some figures cannot be measured yet because the thing they measure is not running. Those
 carry the exact value 'not measured yet' (kind nm), never 0 and never an older number. A
@@ -70,6 +74,7 @@ import math
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tarfile
@@ -155,8 +160,8 @@ SCHEMA = [
         ("inventory_total", "int"), ("inventory_proven", "int"), ("inventory_built", "int"),
     ]),
     ("observability", [
-        ("scrape_targets", "nm"), ("alert_rules", "nm"), ("recording_rules", "nm"),
-        ("dashboards", "nm"), ("metric_history_days", "nm"),
+        ("scrape_targets", "int"), ("alert_rules", "int"), ("recording_rules", "int"),
+        ("dashboards", "int"), ("metric_history_days", "float"),
         ("alerts_reaching_a_person", "nm"), ("sbom_projects", "nm"),
     ]),
     ("ci", [
@@ -434,7 +439,7 @@ def http_json(url, headers=None, retries=3):
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ConnectionError) as e:
             last = e
             time.sleep(1.5 * (i + 1))
-    raise Fail(f"GET {urllib.parse.urlsplit(url).netloc}: {scrub(last)}")
+    raise Fail(f"GET failed: {scrub(last)}")
 
 
 # ----------------------------------------------------------------------------- cluster
@@ -623,21 +628,30 @@ def measure_databases():
 
 
 # ----------------------------------------------------------------------- observability
-# Nothing in this group is measured: the monitoring stack is written but not applied. Each
-# probe below turns True the day its thing exists, and main() then FAILS, so a 'not measured
-# yet' cannot outlive the gap by accident. When one fires: write the measurement, change the
-# key's kind from nm, and delete the probe.
+# Five figures are measured from the running metrics store (a read-only port-forward to its
+# HTTP API) and from git. Two cannot be yet: where alerts go and whether an SBOM is uploaded.
+# Each probe below turns True the day its thing exists, and main() then FAILS, so a 'not
+# measured yet' cannot outlive the gap by accident. When one fires: write the measurement,
+# change the key's kind from nm, and delete the probe.
 def _image_repo(ref):
     return ref.split("@")[0].rsplit(":", 1)[0].rsplit("/", 1)[-1] if ref else ""
 
 
+# Receivers that wake a person: an on-call or SMS/phone/e-mail service. A chat webhook is
+# not one (it is a window onto alerts, nothing keeps paging until someone answers).
+PAGING_RECEIVERS = ("pagerduty_configs", "opsgenie_configs", "victorops_configs", "pushover_configs",
+                    "sns_configs", "email_configs", "webex_configs", "telegram_configs",
+                    "wechat_configs", "msteams_configs", "jira_configs", "rocketchat_configs")
+ALERT_ROUTER_FILE = "platform/services/monitoring/alertmanager/alertmanager.yml"
+
+
+def _alerts_page_someone(ctx):
+    text = ctx.get("alert_router_config") or ""
+    return any(re.search(rf"^\s*{k}\s*:", text, re.M) for k in PAGING_RECEIVERS)
+
+
 PENDING = [
-    ("monitoring resource definitions (alert rules, scrape targets)",
-     lambda ctx: any(c.endswith(".monitoring.coreos.com") for c in ctx["crds"])),
-    ("a metrics server (Prometheus image)",
-     lambda ctx: any(_image_repo(i) == "prometheus" for i in ctx["images"])),
-    ("dashboards (Grafana image)",
-     lambda ctx: any(_image_repo(i) == "grafana" for i in ctx["images"])),
+    ("an alert route that reaches a person (a paging, phone or e-mail receiver)", _alerts_page_someone),
     ("SBOM upload (an SBOM job or cron job)",
      lambda ctx: any("sbom" in n.lower() for n in ctx["job_names"])),
     ("Helm releases (the HelmRelease resource definition)",
@@ -651,8 +665,79 @@ def check_pending(ctx):
             raise Fail(f"{name} is now measurable: replace the not-measured entry")
 
 
-def measure_observability():
-    return {k: NM for k, _ in dict(SCHEMA)["observability"]}
+PROM_NAMESPACE, PROM_SERVICE, PROM_PORT = "monitoring", "prometheus", 9090
+
+
+class PrometheusForward:
+    """A read-only port-forward to the metrics store's service, open only while used.
+
+    kubectl() refuses port-forward on purpose, so this is the single place that starts one:
+    fixed namespace and service, local loopback only, a random local port, closed on exit.
+    """
+
+    def __enter__(self):
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            self.port = s.getsockname()[1]
+        self.proc = subprocess.Popen(
+            ["kubectl", "--request-timeout=30s", "-n", PROM_NAMESPACE, "port-forward", "--address", "127.0.0.1",
+             f"svc/{PROM_SERVICE}", f"{self.port}:{PROM_PORT}"],
+            env=kenv(), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(30):
+            if self.proc.poll() is not None:
+                break
+            try:
+                with socket.create_connection(("127.0.0.1", self.port), timeout=1):
+                    return self
+            except OSError:
+                time.sleep(0.5)
+        self.__exit__()
+        raise Fail("could not open a read-only connection to the metrics store")
+
+    def __exit__(self, *exc):
+        self.proc.terminate()
+        try:
+            self.proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
+        return False
+
+    def get(self, path):
+        d = http_json(f"http://127.0.0.1:{self.port}{path}")
+        if d.get("status") != "success":
+            raise Fail(f"the metrics store answered {path.split('?')[0]} with an error")
+        return d["data"]
+
+
+def measure_observability(plat, ctx):
+    with PrometheusForward() as prom:
+        targets = prom.get("/api/v1/targets?state=active")["activeTargets"]
+        groups = prom.get("/api/v1/rules")["groups"]
+        # Oldest sample held anywhere (blocks and the in-memory head), as the store itself reports it,
+        # against the store's own clock so this machine's clock cannot skew it.
+        q = prom.get("/api/v1/query?query=" + urllib.parse.quote("time() - prometheus_tsdb_lowest_timestamp_seconds"))
+        if q.get("resultType") != "vector" or len(q.get("result", [])) != 1:
+            raise Fail("the metrics store did not report how old its oldest sample is")
+        held = float(q["result"][0]["value"][1])
+    rules = [r for g in groups for r in g.get("rules", [])]
+    if not targets:
+        raise Fail("the metrics store reports no active target")
+    if not math.isfinite(held) or held < 0:
+        raise Fail("the metrics store reported an unusable history length")
+    # Dashboards: JSON files committed under the metrics UI's manifest directory in git (no
+    # provisioning config is checked, other directories and ConfigMap YAML are not counted). Nothing is read from the running UI and nobody logs in to it.
+    dashboards = sum(1 for f in plat.files
+                     if f.startswith("platform/services/monitoring/grafana/") and f.endswith(".json"))
+    ctx["alert_router_config"] = plat.read(ALERT_ROUTER_FILE) if ALERT_ROUTER_FILE in plat.files else ""
+    out = {k: NM for k, _ in dict(SCHEMA)["observability"]}
+    out.update({
+        "scrape_targets": sum(1 for t in targets if t.get("health") == "up"),
+        "alert_rules": sum(1 for r in rules if r.get("type") == "alerting"),
+        "recording_rules": sum(1 for r in rules if r.get("type") == "recording"),
+        "dashboards": dashboards,
+        "metric_history_days": round(held / 86400, 2),
+    })
+    return out
 
 
 # ----------------------------------------------------------------------------------- ci
@@ -1209,14 +1294,15 @@ def main():
             raise Fail("KUBECONFIG does not point at a file")
         stats = {}
         stats["cluster"], ctx = measure_cluster()
-        check_pending(ctx)
         for group, fn in (("storage", measure_storage), ("reconciler", measure_reconciler),
-                          ("admission", measure_admission), ("databases", measure_databases),
-                          ("observability", measure_observability)):
+                          ("admission", measure_admission), ("databases", measure_databases)):
             print(f"  measuring {group} ...", file=sys.stderr)
             stats[group] = fn()
         print("  reading the platform repository's main branch ...", file=sys.stderr)
         with PlatformSource() as src, Snapshot(src.repo, src.ref) as plat:
+            print("  measuring observability ...", file=sys.stderr)
+            stats["observability"] = measure_observability(plat, ctx)
+            check_pending(ctx)
             print("  measuring evidence ...", file=sys.stderr)
             stats["evidence"] = measure_evidence(plat)
             print("  measuring ci ...", file=sys.stderr)
