@@ -399,12 +399,24 @@ python3 - "$tmp/site/docs/_data/stats.yml" <<'PY'
 import re, sys
 p = sys.argv[1]
 t = open(p).read()
-new, n = re.subn(r"(?m)^  alert_rules:.*$", "  alert_rules: 42", t, count=1)
+new, n = re.subn(r"(?m)^  alerts_reaching_a_person:.*$", "  alerts_reaching_a_person: 42", t, count=1)
+if n != 1:
+    sys.exit("test-guard: observability.alerts_reaching_a_person is not in stats.yml")
+open(p, "w").write(new)
+PY
+must_fail "a number in a figure that cannot be measured yet (alerts reaching a person)" "$values_rule"
+
+scratch
+python3 - "$tmp/site/docs/_data/stats.yml" <<'PY'
+import re, sys
+p = sys.argv[1]
+t = open(p).read()
+new, n = re.subn(r"(?m)^  alert_rules:.*$", '  alert_rules: "not measured yet"', t, count=1)
 if n != 1:
     sys.exit("test-guard: observability.alert_rules is not in stats.yml")
 open(p, "w").write(new)
 PY
-must_fail "a number in a monitoring figure while monitoring is not live" "$values_rule"
+must_fail "a measured monitoring figure set back to 'not measured yet' while the monitoring stack runs" "$values_rule"
 
 scratch
 set_nodes_ready '"6"'

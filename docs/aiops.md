@@ -24,7 +24,7 @@ summary:
 >   configuration and 12 unit tests under the real rule tool) was merged into the platform
 >   repository on 2026-11-11 with its secrets encrypted. Its first live run failed on a missing
 >   namespace in the node exporter manifests; the fix landed the same day, and at 07:00 UTC its
->   pods were Running. It is built, not proven: nothing from it has been read.
+>   pods were Running. It runs and was read on 2026-11-11 (18 of 18 scrape targets up, 12 alert rules); no alert is known to reach a person.
 > - **The agent process and its local model** ran on V1.0. They were retired with
 >   it, or are unknown, as of 2026-11-11 (not checked). The new
 >   platform gives them no inputs: the objective for AI in production (eight rules: approval

@@ -5,7 +5,7 @@ body_read: 2026-11-11
 summary:
   - "**What it is:** a training system, on purpose. V2.0, a new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). It is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
   - "**Proven (dated):** admission policies refuse off-list or undigested images (one real refusal, 2026-11-10); one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10, with limits. The default-deny probe failed (a 1-3 s gap at pod start)."
-  - "**Not live:** monitoring and alerts (merged 2026-11-11, pods Running at 07:00 UTC, nothing read from it yet), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
+  - "**Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
   - "**V1.0 (retired 2026-11-10):** its figures stay lower on this page under dated headings. None is a claim about the new cluster. Next: [Where to start](#where-to-start) and [How we work](how-we-work.html)."
   - "**V1.0 against V2.0:** [a dated diff list](versions.html) of what changed between the retired cluster and this one, area by area, including where V1.0 did better and what is not rebuilt yet."
 ---
@@ -23,7 +23,7 @@ summary:
 
 # A training system, on purpose: the latest platform technology on the weakest hardware I could put to use, AI on every side, to learn as much as possible before the day a killer app needs it.
 
-**Not measured yet (2026-11-11):** alert rules, dashboards, metric history, SBOM projects, alerts reaching a person, and electricity cost.
+**Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
 
 **What it is for.** Training: principles, technologies and everything around them, learned as
 deeply and as hands-on as possible, on a system that is actually running. **The hardware is
@@ -45,9 +45,8 @@ drill passed on 2026-11-10, with limits. Everything V1.0 measured, and every
 correction it made, is kept further down under a dated heading and is not a claim about this cluster.
 
 **There are no paying customers, no users and no load at all.** The synthetic load generator went
-with V1.0. There is no public entrance and no public name. **Monitoring is built, not proven**: the
-metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 19 Kustomizations were Ready and its pods were Running. Nothing from it has been read, so no alert
-reaches a person today. Where a figure below cannot be measured yet, it says *not measured yet*.
+with V1.0. There is no public entrance and no public name. **Monitoring is running and has been read**: the
+metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 18 Kustomizations were Ready and its pods were Running. On the same day it was read: 18 of 18 scrape targets up, 12 alert rules, no dashboards. No alert is known to reach a person today. Where a figure below cannot be measured yet, it says *not measured yet*.
 
 {% include in-short.html %}
 
@@ -105,10 +104,10 @@ database cluster. Both the 2026-11-10 restore drill (last recorded {{ ev.restore
 
 | Measured on the new cluster | State on 2026-11-11 |
 |---|---|
-| Metric scrape targets up | **not measured yet** (the metrics stack was merged 2026-11-11 and its pods were Running at 07:00 UTC, but no target has been read) |
-| Alert rules loaded, alerts firing | **not measured yet**; no alert reaches a person |
-| Dashboards | **not measured yet** |
-| Metric history held | **not measured yet** |
+| Metric scrape targets up | 18 of 18 (read 2026-11-11) |
+| Alert rules loaded | 12 alerting rules and 0 recording rules (read 2026-11-11); alerts reaching a person are **not measured yet** |
+| Dashboards | 0 (none committed to git; the dashboard service has none provisioned) |
+| Metric history held | about 0.04 days, roughly an hour (the stack is new) |
 | Storage replication | none: node-local volumes only (open; a reviewed trade) |
 | Off-site backup copy | none (open) |
 | First-party images that verify against the release key | admission checks this at creation; a count is **not measured yet** |
@@ -259,7 +258,7 @@ All of this was read from the cluster or its records on 2026-11-11 unless it say
   signature-checked** (open): the list and the digest pin are the control, not a signature. **The Flux artifact is unsigned**
   (open). **There is no SBOM or vulnerability tracker** on the new cluster (planned). The regulatory picture (CRA, GDPR,
   app-store labels) is on [the compliance page](compliance.html).
-- **Not live on 2026-11-11:** monitoring, alerts and dashboards (merged 2026-11-11, pods Running at 07:00 UTC, nothing read from them), any public name or HTTPS, replicated storage, durable
+- **Not live on 2026-11-11:** dashboards and any alert that reaches a person (monitoring itself runs and was read on 2026-11-11), any public name or HTTPS, replicated storage, durable
   identity, an off-site backup copy, a second Linux distribution in the host rehearsal, the host pull timer, any input to the
   operations agent, fault injection, a vulnerability tracker, and two of the three reference apps.
 - **Retired from the present tense:** the chaos schedules, the operations agent, the reboot daemon and the 49-assertion audit were
@@ -311,7 +310,7 @@ to be here did. Status as of 2026-11-11.
 | Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin, an S3-compatible store (Garage) on a small Mac outside the cluster, Keycloak in dev mode | One copy of the backups; identity is not durable |
 | Change and secrets | Flux from a CI-built artifact, SOPS with age | The artifact is unsigned. Restoring secrets from the recovery key has not been tested (open) |
 | Supply chain | cosign, Kyverno admission (Deny), gitleaks, Renovate, pre-commit | Renovate is configured and not yet seen acting. Vendor images are not signature-checked. No tracker |
-| Observability | Tempo only | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day, pods Running at 07:00 UTC, nothing read |
+| Observability | Tempo only | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day, pods Running at 07:00 UTC, 18 of 18 targets up when read |
 | Applications | Java 25, Spring Boot 4 for the reference app | No load |
 | Embedded | Yocto, RAUC signed A/B OTA, Raspberry Pi | Unchanged; the heartbeat to the cluster is planned |
 

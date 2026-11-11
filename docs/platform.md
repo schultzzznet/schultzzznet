@@ -99,8 +99,8 @@ deadlock itself was recorded on the day).
   Helm controller. They are in git but not held there by a controller. Open.
 - **Default-deny has a gap at pod start (probed live 2026-11-10, recorded as a failed probe).** For about 1 to 3 seconds after a pod starts, its egress and ingress are open; after that the rules hold. Not tested: egress from the first packet under another engine, ingress from outside the cluster, DNS limits. Open.
 - **Keycloak runs in its dev profile on an in-memory database** (seen by the same probe, 2026-11-10), so it loses state on a restart. Open.
-- **Monitoring is built, not proven, on the new cluster (read 2026-11-11 07:00 UTC).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 19 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. That is built, not proven: no scrape target, alert rule or dashboard has been read, and no alert reaches a person, so alert and
-  dashboard figures are not measured yet. Built, not proven.
+- **Monitoring is running and read on the new cluster (2026-11-11).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 18 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. Read afterwards on the same day: 18 of 18 scrape targets up, 12 alert rules, 0 recording rules, 0 dashboards, about an hour of history. No alert is known to reach a person, so that figure and the
+  SBOM figure stay not measured yet.
 
 ---
 
