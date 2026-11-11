@@ -1,7 +1,7 @@
 # Examples — four things worth stealing
 
-**Previous platform records, as of 2026-11-11.** The four examples were extracted from the
-previous platform's running system, a six-node bare-metal Kubernetes platform that ran until it
+**V1.0 records, as of 2026-11-11.** The four examples were extracted from
+V1.0, a six-node bare-metal Kubernetes platform that ran until it
 was torn down on 2026-11-10. They are scrubbed of hostnames and addresses and kept as close to the
 deployed version as scrubbing allows. Each one exists because something looked correct and was not.
 
@@ -41,6 +41,6 @@ system you are pointing them at.
 ## A caveat worth reading first
 
 These were extracted from a working system, not written as a library. They carry
-the assumptions of the place they came from, as of their extraction (the previous platform,
+the assumptions of the place they came from, as of their extraction (V1.0,
 until 2026-11-10): Ubuntu hosts, k3s, a Prometheus Operator install. Read them before running them; the comments explaining *why*
 are the valuable part, not the code.

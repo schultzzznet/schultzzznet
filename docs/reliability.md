@@ -5,9 +5,9 @@ body_read: 2026-11-11
 summary:
   - "**Where it stands, 2026-11-11:** the platform was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day. Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
   - "**No current count:** the old page scored 7 of 13 failure domains. That count belonged to the retired platform. No new score is derived until the tests have been run. The app pods restarted 10 times each during bring-up; the cause was not checked."
-  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring is merged and being applied, not Ready."
+  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring is merged and its pods were Running at 07:00 UTC on 2026-11-11; nothing from it has been read."
   - "**Tried so far:** one restore drill (pass, 2026-11-10) and one default-deny probe (fail: a new pod is open for 1 to 3 seconds). Not tried: node loss, power cut, loss of one server, failover of the floating address."
-  - "**Kept as record:** the old platform's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
+  - "**Kept as record:** V1.0's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
 
 # Single-fault tolerance, measured rather than assumed
@@ -17,7 +17,7 @@ summary:
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
 true. This page is the audit: which failure domains survive losing one machine, which do not,
 and what happened when the assumptions were exercised. It has two parts. The first is the
-**new platform, read on 2026-11-11**. The second is the **previous platform, until 2026-11-10**,
+**new platform, read on 2026-11-11**. The second is the **V1.0, until 2026-11-10**,
 kept whole because what it taught still applies and because deleting history is how a page
 stops being honest.
 
@@ -29,7 +29,7 @@ Status words used in the first part: **proven** (seen working on a live run, wit
 
 ## The new platform, 2026-11-11
 
-The old platform was torn down on 2026-11-10 and replaced by a new cluster of six machines:
+V1.0 was torn down on 2026-11-10 and replaced by a new cluster of six machines:
 three control-plane servers and three laptop agents. The nodes were 13 to 14 hours old when read on that day on 2026-11-11. That
 is too young to say anything about uptime and this page does not. Every row below is a reading of
 one moment, taken from the live cluster (read-only) and from the register of single points of
@@ -37,7 +37,7 @@ failure that the new platform keeps.
 
 **There is no count of tolerant domains here, on purpose.** The old page scored itself 7 of 13
 on 2026-09-09. A new score needs the failure tests to have been run, and none has been.
-Counting configuration as tolerance is the mistake the old platform spent months correcting.
+Counting configuration as tolerance is the mistake V1.0 spent months correcting.
 
 | Domain | State on 2026-11-11 | Status |
 |---|---|---|
@@ -49,7 +49,7 @@ Counting configuration as tolerance is the mistake the old platform spent months
 | Ingress | Two replicas of the ingress controller, plain HTTP, reachable on the home network only. There is no public name. | Built |
 | Cluster DNS | Two replicas read on 2026-11-11, scalable from 2 to 4. Placement across machines was not checked beyond that read. The register carries this row as open (cluster DNS). | Built |
 | Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as accepted (backup store), not open. | Open (accepted by the owner) |
-| Monitoring | None running. The metrics, alert and log stack was merged on 2026-11-11 and Flux is applying it, but it is not Ready: its first live run failed on a missing-namespace defect in the node exporter manifests, and a one-line fix is in review. It has never run. Alerts reach no person. In the register as accepted (monitoring). | Open |
+| Monitoring | Built, not proven. The metrics, alert and dashboard stack was merged on 2026-11-11; its first live run failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. No scrape target, alert or dashboard has been read. There is no log store. Alerts reach no person. In the register as accepted (monitoring). | Open |
 | Image registry | External (the code host's). A node without an image cached cannot start the pod if the registry is unreachable. | Open (accepted by the owner, 2026-11-08) |
 | Public edge | None on this platform. The single public entrance is an accepted decision (2026-11-08), not a built thing. | Open (accepted by the owner, 2026-11-08) |
 | Physical layer | One switch, one router, one provider line, one mains supply. | Open (accepted by the owner, 2026-11-08) |
@@ -101,7 +101,7 @@ and its self-test proves that the refusal can itself fail, so it is not a check 
 says yes.
 
 No weekly restore job exists on the new platform. The weekly drill described further down
-belongs to the previous platform.
+belongs to V1.0.
 
 ### Default-deny held, except for the first one to three seconds
 
@@ -129,7 +129,7 @@ DNS egress limits were not tested either.
 - Restoring a scheduled backup, as opposed to an on-demand one.
 - A point-in-time restore.
 
-Fault injection and the reboot loop of the previous platform are not part of the new platform's records (not checked on the live cluster). The
+Fault injection and the reboot loop of V1.0 are not part of the new platform's records (not checked on the live cluster). The
 principle from the old drain incident is applied again: kubeconfig is meant to point at the floating
 address, never at one machine's name (not checked here). One related fix is dated: the host layer's first check
 expected an HTTP 200 from the API server where it answers 401, and was corrected on 2026-11-10 (merge date not checked).
@@ -155,13 +155,13 @@ for.
 
 ---
 
-## The previous platform, until 2026-11-10
+## V1.0, until 2026-11-10
 
 *Torn down on 2026-11-10 and kept as the record of what was learned. Everything below this line
-describes the old platform, as it was on the dates given, and none of it exists now. Figures are
+describes V1.0, as it was on the dates given, and none of it exists now. Figures are
 hand-typed from the last readings, not regenerated.*
 
-The old platform scored itself **7 of 13** failure domains genuinely tolerant on 2026-09-09. Its
+V1.0 scored itself **7 of 13** failure domains genuinely tolerant on 2026-09-09. Its
 block storage kept three copies over four disk daemons. The restore drills of its eight
 databases were waived at the wipe: three of the eight had been restored from the NAS copy on
 2026-11-08 (134 s, 179 s and 968 s for 1.8 GB), five had not.
@@ -206,7 +206,7 @@ the same one switch and one power feed.
 
 ---
 
-### Two things that were deliberately **not** replicated (previous platform)
+### Two things that were deliberately **not** replicated (V1.0)
 
 Replication is not automatically an improvement, and a register that treats "1 replica" as a
 defect everywhere teaches you nothing.
@@ -225,7 +225,7 @@ rest of the register credible.
 
 ## The replication that would have been theatre
 
-*(Previous platform, 2026-09.)* The image registry was the last stateful single point in the delivery path, and it cannot be
+*(V1.0, 2026-09.)* The image registry was the last stateful single point in the delivery path, and it cannot be
 replicated as built: one pod, one read-write-once volume.
 
 The obvious fix, two registry replicas over shared object storage, was rejected after being
@@ -262,7 +262,7 @@ storage side.
 
 ## Scheduling by fact, not by hope
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 Machines spanning a decade of hardware generations (chosen as a handicap, on purpose: if it runs here, it runs anywhere) do not schedule safely under a single
 "a node is a node" model, so nodes carry labels for disk speed and CPU class, and workloads
@@ -292,7 +292,7 @@ of truth is a bug with a delay on it, not a redundancy.**
 
 ## Restore is drilled, not assumed
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 A backup nobody has restored is a belief, not a control. So restoring one was a standing,
 non-destructive drill: any database could be restored from object storage into a scratch
@@ -330,7 +330,7 @@ proxies are deliberately not backed up, because they re-download.
 
 ## The cluster must not need itself to start
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 The home network's DNS resolver moved **onto** the cluster. Two failure modes came with it, and
 one of them happened.
@@ -355,7 +355,7 @@ cluster. The rest of the house does; the cluster itself does not.
 
 ## The monitoring stack was the single point that mattered most
 
-*(Previous platform. History, 2026-08-14. The placement below was fixed before the teardown. There is no monitoring on the new platform on 2026-11-11: the stack was merged on 2026-11-11 and Flux is applying it, but it is not Ready and has never run.)*
+*(V1.0. History, 2026-08-14. The placement below was fixed before the teardown. On the new platform on 2026-11-11 the monitoring stack is built but nothing from it has been read: it was merged that day and its pods were Running at 07:00 UTC.)*
 
 Metrics, alerting, dashboards and logs all ran on one node, with their volumes pinned to that
 host's disk. When that node was cordoned for planned maintenance, **alerting went dark for
@@ -381,7 +381,7 @@ alert routing, which is why monitoring stays *partly* tolerant in the table.
 
 ## The drain that removed its own control surface
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 This is the incident worth the whole page.
 
@@ -424,7 +424,7 @@ control plane, and the control plane is what you need during the failure.**
 
 ## The patching loop *is* the chaos experiment
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 Automated OS patching usually gets filed under hygiene. On a cluster designed to survive
 losing any one machine, it is more valuable than that. The design claim is: lose one node and
@@ -467,7 +467,7 @@ applications block for seconds instead of receiving errors. Each database took b
 142 seconds. One of them was the identity provider, which every other service authenticates
 against, so it was also the one with the least room to be wrong.
 
-What that cost, stated plainly. The five old clusters were still running as the rollback path,
+What that cost, stated plainly. On 2026-09-16 the five V1.0 clusters were still running as the rollback path,
 idle, as of 2026-10-27. A "temporary" double footprint that was still there weeks later was a gap;
 a decommission runbook was drafted and blocked. They went with the platform at the wipe on 2026-11-10. Logical replication ran old to new only and was retired on 2026-09-28, so
 nothing flows back: by construction (not by a rollback test) the old copies are frozen at the
@@ -482,7 +482,7 @@ was the one that was already running. Whether the new platform gets an equivalen
 
 ## The upgrade that kept the uptime and lost the guarantee
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 The cutover above kept the applications up. It also, silently, kept less than it replaced.
 
@@ -510,7 +510,7 @@ each primary says now, so the next disagreement is a number rather than a discov
 
 ## …except it had never rebooted anything
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 Which is the second half of the story, and the better half.
 
@@ -559,7 +559,7 @@ Two smaller findings surfaced in the same sweep:
 
 A later, ordinary kernel patch (2026-08-19) is the cleanest proof that the loop does what it
 claims. Overnight, and without anyone scheduling it, the daemon drained and restarted **five
-of the nine nodes, including one of the three that hold cluster quorum**, one at a time. It
+of the nine nodes, including one of the three that hV1.0 quorum**, one at a time. It
 surfaced three real things, exactly the way an unannounced fault should:
 
 - A database replica failed to recover cleanly from its restart, the second time that failure
@@ -596,7 +596,7 @@ instance not ready.
 
 ## The alert that was correct, deployed, and could not fire
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 One more in the same family, and the most instructive to read as code, because nothing about it
 looks wrong.
@@ -652,14 +652,14 @@ seconds**, and package power from 8.23 W to 3.35 W.
 > An alert description that lists the wrong causes will send you to do the expensive ones
 > first. The description is part of the control, not documentation attached to it.
 
-*On 2026-11-11 this rule is not loaded anywhere: the monitoring tenant is not Ready and has never run.* The runnable rule, with a second worked example applying the same shape to HTTP error rates,
+*On 2026-11-11 this rule is not shown to be loaded anywhere: the monitoring tenant's pods were Running at 07:00 UTC, but no rule has been read from it.* The runnable rule, with a second worked example applying the same shape to HTTP error rates,
 is [in the examples directory](https://github.com/schultzzznet/schultzzznet/blob/main/examples/duty-cycle-alert.yaml).
 
 ---
 
 ## The estate was shut down on purpose for four days
 
-*Previous platform. Added 2026-10-27. 14 to 18 October 2026.* The same pause path was used once more at the teardown on 2026-11-10.
+*V1.0. Added 2026-10-27. 14 to 18 October 2026.* The same pause path was used once more at the teardown on 2026-11-10.
 
 I took the whole estate down on purpose while I was away, and brought it back on the 18th. This
 was a planned shutdown, not an outage, and an earlier version of this page treated it as an
@@ -693,7 +693,7 @@ are that class exactly. A planned shutdown was the cheapest way to find them.
 
 ## Fault injection is paused by its own safety gate
 
-*Previous platform. Added 2026-10-27. Fault injection is not running on the new platform on 2026-11-11.*
+*V1.0. Added 2026-10-27. Fault injection is not running on the new platform on 2026-11-11.*
 
 Two Chaos Mesh schedules (a pod kill and a 25 percent packet loss, hourly on weekdays in the
 daytime) run against a sandbox workload, behind a safety controller that pauses them whenever the
@@ -720,7 +720,7 @@ cluster is not in steady state. That controller is the part of this page worth c
 
 ## The gap register, and why closing things you will never do matters
 
-*Previous platform, until 2026-11-10; not running now. Read it as history.*
+*V1.0, until 2026-11-10; not running now. Read it as history.*
 
 Gaps were tracked in one register, ordered by **risk × leverage** rather than by technology
 area:

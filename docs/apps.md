@@ -36,7 +36,7 @@ people in the screenshots are three demo accounts. The apps exist to exercise th
 and one of the bugs they exposed is [lesson 12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The repository holds five Flutter clients; these three are the ones this site describes.
 
-App versions: not measured yet. The earlier version figures came from the old platform's
+App versions: not measured yet. The earlier version figures came from V1.0's
 generator ([the stats generator](status.html)) and are gone with it; a declared version is
 what a repository says, not a store release. Two of the apps' About dialogs carry a
 hard-coded version string that has fallen behind (see the end of this page).
@@ -54,7 +54,7 @@ are still true as software, but this is what is deployed:
 - **Login through the new identity provider by an app on the home site has not been shown.** The new
   identity provider runs in development mode with in-memory storage, so it holds nothing durable.
 - **Not recorded for the new realm:** whether registration is open, and the token lifespans. The
-  figures further down (an hour, 30 days, registration off since 2026-09-29) are the previous platform's.
+  figures further down (an hour, 30 days, registration off since 2026-09-29) are V1.0's.
 
 ## What they look like
 
@@ -124,7 +124,7 @@ All three work the same way, and none has a password field.
 - **Hosted login.** The app opens the identity provider's own page in the system browser
   and receives a code back (OAuth 2.0 authorisation code with PKCE). **The app never sees
   your password.** "Create account" is the same call with a registration hint.
-- **Tokens (previous platform's settings, 2026-10-09).** Held in the platform keychain (iOS Keychain, Android Keystore-backed
+- **Tokens (V1.0's settings, 2026-10-09).** Held in the platform keychain (iOS Keychain, Android Keystore-backed
   storage). The access token lasts an hour. The offline refresh token lasts 30 days from
   last use, so a phone that is opened at least once a month stays signed in.
 - **One refresh at a time.** A burst of failing requests triggers a single refresh, and a
@@ -142,7 +142,7 @@ server positively rejects the refresh token (an exact `invalid_grant`), and a co
 no network keeps you in. The mechanism, and what I got wrong on the way, is in [lesson
 12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The realm settings that went with it (token lifespans, event logging, the demo accounts) were
-code in the previous platform's provisioning playbook as of 2026-10-09; the new realm's
+code in V1.0's provisioning playbook as of 2026-10-09; the new realm's
 settings are not recorded yet (2026-11-11).
 
 ## What they are not (yet)
@@ -162,7 +162,7 @@ Stated plainly, because the screenshots above flatter them.
   Talk profile pages are stubs. The About dialogs of Loc8 and Talk show a hard-coded version
   that no longer matches their `pubspec.yaml`.
 - **Tests are counted, not weighed.** The Dart test count is not measured yet (the earlier
-  count came from the old platform's generator). On 2026-10-09 the Flutter clients had Dart test
+  count came from V1.0's generator). On 2026-10-09 the Flutter clients had Dart test
   definitions, counted not run; [how](status.md). Close to half
   of the ones for these three exercise the sign-in and refresh logic, which is where the bug
   was. Nothing tests the maps, Loc8's chat or any real-time behaviour (Talk's chat screen has
@@ -180,7 +180,7 @@ features, such as push notifications, that the code does not have.
 
 The apps are the workload, and [the platform](platform.md) is the point. They are why the
 database failover mattered, why [the incident](incident.md) had somewhere to land, and why
-a synthetic traffic generator (previous platform; [the estate page](index.md#none-of-this-is-a-demo) describes it)
+a synthetic traffic generator (V1.0; [the estate page](index.md#none-of-this-is-a-demo) describes it)
 had real endpoints to hit. That
 generator is gone and no load runs now (2026-11-11). Warn's backend now lives in the new private
 repository; the clients and the other backends are in the old one.

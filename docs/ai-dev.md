@@ -48,14 +48,14 @@ The last arrow is dashed because it is not wired. Nothing turns a recurring anom
 backlog item automatically; the author notices it and writes the item. No Jira link is
 recorded in this loop on the new platform (2026-11-11): delivery is a pull request, the checks,
 a signed artifact, and Flux applying the published artifact built from Git. Monitoring is not live on the new
-cluster (no monitoring namespace on 2026-11-11; its rollout is merged but not finished), so there is no "live signal" step to draw. *Previous platform (retired 2026-11-10):*
+cluster (no monitoring namespace on 2026-11-11; its rollout is merged but not finished), so there is no "live signal" step to draw. *V1.0 (retired 2026-11-10):*
 the loop also had a Jira item, a code-quality server and auto-deploy for three apps.
 
 **The rulebook the model reads first.** The platform repository (a new private repository
 since 2026-11-05) carries an `AGENTS.md` of working agreements that every AI session reads
 before it touches anything. One of them is: read the whole output. A filter that matches
 nothing reads as a confident zero, and that has produced a false all-clear twice, so use a
-command's own filters, or save the output and read it. (*Previous platform:* this was called
+command's own filters, or save the output and read it. (*V1.0:* this was called
 Rule Zero and banned `head`, `tail` and `grep` outright.) Another is that a green status line
 is a claim, not evidence. That is
 checkable, which is more than can be said for a sentence about "governed connections".
@@ -91,7 +91,7 @@ nothing is exempt, not that nothing is red.
   secrets. Review by an agent would be a second identity, not independent judgement.
 - **Dependency updates:** Renovate is configured; I have not yet seen it act.
 
-*Previous platform repository (retired 2026-11-10), kept as history.* This was a one-person repository, so the gate was CI, not a second human. One person read and
+*V1.0 repository (retired 2026-11-10), kept as history.* This was a one-person repository, so the gate was CI, not a second human. One person read and
 pushed every change and was accountable for it. **That changed on 2026-10-18, in form but not in
 substance.** Until then almost nothing went through a pull request (3 merge commits in the history,
 and an outside review on 2026-10-14 counted 303 of 323 recent commits straight to the main
@@ -144,7 +144,7 @@ holds 8 architecture decision records (3 accepted, 5 proposed) in 101 commits ov
 all by one login, all with a `Co-Authored-By` Claude trailer (counted 2026-11-11 with `git log`).
 That is the checkable credit, and it shows volume, not quality.
 
-*Previous platform repository, counted 2026-10-27 (retired 2026-11-10):* 41 decision records in 1,943
+*V1.0 repository, counted 2026-10-27 (retired 2026-11-10):* 41 decision records in 1,943
 commits over 309 days, 1,897 of them by one person; the other 46 were bots. One of its four
 post-mortems named its AI assistant in the byline (a draft, not the post-mortem published on [the incident
 page](incident.html)). 123 of its commits carried the trailer.
@@ -161,7 +161,7 @@ was the model's alone.
 
 - The review request above: the flagship control was inert, configured and plausible, and
   reported success.
-- *Previous platform, before 2026-11-10:* during one self-review pass the model reported stale and partly wrong facts about the
+- *V1.0, before 2026-11-10:* during one self-review pass the model reported stale and partly wrong facts about the
   platform it was describing: that a piece of autoscaling configuration was absent when it was
   live, and that no restore drill existed when one already did. Neither survived a query
   against the live system.

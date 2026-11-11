@@ -5,7 +5,7 @@ body_read: 2026-11-11
 summary:
   - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The platform was brought up on 2026-11-10/11, so nothing here claims uptime."
   - "**Seen working (dated):** a hand patch on the live site was reverted by Flux (2026-11-10); a restore from the backup store alone worked once (2026-11-10); a throwaway ruleset blocked a pull request on a red gate (2026-11-10)."
-  - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is applying but not Ready and has never run; no alert has reached a person."
+  - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 but no scrape target, alert or dashboard has been read; no alert has reached a person."
   - "**The failures that taught me** are below, with dates."
 ---
 
@@ -19,7 +19,7 @@ This page describes how changes are made, checked, approved and recovered on the
 
 **Key to the labels.** "Proof B" is a test of whether the aggregate gate can be a required check (section 5). A "step" is one item in the order of work, and a "decision record" is a written decision with a number. Machines are described by role, never by name, and software without versions.
 
-Previous-platform stories are collected in their own list at the end of section 9 and in the last section.
+V1.0 stories are collected in their own list at the end of section 9 and in the last section.
 
 ## How to read this page
 
@@ -62,7 +62,7 @@ pull request -> checks -> squash merge -> signed bundle -> Flux pull -> admissio
 | Squash merge | Linear history | built; the history is linear so far, not tested by a refused merge |
 | A publish step builds an artifact from main | Runs on merge | proven 2026-11-10/11 |
 | Flux polls the source every 2 minutes; the Kustomizations reconcile every 5 minutes | No inbound path, and the pipeline holds no cluster credential | proven 2026-11-10/11 |
-| A chain of Kustomizations | Operators first; base and secrets after; policies after base; ingress after policies and the load balancer; tenants last | On a reading at 2026-11-11 (after the monitoring tenant was merged) the operators, base, policies, load balancer, ingress and four tenants were Ready; the monitoring tenants and their secrets were not Ready, and one was still reconciling. The live figure is on the [status page](status.html), because a count here would age |
+| A chain of Kustomizations | Operators first; base and secrets after; policies after base; ingress after policies and the load balancer; tenants last | On a reading at 2026-11-11 (after the monitoring tenant was merged) the operators, base, policies, load balancer, ingress and four tenants were Ready; the monitoring tenants and their secrets were not Ready, and one was still reconciling; a later reading at 07:00 UTC the same day found all 19 Ready. The live figure is on the [status page](status.html), because a count here would age |
 | The artifact is signed | It is not. It is read through a moving tag | open (signing or pinning is the next step) |
 | Everything is reconciled | Software installed from Helm charts (the operators and ingress) is put in by the bootstrap script, not reconciled by Flux | open |
 | An independent daily drift guard | Not built | planned |
@@ -211,7 +211,7 @@ show how the path behaves under several at once, or after a host reboot.
 | Way of working | Status, 2026-11-11 |
 | --- | --- |
 | Ansible playbooks build a site from blank machines | proven 2026-11-10, in order, with a person watching. Six machines were built by playbook; it was not one command from blank |
-| An inverse teardown play | proven 2026-11-10 (it is how the previous platform was removed, with leftovers; see section 9) |
+| An inverse teardown play | proven 2026-11-10 (it is how V1.0 was removed, with leftovers; see section 9) |
 | A health play | built |
 | A firewall profile, key-only SSH | built, on the six machines. The bring-up found and fixed a firewall rule for link-local SSH, so the first profile was faulty |
 | An installer stick built from git | built, for one stick |
@@ -298,10 +298,10 @@ decision, and it does not exist. The status of a decision record says what was d
 runs. That is why this page uses its own status words, and why the generated status lists rules
 as built or not, apart from the decision records.
 
-### Previous platform (retired 2026-11-10)
+### V1.0 (retired 2026-11-10)
 
 - **Red guards.** The daily guards were red every day from 2026-11-02 to 2026-11-09 and nobody was looking. That is why I insist on an alert that reaches a person, and on a guard that is independent of the thing it guards.
-- **A wipe is not a migration.** Of the previous platform's 257 alerts, 74 mechanisms and 16 power-off proofs, 0 have been carried over, and the cutover gate is not passed. The new platform starts with fewer safety nets, and this page lists the ones that are missing.
+- **A wipe is not a migration.** Of V1.0's 257 alerts, 74 mechanisms and 16 power-off proofs, 0 have been carried over, and the cutover gate is not passed. The new platform starts with fewer safety nets, and this page lists the ones that are missing.
 
 Related pages: [the delivery chain](platform.html#how-a-change-reaches-the-cluster),
 [what I'd do differently](lessons.html), [who reviews, honestly](ai-dev.html#who-reviews-honestly).

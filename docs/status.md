@@ -7,7 +7,7 @@ summary:
   - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Dated 2026-11-11."
   - "**The platform is about a day old:** it was rebuilt on 2026-11-10 and 2026-11-11, so nothing here is an uptime claim. It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
   - "**Two evidence records are shown with what they do not prove:** a restore drill passed on 2026-11-10 and a default-deny probe failed the same day (a new pod was open for about 1 to 3 seconds). Open item."
-  - "**Monitoring is not live, and there is no external referee yet.** Figures that need monitoring read not measured yet, never zero and never an old number. The previous platform's headline figures are kept below as history only."
+  - "**Monitoring is built, not proven, and there is no external referee yet.** Figures that need monitoring read not measured yet, never zero and never an old number. V1.0's headline figures are kept below as history only."
 ---
 
 # Live status
@@ -28,10 +28,10 @@ The generator reads the cluster read-only, and the main branch of the private pl
 repository counts. None of it was typed in. The last column says what was counted, and where the label is
 wider than the count, it says so.
 
-**The platform is about a day old.** The previous platform was torn down on 2026-11-10 and this one was
+**The platform is about a day old.** V1.0 was torn down on 2026-11-10 and this one was
 brought up on 2026-11-10 and 2026-11-11. Nothing on this page is an uptime claim, and a count of things that
 exist is not a claim that they have worked for any length of time. Where a figure cannot be measured yet, the
-page says **not measured yet**. It does not show zero, and it never carries a number over from the old platform.
+page says **not measured yet**. It does not show zero, and it never carries a number over from V1.0.
 
 The other pages hold snapshots written by hand on a given day, and they drift: a hand-kept number is right
 once. This page exists so that there is one place where the figures are regenerated rather than remembered,
@@ -39,14 +39,14 @@ and so that the staleness of those figures is itself a number you can read.
 
 ## No external referee yet (open, 2026-11-11)
 
-On the previous platform, outside monitors graded the public endpoint and the scheduled jobs, and their
+On V1.0, outside monitors graded the public endpoint and the scheduled jobs, and their
 badges sat on this page. Those monitors were paused on 2026-11-10 when the platform was torn down (proven on 2026-11-10 by the
 teardown record). There is no public entrance to the new platform yet and no
 external referee watching it, so the badges are gone from this page rather than left showing a false failure.
 This is an open item: a new referee is planned together with a public entrance, and until then the page makes
 no availability claim of any kind.
 
-## Previous platform (retired 2026-11-10), measured 2026-10-27 (history only)
+## V1.0 (retired 2026-11-10), measured 2026-10-27 (history only)
 
 These are the headline figures the page showed on 2026-10-27 for a platform that no longer exists. They are
 history, not a baseline for the new platform, and none of them is measured today.
@@ -60,7 +60,7 @@ history, not a baseline for the new platform, and none of them is measured today
 
 ### Notes on the badge wall {#notes-on-the-badge-wall}
 
-*Previous platform (retired 2026-11-10). The measurement lessons stay because they were learned the hard way and
+*V1.0 (retired 2026-11-10). The measurement lessons stay because they were learned the hard way and
 still apply to any monitor; the badges themselves are gone.*
 
 - **The heartbeat badge read `late` once while the alert pipeline was provably healthy.** My first explanation
@@ -107,7 +107,7 @@ database replicas and backups instead. The question of replicated block storage 
 is a count of claims that found a volume, not a statement about their health.
 {% when "reconciler" %}
 The GitOps reconciler applies the repository to the cluster. At the generation time above, {{ s.reconciler.kustomizations_ready }} of {{ s.reconciler.kustomizations }} Kustomizations
-were Ready (measured; the unready ones were the monitoring tenant still being applied). Two limits. The artifact the reconciler reads is **not signed**
+were Ready (measured; the unready ones were the monitoring tenant still being applied). A later hand reading at 07:00 UTC on 2026-11-11 found all 19 Ready. Two limits. The artifact the reconciler reads is **not signed**
 (planned: signing is not in place), and it is read through a moving tag, so what is applied is
 whatever the tag points at when the reconciler looks. The artifact-signed row therefore reads
 **not measured yet**. A Ready Kustomization means the last apply succeeded; it does not mean the workload is
@@ -140,7 +140,7 @@ the restored database, an off-site copy. Host-layer rehearsal, {{ s.evidence.hos
 virtual address. The default-deny probe is described under admission and is a **fail**. A record shows one
 test on one day; it does not show the system keeps passing.
 {% when "observability" %}
-**Monitoring is not live on the new platform (open, 2026-11-11).** The monitoring tenant was merged into the private repository on 2026-11-11 and the reconciler is applying it, but it is not Ready: its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix is in review. It has never run, and no alert reaches a person. Every row below therefore reads
+**Monitoring is built, not proven, on the new platform (open, read 2026-11-11 07:00 UTC).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 19 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. That is built, not proven: no scrape target, alert rule or dashboard has been read, and no alert reaches a person. Every row below therefore reads
 **not measured yet**: there is nothing to count, and a zero would claim there are no alert rules rather than
 that nothing is running. When the thing exists, the generator is built to fail until each row is given a real
 method, so a stale "not measured yet" cannot sit beside a live system unnoticed.
@@ -200,5 +200,5 @@ is not a pass rate; a green health word is a reading, not a verdict.
 **Some things are missing on purpose.** Vulnerability counts by severity, the code-quality
 gate, the number of identity realms and anything else behind credentials are not shown: the generator
 does not hold those credentials, nothing here guesses at them, and nothing is published for them.
-Figures that depend on monitoring, which is not live, read **not measured yet**. If a figure you
+Figures that depend on monitoring, which is running but not yet read, read **not measured yet**. If a figure you
 expected is absent, that is the reason.

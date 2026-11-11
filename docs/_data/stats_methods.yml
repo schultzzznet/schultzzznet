@@ -25,7 +25,7 @@ cluster:
   pvcs: { label: "Persistent volume claims", how: "kubectl get persistentvolumeclaims across all namespaces." }
   pvc_gib: { label: "Storage requested by claims", unit: " GiB", how: "kubectl get persistentvolumeclaims; the sum of requested size. Requested, not used." }
   crds: { label: "Custom resource definitions", how: "kubectl get customresourcedefinitions." }
-  age_days: { label: "Age of the oldest node", unit: " days", how: "kubectl get nodes; whole days since the oldest node object was created. The previous platform ran until 2026-11-10 and this cluster was built on 2026-11-10/11, so this is not the age of the project." }
+  age_days: { label: "Age of the oldest node", unit: " days", how: "kubectl get nodes; whole days since the oldest node object was created. V1.0 ran until 2026-11-10 and this cluster was built on 2026-11-10/11, so this is not the age of the project." }
   restarts_total: { label: "Container restarts", how: "kubectl get pods; the sum of restart counts over all containers and init containers that currently exist." }
 storage:
   storage_classes: { label: "Storage classes", how: "kubectl get storageclasses; every storage class object. All are node-local: a volume lives on one machine and does not follow a pod to another." }
@@ -67,10 +67,10 @@ databases:
   backups_24h: { label: "Backups completed in the last 24 hours", how: "Same objects; phase completed with a stop time within 24 hours of the measurement. Backup objects are counted because the operator's plugin leaves the cluster's lastSuccessfulBackup field empty, so backup objects are the record." }
   archiving_clusters: { label: "Clusters archiving WAL", how: "kubectl get clusters of the Postgres operator; ContinuousArchiving condition True." }
 evidence:
-  restore_drill_home_last: { label: "Latest restore drill on the home site", how: "The newest run record naming a restore drill whose Where line says home site, by its Date line. Records of the previous platform are excluded." }
+  restore_drill_home_last: { label: "Latest restore drill on the home site", how: "The newest run record naming a restore drill whose Where line says home site, by its Date line. Records of V1.0 are excluded." }
   restore_drill_home_result: { label: "Result of that restore drill", how: "The Result line of the same record: pass or fail. One on-demand backup restored into a scratch cluster; it does not prove a restore of the scheduled nightly backup." }
   restore_drill_home_age_days: { label: "Days since that restore drill", unit: " days", how: "Whole days between that record's date and the measurement." }
-  restore_drills_records: { label: "Restore-drill records, all platforms", how: "Run records whose file name mentions a restore, previous platform and kind rehearsals included." }
+  restore_drills_records: { label: "Restore-drill records, all platforms", how: "Run records whose file name mentions a restore, V1.0 and kind rehearsals included." }
   default_deny_probe_home_date: { label: "Latest default-deny probe on the home site", how: "The newest run record of the default-deny probe whose Where line says home site, by its Date line." }
   default_deny_probe_home_result: { label: "Result of that probe", how: "The Result line of the same record. It is fail: pods have about one to three seconds of open network after start. The record is kept, not edited." }
   host_rehearsal_date: { label: "Latest host-layer rehearsal", how: "The newest run record of the rehearsal of the host layer on local virtual machines, by its Date line." }
@@ -105,7 +105,7 @@ ci:
 repo:
   commits: { label: "Commits", how: "git rev-list --count on the platform repository's main branch, read from a fresh clone, not from a local branch." }
   commits_30d: { label: "Commits in the last 30 days", how: "The same, since 30 days before the measurement." }
-  age_days: { label: "Repository age", unit: " days", how: "Whole days since the earliest root commit. The repository is new: the previous platform, which ran until 2026-11-10, lived in another one." }
+  age_days: { label: "Repository age", unit: " days", how: "Whole days since the earliest root commit. The repository is new: V1.0, which ran until 2026-11-10, lived in another one." }
   adrs: { label: "Decision records", how: "Committed files; numbered Markdown files in the decision-record directory." }
   records: { label: "Run records", how: "Committed files; dated Markdown files in the records directory, each the result of one gate run." }
   records_pass: { label: "Run records with result pass", how: "Same files; the Result line starts with pass." }

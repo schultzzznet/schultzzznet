@@ -18,19 +18,19 @@ contract, and the platform checks that contract instead of trusting it. This pag
 platform as it stands on 2026-11-11: a new cluster, brought up on 2026-11-10 and 2026-11-11 after
 the previous one was torn down, so it is about 13 hours old as this is written. Every new claim
 carries a date and a status: **proven** (a record or a live check shows it), **built-not-proven**,
-**planned** or **open**. Material about the old platform is kept, dated, in sections marked
-*previous platform*. Measured counts for the new cluster are on the [generated stats](status.md)
+**planned** or **open**. Material about V1.0 is kept, dated, in sections marked
+*V1.0*. Measured counts for the new cluster are on the [generated stats](status.md)
 page as that page's measurement catches up; anything not measured there is "not measured yet" here too.
 
 ---
 
 ## Why the cluster pulls
 
-*History, kept because the reasoning still holds. Written 2026-08 to 2026-10, on the previous platform.*
+*History, kept because the reasoning still holds. Written 2026-08 to 2026-10, on V1.0.*
 
 The house internet connection is behind carrier-grade NAT: no port forward, and no inbound
 path for GitHub to reach the image registry or the Kubernetes API server. So a build running in
-GitHub's cloud cannot push a deploy to the cluster. On the previous platform that was answered by
+GitHub's cloud cannot push a deploy to the cluster. On V1.0 that was answered by
 running every job on my own machines. A billing gap ended the cloud half in August 2026 (hosted jobs
 were refused from 2026-08-15 because the account had no payment method), and by 2026-08-26 the last
 hosted job had moved to a self-hosted runner. The CGNAT story was true; the billing gap is what made it total.
@@ -43,7 +43,7 @@ the house and holds no cluster credential. Proven in use 2026-11-10/11.
 
 ## How a change reaches the cluster
 
-*New platform, state on 2026-11-11. The previous platform's staged plan is further down, under [its four stages](#the-previous-platforms-four-stages-to-2026-11-10).*
+*New platform, state on 2026-11-11. V1.0's staged plan is further down, under [its four stages](#v10s-four-stages-to-2026-11-10).*
 
 ```mermaid
 flowchart LR
@@ -99,7 +99,7 @@ deadlock itself was recorded on the day).
   Helm controller. They are in git but not held there by a controller. Open.
 - **Default-deny has a gap at pod start (probed live 2026-11-10, recorded as a failed probe).** For about 1 to 3 seconds after a pod starts, its egress and ingress are open; after that the rules hold. Not tested: egress from the first packet under another engine, ingress from outside the cluster, DNS limits. Open.
 - **Keycloak runs in its dev profile on an in-memory database** (seen by the same probe, 2026-11-10), so it loses state on a restart. Open.
-- **Monitoring is not live on the new cluster.** The monitoring tenant was merged into the private repository on 2026-11-11 and Flux is applying it, but it is not Ready: its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix is in review. It has never run, so alert and
+- **Monitoring is built, not proven, on the new cluster (read 2026-11-11 07:00 UTC).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 19 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. That is built, not proven: no scrape target, alert rule or dashboard has been read, and no alert reaches a person, so alert and
   dashboard figures are not measured yet. Built, not proven.
 
 ---
@@ -122,7 +122,7 @@ What the tenant pack enforces:
 | Image signature | A first-party image must carry the CI signature. | covers one named first-party image. Policy Ready with action Deny, and first-party pods running in an enforcing namespace (live check 2026-11-11); no record shows the signature check itself. Proven on a throwaway local cluster 2026-11-07 |
 | Vendor images | A closed list, each pinned by digest. | a separate digest-pin policy, Ready; refused an off-list image on the real site 2026-11-10 (in the day's history, not a gate record) |
 
-**"Nothing enforces them" is no longer true.** The previous platform shipped limits, probes and a
+**"Nothing enforces them" is no longer true.** V1.0 shipped limits, probes and a
 budget in a template and checked none of them; here the namespace and admission refuse what breaks the
 rules, and the checker catches the rest before merge. That the checker and admission agree on every
 case is not proven; the tenant-rights faults found on 2026-11-09 were fixed one by one.
@@ -138,7 +138,7 @@ That trusts the digest as pinned on a reviewed pull request, nothing more. Open.
 *New platform, proven 2026-11-10/11.* There is no deploy job. A merge publishes an artifact and Flux
 applies it. The tag-versus-digest question is better than before: workloads are identified by
 content, not by a tag that a rollout could silently re-resolve, though the artifact itself is still read
-through a moving tag (open, above). Rolling out from git on merge, which the previous platform listed as
+through a moving tag (open, above). Rolling out from git on merge, which V1.0 listed as
 not built, exists.
 
 ---
@@ -181,7 +181,7 @@ not built, exists.
   **proven on a throwaway local cluster on 2026-11-07**; the real site has the same policy Ready since
   2026-11-10, a live check on 2026-11-11 shows it Ready with action Deny, the warn namespace set to enforce, and first-party pods running, which points to admission by signature having happened, but no record verifies it. It covers one named first-party image.
 - **Vendor images** are admitted by a closed list plus a digest pin, checked by a separate policy (Ready), not by signature. Open, see above.
-- **No vulnerability tracker or SBOM store runs now.** Planned. The previous platform's counts are not carried over.
+- **No vulnerability tracker or SBOM store runs now.** Planned. V1.0's counts are not carried over.
 - **Not signed:** the delivery artifact (open).
 
 One lesson holds regardless of the cluster: **a vulnerability scanner only matches what it can
@@ -194,7 +194,7 @@ believing a clean report. The [embedded side](yocto.md) is where that was learne
 
 ## The satellite, as history
 
-*Previous platform, dated 2026-08-11 to 2026-10-09.* Kept because its lesson still stands.
+*V1.0, dated 2026-08-11 to 2026-10-09.* Kept because its lesson still stands.
 
 A contract that has only ever been exercised from inside the repository that defines it is
 not a contract, it is a coincidence. So one application lives in **its own repository**
@@ -256,7 +256,7 @@ contract forgot to say. Whether a satellite repository can meet the new pack has
 
 ---
 
-## Previous platform (retired 2026-11-10)
+## V1.0 (retired 2026-11-10)
 
 *Everything below describes the platform torn down on 2026-11-10, with values measured between
 2026-10-09 and 2026-10-27 on the old repository. None of it is current.*
@@ -338,7 +338,7 @@ between a commit and a rollout. That is a deliberate consequence of keeping the 
 small, and an asymmetry worth knowing when deciding what belongs in a satellite versus the
 platform itself.
 
-### The previous platform's four stages, to 2026-11-10
+### V1.0's four stages, to 2026-11-10
 
 *Added 2026-10-27, from a decision made on the 24th.* The rule was: *git is the only way a change reaches the cluster.*
 
@@ -367,7 +367,7 @@ could own.** On the same day, of about 80 plain manifests, 74 matched the live c
 |---|---|---|
 | 1. Detect | A read-only diff of every plain manifest against the live cluster, daily, with an alert on any difference. About three seconds. Deliberate exceptions carry a reason and an expiry. | **Done 2026-10-24.** It found 6 differences on its first run and all were resolved the same day. Three files are excluded with dated reasons that force a decision by 2026-12-01. |
 | 2. Secrets in git | SOPS with age, two recipients (an operator key and a recovery key); a check fails any new plaintext Secret. | **Done 2026-10-25** for all 14 Secrets. **Open:** rotating the old values, which stay in git history, starting with the object-store root credential. |
-| 3. Roll out from git | The declarative half applied on merge (19 steps), by a reconciler (Flux by default) or by CI. | **Not built on the old platform.** *Done on the new platform on 2026-11-10: see above.* |
+| 3. Roll out from git | The declarative half applied on merge (19 steps), by a reconciler (Flux by default) or by CI. | **Not built on V1.0.** *Done on the new platform on 2026-11-10: see above.* |
 | 4. Imperative steps | Realm setup, database major-upgrade scripts, bootstrap and key jobs, turned into idempotent jobs case by case. | **Not started.** |
 
 **It reaches beyond the cluster.** The machine that runs the operations agent is not in the
@@ -387,9 +387,9 @@ was committed.
 
 ## Read next
 
-- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *Previous platform until rewritten.*
-- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *Previous platform until rewritten.*
-- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *Previous platform until rewritten.*
+- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *V1.0 until rewritten.*
+- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *V1.0 until rewritten.*
+- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *V1.0 until rewritten.*
 - **[The embedded side](yocto.md)**: from zero findings to a hundred raw matches on one image.
 
 ---

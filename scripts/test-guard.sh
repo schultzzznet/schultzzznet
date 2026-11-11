@@ -516,7 +516,7 @@ must_fail "the new private repo name in the README" "private platform repo name 
 
 scratch
 plant 'See theMowerRetrofit and the-docker-swarm-ai for the history.'
-must_pass "the previous platform's repository named in prose, as history"
+must_pass "V1.0's repository named in prose, as history"
 
 # --- the README stats block: replaced between the markers, left alone without them ---
 

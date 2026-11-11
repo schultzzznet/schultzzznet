@@ -3,13 +3,15 @@
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
 - date: 2026-11-11
+  text: "A diff list between the retired cluster and the new one was added: [V1.0 and V2.0, what changed](versions.html). The old platform is now kept as V1.0, a diffed reference with every fact still dated, and the new site is V2.0. The list also says where V1.0 did better and what is not rebuilt yet."
+- date: 2026-11-11
   text: "Both home CI builder hosts started jobs in parallel for the first time, one job virtual machine at a time on each. The gates were still running when this was written, so this records that they started, not that they passed."
 - date: 2026-11-11
-  text: "The new cluster's monitoring was merged on 2026-11-11 and the reconciler is applying it, but it is not Ready: its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix is in review. It has never run, so no alert reaches a person yet. [Status](status.html)."
+  text: "The new cluster's monitoring was merged on 2026-11-11. Its first live run failed on a missing namespace in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 19 Kustomizations were Ready and the monitoring pods were Running. Nothing from it has been read yet, so no alert reaches a person. [Status](status.html)."
 - date: 2026-11-11
-  text: "This site now describes the new platform. Figures that cannot be measured yet say \"not measured yet\" instead of keeping an old number, the previous platform's facts sit in dated notes, and a new page, [How we work](how-we-work.html), covers the ways of working and the failures that shaped them. Public claims changed in this edit; the status page shows what is measured and what is not."
+  text: "This site now describes the new platform. Figures that cannot be measured yet say \"not measured yet\" instead of keeping an old number, V1.0's facts sit in dated notes, and a new page, [How we work](how-we-work.html), covers the ways of working and the failures that shaped them. Public claims changed in this edit; the status page shows what is measured and what is not."
 - date: 2026-11-10
-  text: "The previous cluster was taken down in stages after a base backup of every database and a recorded baseline: pause, drain, storage down, uninstall, no failed task. The stock uninstaller left a virtual address on one node and a password file on every node; both were removed by hand and written down. Its restore drills were waived on purpose, so its data was not proven restorable at the end."
+  text: "V1.0 was taken down in stages after a base backup of every database and a recorded baseline: pause, drain, storage down, uninstall, no failed task. The stock uninstaller left a virtual address on one node and a password file on every node; both were removed by hand and written down. Its restore drills were waived on purpose, so its data was not proven restorable at the end."
 - date: 2026-11-10
   text: "A new cluster was built on the same six machines, by playbook, in order, with a person watching: about four and a half hours from the first merge to a converged site. The first live run found five faults, three in the cluster layer and two in the host layer, each fixed in git. Monitoring, alerts to a person, a public name and replicated storage are not there yet. [Status](status.html)."
 - date: 2026-11-10
@@ -24,5 +26,3 @@
   text: "The embedded side's nightly vulnerability upload, refused every night since at least 24 September, was fixed: a new key, and a preflight that now stops the build up front if the tracker rejects it. The first scheduled run since is the test. [The account](yocto.html#two-claims-on-this-page-were-false-on-27-october)."
 - date: 2026-10-27
   text: "The printing page's parts list was regenerated: 29 parts in 14 models, including the camera mount's calibration flags and tilt parts. The publisher now skips any model git does not track. [The parts](printing.html#the-parts)."
-- date: 2026-10-27
-  text: "This site was reviewed from the outside for clarity and completeness. Every page now opens with an *In short* block, the build fails if one goes stale, and seven statements that had gone out of date or were never true are corrected ([the corrections](#corrections-2026-10-27))."

@@ -6,7 +6,7 @@ summary:
   - "**What it is:** the list of things that were wrong on the way, several still visible in the system. The rule for an entry is that it cost something and the cost can be described: regret without a number attached is just modesty."
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
-  - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. Old-platform figures stay under dated labels; the new platform was about 14 hours old on 2026-11-11 and nothing here claims uptime."
+  - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new platform was about 14 hours old on 2026-11-11 and nothing here claims uptime."
   - "**New on 11 November:** sequels to lessons 3, 5, 8 and 13, and a new lesson 14 on the first night of the new platform. Reviewers are AI models of the same family that helps build the estate, so the dates matter more than the grades."
 ---
 
@@ -24,8 +24,7 @@ page I would want to read about someone else's platform, and the one most projec
 write — a "what we learned" section that names no mistakes is marketing.
 
 *Update, 2026-11-11: the platform described below was retired on 2026-11-10 and rebuilt as a
-new cluster on the same six machines. Lessons 1 to 13 are dated history of the previous
-platform and are left as written, apart from labelled notes. The sequels and lesson 14 describe
+new cluster on the same six machines. Lessons 1 to 13 are dated history of V1.0 and are left as written, apart from labelled notes. The sequels and lesson 14 describe
 the new platform, each with a date and a status word (proven, built-not-proven, planned, open).
 The cluster was about 14 hours old at 06:50 on 2026-11-11; nothing here implies it has run for long.*
 
@@ -41,7 +40,7 @@ be describable. Regret without a number attached is just modesty.
 
 ## 1. Starting on the wrong orchestrator — and why I'd do it again
 
-The previous platform's repository is still called `the-docker-swarm-ai`. It ran Kubernetes
+V1.0's repository is still called `the-docker-swarm-ai`. It ran Kubernetes
 for most of its life. (Since 2026-11-10 the platform lives in another repository and this one
 is the record.) That name is a fossil of the first real architectural decision, and the
 wrong one.
@@ -149,7 +148,7 @@ the single-node provisioner as its **only** storage class (one class, kubectl, 2
 the opposite of the "pattern worth stealing" below. It is a stated, deferred gap, not a reversed
 decision: replicated block storage is the planned fix and is not built. Replication is left to the
 database layer, and it is recorded as straining the recover objective, because a lost machine
-takes its volumes with it. What follows is the previous platform's lesson, kept as written.
+takes its volumes with it. What follows is V1.0's lesson, kept as written.
 
 Replicated block storage (three nodes at the time) was the correct decision and I would make it
 again. The **sequencing** was wrong.
@@ -162,7 +161,7 @@ the ambiguous half-state this platform is otherwise built to avoid.
 **The fix that mattered** was not the migration itself but making the wrong thing impossible
 afterwards: the single-node storage provisioner is now **switched off entirely**, so an
 unqualified volume claim fails loudly instead of silently pinning itself to one machine's
-disk. That was the pattern worth stealing on the previous platform — *remove the unsafe default rather than
+disk. That was the pattern worth stealing on V1.0 — *remove the unsafe default rather than
 documenting it.*
 
 **What I'd do differently:** storage first, before anything stateful. It is the one layer
@@ -191,7 +190,7 @@ of a node loss.
 > actually have is `hosts − replicas`, and at zero the system is serving, not healing.
 
 **Note, 2026-10-09:** the section above went stale when a fourth host joined in early
-September, and I did not come back to it. Previous platform, typed by hand because that storage no longer exists:
+September, and I did not come back to it. V1.0, typed by hand because that storage no longer exists:
 checked on 2026-10-09 with `ceph osd tree`, read-only, four
 hosts and four OSDs, with three-way replication, so a
 lost host had somewhere to re-replicate to. That is the arithmetic. Whether it *did* is
@@ -293,7 +292,7 @@ Shorter list, and the reason the rest was survivable:
   more than once (see the retraction at the top about the count). That is only tolerable because it is an afternoon, and it is an afternoon because
   everything is a derivative of a git repository. **Being wrong stopped being expensive**,
   which is what made it possible to be wrong usefully.
-  **Twice proven, 2026-11-10:** the old cluster was taken down in stages (a pause with a base
+  **Twice proven, 2026-11-10:** V1.0 was taken down in stages (a pause with a base
   backup of every database, a drain, storage down, uninstall) with no failed task (the stage 2 drain timed out on four app pods and the node objects were
   deleted anyway), and the new
   cluster came up on the same six machines the same day. From the first merge to the fix that let it converge
@@ -314,7 +313,7 @@ Shorter list, and the reason the rest was survivable:
 - **Pruning the backlog on purpose.** Thirty-four of fifty-nine open items were closed in one
   pass — some done, some obsolete, and nine as **won't-do**, each with a reason. Deciding
   what will never be done is the judgement call that keeps a register from becoming a guilt
-  pile. (Frozen history of the previous platform; its open-item register was retired with it.)
+  pile. (Frozen history of V1.0; its open-item register was retired with it.)
 
 ---
 
@@ -333,7 +332,7 @@ wrong order — see section 5.
 ## 10. A copy that "mirrors the shape" is not the original
 
 The PostgreSQL 18 cutover on 2026-09-16 was meant to mirror the high-availability shape of
-the old clusters. It mirrored most of it. Synchronous commit, the resource limits and the
+the V1.0 clusters (2026-09-16). It mirrored most of it. Synchronous commit, the resource limits and the
 failover tolerations were silently dropped, so for three weeks the four three-instance
 application and identity databases were asynchronous while the docs said RPO 0. Nothing
 was red. The replacement was healthy; it just was not the thing documented.
@@ -365,7 +364,7 @@ confident claims, none checked against what the system had actually recorded.
 
 The report was "old devices time out very, very fast". The natural suspect was the identity
 provider's timeouts, so I read its settings and made them explicit (an hour for the access
-token, thirty days idle for the offline refresh token, declared as code since 2026-10-09 by the old platform's playbook, which was retired on 2026-11-10). That was worth
+token, thirty days idle for the offline refresh token, declared as code since 2026-10-09 by V1.0's playbook, which was retired on 2026-11-10). That was worth
 doing, and it was a diagnosis of the server, from the server's side. It was not the cause.
 
 The apps ended a session on **any** failure while refreshing a token. A dropped connection,
@@ -415,11 +414,11 @@ recorded beside the original rather than edited into it.
 | **How someone could get in**, 22 October | No direct path from the internet to cluster-admin was found; **the inside is soft**: what a foothold becomes is worse than how one is gained. | Key-only SSH on the nodes, proven by a fresh login (22 October); a generated Grafana password in place of a committed default; test passwords out of command lines. The rest is tracked privately and deliberately not itemised here until it is fixed. |
 | **The AI in the cluster**, 26 October | The summaries were inflated and one data source had been blind for fourteen days without a mention; a model-supplied name reached a root command. | The agent was hardened and put under measurement the same day: [the account is here](aiops.html#the-agent-since-2026-10-26). |
 | **This site**, 27 October | Clarity 4, completeness 3, fast-reader accessibility 2: no page had a summary, and five statements had turned stale in the pessimistic direction. | An *In short* block on every page, enforced by the build; a dated *Recently* list; this lesson; and the corrections on the [estate page](index.html#corrections-2026-10-27). |
-| **The old platform's carry-over**, 8 November | 188 findings, 21 of them high, about what the previous platform's habits, claims and mechanisms should or should not follow into the new one. | By 2026-11-10, 17 of the 21 high findings were closed, 3 open and 1 in review. 116 of the 188 findings were still open or in review that day. The review is private; this is its dated summary. |
-| **"The move, six days in"**, 10 November | The old cluster was healthy but unattended: its daily guards were red every day from 2026-11-02 to 2026-11-09. 76 of 77 commits went in through pull requests. The kind-cluster gate over its last 30 runs: 22 green, 5 red, 3 cancelled. The quarterly OKR page was still a draft with no start date. | The findings are open work, not fixed work, on 2026-11-11. Private review, cited by date only. |
+| **V1.0's carry-over**, 8 November | 188 findings, 21 of them high, about what V1.0's habits, claims and mechanisms should or should not follow into the new one. | By 2026-11-10, 17 of the 21 high findings were closed, 3 open and 1 in review. 116 of the 188 findings were still open or in review that day. The review is private; this is its dated summary. |
+| **"The move, six days in"**, 10 November | V1.0 was healthy but unattended: its daily guards were red every day from 2026-11-02 to 2026-11-09. 76 of 77 commits went in through pull requests. The kind-cluster gate over its last 30 runs: 22 green, 5 red, 3 cancelled. The quarterly OKR page was still a draft with no start date. | The findings are open work, not fixed work, on 2026-11-11. Private review, cited by date only. |
 
 Six reviews, then, not four, and the two newest are the first about the move rather than the
-estate: they found the habits of the old platform going stale unattended, and a young platform
+estate: they found the habits of V1.0 going stale unattended, and a young platform
 with gates not yet passed.
 
 **What I would carry from it.** First, the best finding of the lot was not a vulnerability: the
