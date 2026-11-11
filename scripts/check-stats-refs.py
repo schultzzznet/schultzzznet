@@ -265,23 +265,46 @@ def check_refs(docs, readme, stats_path):
 
 
 # ------------------------------------------------------------------------------------------------ typed counts
-SP_FULL = re.compile(r"(\d+) rows[:,] (\d+) accepted,(?: (\d+) fixed(?:,| and))? (?:and )?(\d+) open")
-SP_OPEN_ROWS = re.compile(r"(\d+) open rows")
+WORDS = {w: i for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen "
+    "nineteen twenty".split())}
+N = r"(\d+|" + "|".join(sorted(WORDS, key=len, reverse=True)) + r")"
+# Whitespace is \s+ everywhere, so a sentence that wraps over two or three source lines is still one match.
+SP_FULL = re.compile(r"(?i)\b" + N + r"\s+rows[:,]\s+" + N + r"\s+accepted,(?:\s+" + N + r"\s+fixed(?:,|\s+and))?\s+(?:and\s+)?" + N + r"\s+open\b")
+SP_OPEN_ROWS = re.compile(r"(?i)\b" + N + r"\s+open\s+rows")
+SP_OF_OPEN = re.compile(r"(?i)\b" + N + r"\s+of\s+the\s+(?:" + N + r"\s+)?open\s+(?:rows|ones)\b(\s+are\s+on\b)?")
+
+
+def num(tok):
+    return int(tok) if tok.isdigit() else WORDS[tok.lower()]
 
 
 def sp_problems(text, label, want):
-    """want: dict with accepted, fixed, open from stats.yml."""
+    """want: dict with accepted, fixed, open, open_app from stats.yml. Matches across line breaks; reports the line the match starts on."""
     rows = want["accepted"] + want["fixed"] + want["open"]
     found = []
-    for n, line in enumerate(text.replace("*", "").splitlines(), 1):
-        for m in SP_FULL.finditer(line):
-            have = (int(m.group(1)), int(m.group(2)), int(m.group(4)))
-            if have != (rows, want["accepted"], want["open"]) or (m.group(3) is not None and int(m.group(3)) != want["fixed"]):
-                found.append(f"{label}:{n}: says {m.group(0)!r}; stats.yml has {rows} rows, {want['accepted']} accepted, "
-                             f"{want['fixed']} fixed, {want['open']} open. Reread the register and fix the sentence")
-        for m in SP_OPEN_ROWS.finditer(line):
-            if int(m.group(1)) != want["open"]:
-                found.append(f"{label}:{n}: says {m.group(0)!r}; stats.yml has {want['open']} open. Reread the register and fix the sentence")
+    text = text.replace("*", " ")
+
+    def line(m):
+        return text.count("\n", 0, m.start()) + 1
+
+    def say(m):
+        return " ".join(m.group(0).split())
+
+    for m in SP_FULL.finditer(text):
+        have = (num(m.group(1)), num(m.group(2)), num(m.group(4)))
+        if have != (rows, want["accepted"], want["open"]) or (m.group(3) is not None and num(m.group(3)) != want["fixed"]):
+            found.append(f"{label}:{line(m)}: says {say(m)!r}; stats.yml has {rows} rows, {want['accepted']} accepted, "
+                         f"{want['fixed']} fixed, {want['open']} open. Reread the register and fix the sentence")
+    for m in SP_OPEN_ROWS.finditer(text):
+        if num(m.group(1)) != want["open"]:
+            found.append(f"{label}:{line(m)}: says {say(m)!r}; stats.yml has {want['open']} open. Reread the register and fix the sentence")
+    for m in SP_OF_OPEN.finditer(text):
+        if m.group(2) is not None and num(m.group(2)) != want["open"]:
+            found.append(f"{label}:{line(m)}: says {say(m)!r}; stats.yml has {want['open']} open. Reread the register and fix the sentence")
+        if m.group(3) is not None and num(m.group(1)) != want["open_app"]:
+            found.append(f"{label}:{line(m)}: says {say(m)!r}; stats.yml has single_points_open_app = {want['open_app']}. "
+                         "Reread the register and fix the sentence")
     return found
 
 
@@ -291,9 +314,9 @@ def check_typed_counts(docs, readme, stats_path):
     groups, _ = scan_stats(stats_path)
     ev = groups.get("evidence", {})
     try:
-        want = {k: int(ev[f"single_points_{k}"][0]) for k in ("accepted", "fixed", "open")}
+        want = {k: int(ev[f"single_points_{k}"][0]) for k in ("accepted", "fixed", "open", "open_app")}
     except (KeyError, ValueError):
-        return [f"{stats_path}: evidence.single_points_accepted, _fixed and _open are missing or not numbers"]
+        return [f"{stats_path}: evidence.single_points_accepted, _fixed, _open and _open_app are missing or not numbers"]
     files = sorted(glob.glob(os.path.join(docs, "*.md")))
     if readme and os.path.isfile(readme):
         files.append(readme)
@@ -363,7 +386,7 @@ def self_test():
 
         with open(stats, "w") as fh:
             fh.write('generated_at: "2026-11-11T00:00:00Z"\nevidence:\n  single_points_accepted: 13\n  single_points_fixed: 0\n'
-                     '  single_points_open: 9\n')
+                     '  single_points_open: 9\n  single_points_open_app: 6\n')
 
         def typed(body):
             with open(page, "w") as fh:
@@ -376,6 +399,13 @@ def self_test():
         expect("a stale total fails", typed("21 rows, 13 accepted, 0 fixed and 9 open\n"), "says")
         expect("a stale fixed count fails", typed("22 rows, 13 accepted, 1 fixed and 9 open\n"), "says")
         expect("a stale 'open rows' sentence fails", typed("The register's 7 open rows: DNS\n"), "7 open rows")
+        expect("a sentence wrapped over two lines is still checked", typed("It holds 22 rows: 13\n  accepted, 0 fixed and 8 open, more\n"), "a.md:1:")
+        expect("a wrapped sentence that matches passes", typed("It holds 22 rows: 13\n  accepted, 0 fixed and 9 open, more\n"), want_pass=True)
+        expect("a stale 'N of the open ones are on' fails", typed("and 5 of the open ones are on the app's path\n"), "single_points_open_app")
+        expect("a correct 'N of the open ones are on' passes", typed("and 6 of the open ones are on the app's path\n"), want_pass=True)
+        expect("a stale word-form 'Six of the eight open rows' fails", typed("Six of the eight open rows are on that\npath\n"), "eight open rows")
+        expect("a stale word-form app count fails", typed("Five of the nine open rows are on that path\n"), "open_app")
+        expect("a correct word-form sentence passes", typed("Six of the nine open rows are on that path\n"), want_pass=True)
         expect("a missing stats key is refused", [] if False else check_typed_counts(os.path.join(tmp, "docs"), None, os.path.join(tmp, "none.yml")), "missing")
     return 0 if ok else 1
 
