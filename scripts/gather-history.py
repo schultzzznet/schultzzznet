@@ -23,9 +23,12 @@ GitHub recorded) or private (my record, which a reader cannot check).
 
 It publishes COUNTS, DATES AND THOSE LINES ONLY: never a repository name, host, address, path or a
 private commit id. Four things enforce that: every value has a declared kind; text values are
-refused if they look like an address, a host name, a URL, a token or a commit id; public commit ids
-are written only after they are found in this repository; and the finished file is run through the
-site's own leak guard before it is written. A measurement that fails writes nothing.
+refused if they look like an address, a dotted host name (name.local, name.net and the like), a
+URL, a token or a commit id; public commit ids are written only after they are found in this
+repository; and the file is run through the site's own leak guard (content patterns only), before
+it is written and again by --verify. A BARE machine name (no dot) is caught only by that guard's
+fixed list of real fleet names, so a new machine needs its name added there. A measurement that
+fails writes nothing.
 
 Usage:
   scripts/gather-history.py              measure, check, write docs/_data/history.yml
@@ -34,8 +37,9 @@ Usage:
                                          (generated_at aside): the frozen history is still what
                                          its sources say
   scripts/gather-history.py --verify [--data-dir DIR]
-                                         offline, no repositories: kinds, sums, order and a method
-                                         for every figure (run by check-public-docs.sh)
+                                         offline, no repositories: kinds, sums, order, a method
+                                         for every figure and the leak guard's content patterns
+                                         (run by check-public-docs.sh)
 
 Environment (measuring and --check only; no path is hard-coded here, see the Makefile):
   V1_REPO   REQUIRED: a checkout of the V1.0 platform repository (only its origin URL is used,
@@ -97,7 +101,7 @@ MILESTONES = [
     ("2026-07-30", "v1", "A pull-request gate on the main branch (the first gated merge on 2026-08-06) and an off-site uptime probe (2026-07-31).", None),
     ("2026-08-06", "v1", "First severity-1 incident: the replicated store filled, writes stopped, and sign-in and two apps went down.", None),
     ("2026-08-10", "v1", "A dated live-facts snapshot published here: 9 of 9 nodes Ready, 167 pods, 72 of 72 scrape targets, 8 Postgres clusters.", "97c72acf033e4e816240273aec97a3121d04975a"),
-    ("2026-08-18", "v1", "This site is published on GitHub Pages.", "f25630abee6d3b1469cab828ed0b16c1fc37ba12"),
+    ("2026-08-18", "v1", "The curated site is published on GitHub Pages; the first Pages deployment, of a placeholder page, was earlier the same day.", "f25630abee6d3b1469cab828ed0b16c1fc37ba12"),
     ("2026-08-20", "v1", "A short mains cut loses the control-plane quorum for 9 min 12 s and nothing detects it; written up here in full.", "5ee5e960472d03504314e601ecdbf472f94e3ac7"),
     ("2026-09-04", "v1", "The k3s cluster rebuilt from scratch on six machines; every published figure re-derived the same day.", "2389f943bf07fc37c0c5116e455c7d69c474b62d"),
     ("2026-09-09", "v1", "Fault injection fires for the first time; the documentation had claimed it ran earlier.", None),
@@ -738,7 +742,12 @@ def main():
             if not os.path.isfile(path):
                 raise Fail(f"docs/_data/{NAME} is missing; run make history")
             with open(path, encoding="utf-8") as fh:
-                problems = check(parse(fh.read()), a.data_dir)
+                text = fh.read()
+            problems = check(parse(text), a.data_dir)
+            try:
+                leak_guard(text)  # the guard runs content-only here, so it does not call --verify back
+            except Fail as e:
+                problems.append(str(e))
             for x in problems:
                 print(x)
             return 1 if problems else 0

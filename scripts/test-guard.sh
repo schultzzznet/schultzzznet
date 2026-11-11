@@ -507,6 +507,14 @@ plant 'rehearsed on k3s-rehearsal-1'
 must_fail "a rehearsal VM name (k3s-rehearsal shape)" "fleet hostnames"
 
 scratch
+plant 'on node asusi5g8 ran'
+must_fail "a home CI host name (asus shape)" "fleet hostnames"
+
+scratch
+plant 'the old laptop mbneoc6g8'
+must_fail "a laptop agent name (mbneo shape)" "fleet hostnames"
+
+scratch
 plant 'the Ubuntu hosts and the Debian host rehearse K3s in a VM'
 must_pass "role words that only resemble the machine-name shapes"
 

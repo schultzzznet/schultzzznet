@@ -75,7 +75,7 @@ report "private LAN addresses" \
   "RFC1918 addressing (all of 10.0.0.0/8, 172.16/12, 192.168/16) describes the internal topology."
 
 report "fleet hostnames" \
-  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10|theubuntu[0-9a-z-]*|thedebian[0-9a-z-]*|k3s-rehearsal[0-9a-z-]*)\b' \
+  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|mbneo[0-9a-z]*|asus[a-z]?[0-9][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10|theubuntu[0-9a-z-]*|thedebian[0-9a-z-]*|k3s-rehearsal[0-9a-z-]*)\b' \
   "Real machine names (the home CI hosts and the rehearsal VMs included); use role descriptions instead."
 
 report "CGNAT / WAN addresses" \

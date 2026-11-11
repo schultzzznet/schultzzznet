@@ -3,7 +3,7 @@ title: DevSecOps — the whole chain, and what it actually proves
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The platform was rebuilt on 2026-11-10; this page is rewritten for it, and the old material is kept under a labelled V1.0 heading (§8)."
+  - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The cluster was rebuilt on 2026-11-10 (the platform's [history](history.html) goes back to 2025-12-21); this page is rewritten for it, and the old material is kept under a labelled V1.0 heading (§8)."
   - "**Gates now (2026-11-11):** pre-commit with a secret scan over the whole history, check scripts that each plant their own failure, a local-cluster gate, and a pull-request objectives check that runs from the base commit. Contract fuzzing found eight faults in the reference app when it was added (around 2026-11-07 and 11-08), since fixed; one more, a repeated `radius` parameter accepted, was open on 2026-11-11."
   - "**Live and checked today:** two admission policies in Deny mode, default-deny network policy in the four tenant namespaces, restricted Pod Security on six of thirteen namespaces. First-party images are signed with a CI key only the main branch can use."
   - "**Not proven:** the default-deny probe failed on 2026-11-10 (a one to three second gap at pod start), encryption at rest is configured but not read back, the Flux artifact is unsigned, and vendor images are trusted by pinned digest, not by vendor signature."

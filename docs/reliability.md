@@ -3,7 +3,7 @@ title: High availability — what has it, what does not, and how we know
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**Where it stands, 2026-11-11:** the platform was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day. Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
+  - "**Where it stands, 2026-11-11:** the cluster was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day; the platform behind it goes back to 2025-12-21 ([History](history.html)). Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
   - "**No current count:** the old page scored 7 of 13 failure domains. That count belonged to the retired platform. No new score is derived until the tests have been run. The app pods restarted 10 times each during bring-up; the cause was not checked."
   - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring was running on 2026-11-11 and was read: 18 of 18 scrape targets up, 12 alert rules."
   - "**Tried so far:** one restore drill (pass, 2026-11-10) and one default-deny probe (fail: a new pod is open for 1 to 3 seconds). Not tried: node loss, power cut, loss of one server, failover of the floating address."

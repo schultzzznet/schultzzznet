@@ -5,7 +5,7 @@ reread: 2026-11-11
 body_read: 2026-11-11
 summary:
   - "**What it is:** the history behind a day-old cluster. V1.0, the platform in the old private repository, ran for 324 days, from 2025-12-21 to 2026-11-10: Docker Swarm first, k3s beside it from 2026-04-04, Swarm retired on 2026-06-09. V2.0 was built on the same six machines on 2026-11-10 and 11."
-  - "**V1.0 in numbers (frozen):** 2,051 commits on 198 days, with a commit in each of its twelve months; 226 merged pull requests (the gate began in August 2026); 12,937 CI runs; 42 decision records."
+  - "**V1.0 in numbers (frozen):** 2,051 commits on 198 days, with a commit in every calendar month from December 2025 to November 2026; 226 merged pull requests (the first gated merge was on 2026-08-06); 12,937 CI runs; 42 decision records."
   - "**Receipts you can check:** this public repository described V1.0 from 2026-04-18, with push times recorded by GitHub, and published V1.0's commit count rising from 1,749 to 1,943 in October 2026, before V2.0's repository existed."
   - "**Not claimed:** uptime. No single cluster ran 324 days: the last V1.0 cluster ran from 2026-09-04 to 2026-11-10. The monthly counts come from private repositories, so they are my report, with the method public."
   - "**Why V2.0:** each of its main changes answers something V1.0 measured or got wrong, listed [below](#what-v10-taught-and-what-v20-does-because-of-it) with dates."
@@ -15,6 +15,7 @@ summary:
 {% assign rp = site.data.stats.repo %}
 {% assign gen_date = site.data.stats.generated_at | slice: 0, 10 %}
 {% assign repo_url = "https://github.com/schultzzznet/schultzzznet" %}
+{% assign window = 0 %}{% for m in h.months %}{% assign window = window | plus: m.days %}{% endfor %}
 
 # History: V1.0 ran for {{ v1.days }} days, and V2.0 was built from it
 
@@ -29,7 +30,9 @@ its teardown on {{ v1.retired }}: {{ v1.days }} days, a Docker Swarm cluster fir
 page is the line between them.
 
 **What this page claims, and what it does not.** It claims a platform that ran and a practice that did not stop: a
-commit in each of V1.0's twelve months, on {{ v1.active_days }} of its {{ v1.days }} days. It does **not** claim uptime.
+commit in every calendar month from December 2025 to November 2026, on {{ v1.active_days }} of the
+{{ window }} days from its first commit to its last
+(it ran {{ v1.days }} days in all, to its teardown). It does **not** claim uptime.
 No single cluster ran {{ v1.days }} days: the last V1.0 cluster ran from {{ v1.last_cluster_built }} to {{ v1.retired }},
 and the one before it was wiped. An earlier version of this site said the core had been "constant for eight months";
 that sentence was [removed on 2026-10-09]({{ repo_url }}/commit/15914e05770344683667d2af2ecc0fa6ab48a417), and nothing
@@ -62,7 +65,6 @@ frozen: V1.0's repository has had no commit since {{ v1.last_commit }}, and a re
 December 2025 starts on the 21st and November 2026 ends on the 5th, V1.0's last commit.
 
 {% assign maxc = h.months | map: "commits" | sort | last %}
-{% assign window = 0 %}{% for m in h.months %}{% assign window = window | plus: m.days %}{% endfor %}
 <table class="hist-months">
   <thead><tr><th>Month</th><th>V1.0 commits</th><th>Days with a commit</th><th>Pull requests merged</th><th>CI runs</th><th>Commits to this public repository</th></tr></thead>
   <tbody>
@@ -70,7 +72,7 @@ December 2025 starts on the 21st and November 2026 ends on the 5th, V1.0's last 
 {%- assign w = m.commits | times: 75 | divided_by: maxc %}
     <tr><td>{{ m.month }}{% if m.days < 28 %} <small>({{ m.days }} days)</small>{% endif %}</td><td class="hist-barcell"><span class="hist-mbar" style="width: {{ w }}%"></span>{{ m.commits }}</td><td class="hist-num">{{ m.active_days }} of {{ m.days }}</td><td class="hist-num">{{ m.merged_prs }}</td><td class="hist-num">{% include thousands.html n=m.ci_runs %}</td><td class="hist-num">{{ m.site_commits }}</td></tr>
 {%- endfor %}
-    <tr class="hist-total"><td>All {{ h.months | size }} months</td><td>{% include thousands.html n=v1.commits %}</td><td class="hist-num">{{ v1.active_days }} of {{ window }}</td><td class="hist-num">{{ v1.merged_prs }}</td><td class="hist-num">{% include thousands.html n=v1.ci_runs %}</td><td class="hist-num">{{ h.site.commits_v1_window }}</td></tr>
+    <tr class="hist-total"><td>All {{ h.months | size }} months</td><td>{% include thousands.html n=v1.commits %}</td><td class="hist-num">{{ v1.active_days }} of {{ window }} <small>(first to last commit)</small></td><td class="hist-num">{{ v1.merged_prs }}</td><td class="hist-num">{% include thousands.html n=v1.ci_runs %}</td><td class="hist-num">{{ h.site.commits_v1_window }}</td></tr>
   </tbody>
 </table>
 
@@ -104,8 +106,8 @@ the last column is the private repository counted today, up to the same moment.
 | [{{ r.generated_at | slice: 0, 10 }} {{ r.generated_at | slice: 11, 5 }}]({{ repo_url }}/blob/{{ r.commit }}/docs/_data/stats.yml) | {{ r.on_github | slice: 0, 10 }} {{ r.on_github | slice: 11, 5 }} | {% include thousands.html n=r.v1_commits %} | {{ r.v1_age_days }} days | {{ r.v1_adrs }} | {{ r.cluster_age_days }} days | {% include thousands.html n=r.v1_commits_counted_now %} |
 {% endfor %}
 
-The published count rose from 1,749 to 1,943 in public, weeks before V2.0's repository was created on
-{{ h.v2.first_commit }}. Counting the private repository today gives figures within 4 of what was published; the
+The published count rose from 1,749 to 1,943 in public between 2026-10-09 and 2026-10-27, 27 to 9 days before
+V2.0's repository was created on {{ h.v2.first_commit }}. Counting the private repository today gives figures within 4 of what was published; the
 difference is commits made before a measurement and pushed after it. The cluster ages are where the date of the last
 V1.0 cluster build, {{ v1.last_cluster_built }}, comes from.
 

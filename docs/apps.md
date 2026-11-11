@@ -43,7 +43,7 @@ hard-coded version string that has fallen behind (see the end of this page).
 
 ## What runs on the new platform, 2026-11-11
 
-The platform was wiped on 2026-11-10 and rebuilt; the new cluster is about a day old. The apps
+The cluster was wiped on 2026-11-10 and rebuilt; the new cluster is about a day old, the platform's [history](history.html) is not. The apps
 are still true as software, but this is what is deployed:
 
 - **Only the Warn backend runs**, checked on 2026-11-11: 2 replicas, an autoscaler from 2 to 4, behind

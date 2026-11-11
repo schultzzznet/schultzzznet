@@ -99,7 +99,7 @@ dated 2026-11-11 unless it says otherwise.
 What Kubernetes reports about itself, three control-plane servers and three laptop agents. These are counts of
 API objects, so a CronJob that is suspended is still a CronJob, and a pod that finished is still a pod.
 Status on 2026-11-11 (proven by a read that day): all nodes Ready, the pods Running and the namespaces as
-counted below. The age row is the age of the platform, about a day, so no restart or age figure here is a
+counted below. The age row is the age of the cluster, about a day, so no restart or age figure here is a
 stability claim.
 {% when "storage" %}
 There is one storage class, node-local, and it is the default. A volume lives on one machine, so there is **no

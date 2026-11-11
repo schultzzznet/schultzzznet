@@ -45,7 +45,7 @@ six machines were rebuilt as a new K3s cluster that day and the next. As of 2026
 one) is deployed on it. Admission control and default-deny between tenant namespaces are live. A restore
 drill passed on 2026-11-10, with limits. Everything V1.0 measured, and every
 correction it made, is kept further down under a dated heading and is not a claim about this cluster. The cluster is new;
-the platform is not: V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }}, with a commit in each of its twelve months,
+the platform is not: V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }}, with a commit in every calendar month from December 2025 to November 2026,
 and its [history](history.html) is measured month by month, with receipts in this public repository.
 
 **There are no paying customers, no users and no load at all.** The synthetic load generator went
@@ -126,9 +126,9 @@ yet (open). Until there is one, the figures above are the cluster describing its
 ## None of this is a demo
 
 The repository for the platform is {{ rp.age_days }} days old, with {{ rp.commits }} commits, and it is a **new,
-private repository started on 2026-11-05**. It follows the old one, kept as a record, which ran from {{ hv.first_commit }}
-to {{ hv.last_commit }} with {% include thousands.html n=hv.commits %} commits and {{ hv.merged_prs }} merged pull requests
-([History](history.html)). The **current cluster is {{ c.age_days }} days old** and has no uptime to boast about. The one
+private repository started on 2026-11-05**. It follows the old one, kept as a record, whose {% include thousands.html n=hv.commits %} commits run from
+{{ hv.first_commit }} to {{ hv.last_commit }}, with {{ hv.merged_prs }} merged pull requests; V1.0 itself was torn down on
+{{ hv.retired }} ([History](history.html)). The **current cluster is {{ c.age_days }} days old** and has no uptime to boast about. The one
 before it, V1.0's last k3s build, ran from {{ hv.last_cluster_built }} to {{ hv.retired }} and was torn down on purpose;
 before that came an earlier k3s build from 2026-04 and a Docker Swarm cluster until 2026-06-09. That is not a hole
 in the record, it is the record. Components are meant to be disposable, and
