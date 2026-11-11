@@ -111,6 +111,13 @@ V2.0's repository was created on {{ h.v2.first_commit }}. Counting the private r
 difference is commits made before a measurement and pushed after it. The cluster ages are where the date of the last
 V1.0 cluster build, {{ v1.last_cluster_built }}, comes from.
 
+### GitHub's contribution graph
+
+The owner's [GitHub profile](https://github.com/schultzzznet) shows the contribution graph with private contributions
+included (the setting was switched on on 2026-11-11). It counts days and amounts only: no repository names and no content. It
+is GitHub's own tally, not this site's, so it is a second, independent view of the same months. On 2026-11-11 it showed 4,254
+contributions in the last year.
+
 ### What cannot be checked from outside
 
 Public receipts start on 2026-04-18, the first push to this repository that describes the platform. The four months
