@@ -8,6 +8,7 @@ summary:
   - "**Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
   - "**V1.0 (retired 2026-11-10):** its figures stay lower on this page under dated headings. None is a claim about the new cluster. Next: [Where to start](#where-to-start) and [How we work](how-we-work.html)."
   - "**V1.0 against V2.0:** [a dated diff list](versions.html) of what changed between the retired cluster and this one, area by area, including where V1.0 did better and what is not rebuilt yet."
+  - "**Two axes:** what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, scripted and push at the edges, so not fully GitOps yet: [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
 ---
 {% assign s = site.data.stats %}
 {% assign c = s.cluster %}

@@ -6,6 +6,7 @@ summary:
   - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The platform was brought up on 2026-11-10/11, so nothing here claims uptime."
   - "**Seen working (dated):** a hand patch on the live site was reverted by Flux (2026-11-10); a restore from the backup store alone worked once (2026-11-10); a throwaway ruleset blocked a pull request on a red gate (2026-11-10)."
   - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert has reached a person."
+  - "**Two axes** ([below](#two-axes-what-you-write-and-who-applies-it)): what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, still scripted and push at the edges, so not fully GitOps yet."
   - "**The failures that taught me** are below, with dates."
 ---
 
@@ -34,6 +35,64 @@ Every way of working below carries one of four words.
 
 A rule I apply to myself: a test counts only once it has been seen to fail on purpose. A check
 that has only ever been green is not yet evidence that it can go red.
+
+## Two axes: what you write, and who applies it
+
+This is the organising reason for building V2.0 on top of what V1.0 taught me. Two questions about any change, and they are independent of each other.
+
+1. **What do you write?** *Declarative*: you describe the end state in files, and the tool works out the steps and can compare what you asked for with what is there. *Scripted* (imperative): you list the steps, and the tool runs them in order.
+2. **Who applies it?** *Pull*: something inside the cluster fetches the files and applies them by itself, again and again. *Push*: the operator's machine, or a CI job, pushes the change at the cluster when told to.
+
+That gives four combinations, and one system can sit in different cells for different layers. A tool can be declarative and still pushed (a playbook run by hand). A script can be pulled (a timer that runs the same script every hour). Choosing one axis does not choose the other.
+
+| | **Push** (the operator or CI applies it) | **Pull** (the cluster applies it) |
+| --- | --- | --- |
+| **Declarative** (describe the end state) | Host playbooks in V2.0, idempotent in style, run from the operator's machine. Also V1.0's plain manifests applied with `kubectl apply` | V2.0 cluster layer: manifests in git, a reconciler that fetches, applies, prunes and reverts a hand edit |
+| **Scripted** (list the steps) | V1.0 for most of what a person did: a Makefile, playbooks and one-off scripts, run by hand. V2.0 first install, the ops agent and the runner alert on the always-on Mac | Nothing in either version today |
+
+### Where V1.0 sat (measured 2026-10-27)
+
+I classified every hand-run step of V1.0 before choosing anything: about 172 make targets and 59 playbooks (the published split sums to 173). 104 are checks, drills and status views, which are not state at all. 24 are host-level automation. 20 are imperative orchestration. 6 are wrappers. Only 19 are declarative applies that a controller could own. So V1.0 sat mostly in **scripted and push**, with a detector added later (a daily read-only diff with an alert, done 2026-10-24). The 19 declarative applies are the way the about 80 plain manifests were put on the cluster (both are declarative and push). Of those 80, 74 matched the live cluster that day and 6 did not; the first daily diff found 6 differences.
+
+The push model also produced its own incidents. An installer dropped a flag and brought a second default storage class back. On 2026-10-21 a deploy pinned a new image in git, and a second deploy two minutes later rolled the cluster **back** to the old one, where it stayed for two days. Nothing was wrong with either command. The cause was that the person running the second one held the only copy of "what should be there", in the shape of a checkout.
+
+### Why V2.0 on top of V1.0
+
+Because the measurement said which cell was the problem, and which was not. The 19 declarative steps could move to declarative and pull. Of the other 154, the 104 checks and the 20 orchestration steps are procedures and stay scripts. The 24 host-level steps are the part V2.0 keeps as playbooks and plans to pull (decision record 7, **planned**). The 6 wrappers go with whatever they wrap. V1.0 improved in four stages, and V2.0 picks up where they stopped:
+
+| Stage | V1.0 | V2.0 |
+| --- | --- | --- |
+| Detect drift | done 2026-10-24 (a daily diff with an alert) | replaced by revert; the alert is not rebuilt (below) |
+| Secrets in git | done 2026-10-25 | declarative and pull: decrypted by the cluster, **proven** 2026-11-10 |
+| Roll out from git | not built on V1.0 | **proven** 2026-11-10 |
+| Imperative steps as idempotent jobs | not started | **open**, case by case |
+
+### Where V2.0 sits today (read 2026-11-11)
+
+| Piece | What I write | Who applies it | Status |
+| --- | --- | --- | --- |
+| Cluster layer: manifests, admission policy, tenant pack | Declarative: Kustomize manifests in git, published as an OCI bundle (not signed yet) | **Pull**: the reconciler fetches every few minutes, prunes, and puts a hand edit back | pull **proven** 2026-11-10 and 11; all Kustomizations Ready on 2026-11-11 (19 in one reading, 18 at 07:00 UTC on other pages; the live count is on the status page). That a hand edit is put back was seen once, on one quota, by accident, and is not a deliberate test of any other object. The policy and tenant pack rest on the default-deny probe of 2026-11-10, which is separate from the revert claim |
+| Secrets | Declarative: encrypted files in git | **Pull**: the cluster decrypts | **proven** 2026-11-10 |
+| Host layer: operating system, install, firewall | Playbooks: idempotent, declarative in style | **Push**, from the operator's machine. A pull timer is decided (decision record 7) and not built | playbooks **built**, the timer **planned** |
+| First install (bootstrap script) | Scripted | Push, once, by hand | **built**; ran once, 2026-11-10 |
+| Ops agent and runner alert on the always-on Mac | Playbook and script | Push, deployed by hand | **built**; the alert and the agent were deployed 2026-11-11 (the agent still reads the cluster's workloads by SSH, to be replaced) |
+| CI gate scripts | Scripted: a test is a procedure | Run by CI | by nature, and that is fine |
+
+Some work cannot be declarative at all: a database major upgrade, realm setup in the login service. The plan is to turn each into an idempotent job, case by case. None is done.
+
+### What stays scripted and pushed, and why
+
+The first install has to exist before anything can pull, so it is pushed once by hand. The hosts are pushed because the thing that would pull for them is a timer on each host, which needs a deploy key and an identity per host that only I can create; it is **planned**, and if built, it will let a bad merge reach every host within one interval. The always-on Mac sits outside the cluster, so the reconciler cannot reach it.
+
+### What V1.0 got right, and V2.0 must not lose
+
+- **It measured before choosing.** The split above is why V2.0 changed one layer and left the rest alone.
+- **It added a detector first.** Seeing the 6 differences made the case for the rest.
+- **It had a daily drift guard with an alert.** V2.0 has not rebuilt it. The reconciler reverts drift instead, which is stronger for anything git names, and blind to anything git does not mention. Monitoring has run since 2026-11-11 with 12 alert rules. One of them, for a Kustomization that has not been Ready for 10 minutes, is written and live (**built**); it has never been seen to fire, and no alert has been seen to reach a person. Delivery to a person, a rule for the reconciler losing its source, and an independent drift check are **open**. V1.0's guard was also red for eight days (2026-11-02 to 2026-11-09) and unread, so an alert nobody reads is no better.
+
+### The honest summary
+
+V2.0 is mostly **declarative and pull** in the cluster, and still **scripted and push** at the edges: the first install, the hosts and the always-on Mac. It is **not fully GitOps yet**. The host pull timer (decision record 7) is the planned fix for the hosts; for the first install and the Mac I have no plan to change it. V1.0 is retired, torn down on 2026-11-10, and described here only as it was on the dates given.
 
 ## 1. The rule: git is the only way in
 

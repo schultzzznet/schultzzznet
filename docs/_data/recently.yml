@@ -3,6 +3,8 @@
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
 - date: 2026-11-11
+  text: "A new section on [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it) names the two independent axes behind V2.0 on top of V1.0: what you write (declarative or scripted) and who applies it (pull or push). V1.0 measured mostly scripted and push; V2.0 is declarative and pull in the cluster and still scripted and push at the edges, so it is not fully GitOps yet. The first four delivery rows of the [diff list](versions.html) name their cell. To stay within the twelve-entry cap, the oldest entry (the 2026-10-27 printing parts-list note) was dropped on purpose."
+- date: 2026-11-11
   text: "A diff list between the retired cluster and the new one was added: [V1.0 and V2.0, what changed](versions.html). The old platform is now kept as V1.0, a diffed reference with every fact still dated, and the new site is V2.0. The list also says where V1.0 did better and what is not rebuilt yet."
 - date: 2026-11-11
   text: "Both home CI builder hosts started jobs in parallel for the first time, one job virtual machine at a time on each. The gates were still running when this was written, so this records that they started, not that they passed."
@@ -24,5 +26,3 @@
   text: "Alerting and monitoring is now written down as one loop: alerts straight to chat, an hourly post composed by code, a morning digest, and a daily second reader that is a cloud model, with a person approving every action and grading a monthly sample. It also corrects two statements: a cloud model now sees a day's alert text, and the local model no longer writes the hourly post. [The loop](aiops.html#the-loop-two-models-one-human)."
 - date: 2026-10-27
   text: "The embedded side's nightly vulnerability upload, refused every night since at least 24 September, was fixed: a new key, and a preflight that now stops the build up front if the tracker rejects it. The first scheduled run since is the test. [The account](yocto.html#two-claims-on-this-page-were-false-on-27-october)."
-- date: 2026-10-27
-  text: "The printing page's parts list was regenerated: 29 parts in 14 models, including the camera mount's calibration flags and tilt parts. The publisher now skips any model git does not track. [The parts](printing.html#the-parts)."
