@@ -6,7 +6,8 @@
 
 **A training system, on purpose.** I train principles, technologies and everything around them, as deep and as hands-on
 as possible, on a **running system**: since 2026-11-10 a new cluster with one deployed reference app, and no public entrance, no users and
-**no paying customers, yet**. V1.0 (retired 2026-11-10): it had real identity flows, real incidents and a public entrance.
+**no paying customers, yet**. Before it, V1.0 ran from 2025-12-21 to 2026-11-10 (2,051 commits, 226 merged pull requests;
+[History](https://schultzzznet.github.io/schultzzznet/history.html)): it had real identity flows, real incidents and a public entrance.
 
 - **The latest stack on the weakest hardware I could put to use.** The handicap is chosen: retired laptops and small
   desktops, to make it as hard as possible. If it runs here, it runs on any hardware; anything else is an upgrade.
@@ -16,7 +17,7 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
   it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
   changes on purpose, and production becomes the main line.
 
-- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). It is about a day old, so no uptime is claimed. Monitoring is running and read (18 of 18 scrape targets up, 12 alert rules, no dashboards, about an hour of history on 2026-11-11); alerts to a person, replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
+- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster is about a day old, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (18 of 18 scrape targets up, 12 alert rules, no dashboards, about an hour of history on 2026-11-11); alerts to a person, replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
 - A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to V1.0 and is not part of this one (see the AI paragraph below).
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
@@ -25,7 +26,8 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
 > **Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
 >
 > **In short, as of 2026-11-11.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
-> paying customers, no users and no load. **Proven 2026-11-10, with limits:** admission policies are Ready and refused an off-list image once;
+> paying customers, no users and no load. It continues V1.0, which ran from 2025-12-21 to 2026-11-10 with 2,051 commits and
+> 226 merged pull requests ([History](https://schultzzznet.github.io/schultzzznet/history.html)). **Proven 2026-11-10, with limits:** admission policies are Ready and refused an off-list image once;
 > one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10 (a few megabytes, not real size,
 > and only one backup machine). **Failed:** the default-deny network probe, because a new pod is open for one to three seconds.
 > **Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name. Figures
@@ -109,6 +111,9 @@ cluster. What each figure counts, and the command behind it, is on the
 *Measured 2026-11-11T07:49:50Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
+V1.0, frozen and measured by `scripts/gather-history.py`: 2,051 commits from 2025-12-21 to 2026-11-05, 226 merged pull
+requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with receipts in this repository: [History](https://schultzzznet.github.io/schultzzznet/history.html).
+
 ## What this is, and is not
 
 - **Is:** a training system, run to production standards on purpose. Real applications behind real
@@ -117,8 +122,9 @@ cluster. What each figure counts, and the command behind it, is on the
 - **Is:** preparation. When a killer app appears, the platform, the patterns and the habits should already be in place;
   on that day the direction changes, and production becomes the main line.
 - **Is not:** a product with an availability commitment, or long-lived. The current cluster was built
-  on 2026-11-10 and 11, after the previous k3s cluster was torn down on 2026-11-10 (it had followed a Docker Swarm cluster
-  decommissioned on 2026-06-09). "Months of uptime" would not be true.
+  on 2026-11-10 and 11, after the previous k3s cluster (built on 2026-09-04) was torn down on 2026-11-10; it had followed an earlier k3s build and a
+  Docker Swarm cluster decommissioned on 2026-06-09. The platform and its practice date from 2025-12-21; no single cluster
+  does. "Months of uptime" would not be true.
 - **Is not highly available throughout.** The new cluster has three control-plane servers, but storage is node-local and
   the database has one backup machine, so a node loss is not yet survivable everywhere. The failure-domain review of 2026-09-09
   belonged to V1.0 and is not carried over.
@@ -130,7 +136,7 @@ cluster. What each figure counts, and the command behind it, is on the
 > **V1.0 (retired 2026-11-10): corrections, 2026-10-27.** Five statements on the site had turned stale in the pessimistic direction
 > (pull requests, secrets in git, drift checking, the ops agent, a runner count), two on the embedded page
 > were false throughout, and the uptime shortfall now has a cause. They are listed, with dates, on
-> [the estate page](https://schultzzznet.github.io/schultzzznet/#corrections-2026-10-27).
+> [the estate page](https://schultzzznet.github.io/schultzzznet/#v10-retired-2026-11-10-corrections-2026-10-27).
 >
 > **V1.0 (retired 2026-11-10): retractions, 2026-10-09.** Earlier versions of this profile said "no single points of
 > failure", "RPO 0, proven" and "Docker Swarm compatible", and that the AI runs inside the

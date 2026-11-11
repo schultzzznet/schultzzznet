@@ -6,7 +6,7 @@ summary:
   - "**What it is:** the list of things that were wrong on the way, several still visible in the system. The rule for an entry is that it cost something and the cost can be described: regret without a number attached is just modesty."
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
-  - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new platform was about 14 hours old on 2026-11-11 and nothing here claims uptime."
+  - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new cluster was about 14 hours old on 2026-11-11 and nothing here claims uptime; the platform's [history](history.html) goes back to 2025-12-21."
   - "**New on 11 November:** sequels to lessons 3, 5, 8 and 13, and a new lesson 14 on the first night of the new platform. Reviewers are AI models of the same family that helps build the estate, so the dates matter more than the grades."
 ---
 

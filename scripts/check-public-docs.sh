@@ -75,7 +75,7 @@ report "private LAN addresses" \
   "RFC1918 addressing (all of 10.0.0.0/8, 172.16/12, 192.168/16) describes the internal topology."
 
 report "fleet hostnames" \
-  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10|theubuntu[0-9a-z-]*|thedebian[0-9a-z-]*|k3s-rehearsal[0-9a-z-]*)\b' \
+  '\b(delli7c[0-9a-z]*|imaci7g[0-9a-z]*|mbpi[57][0-9a-z]*|mbneo[0-9a-z]*|asus[a-z]?[0-9][0-9a-z]*|rpi[0-9]+[a-z0-9]*|MacStudioM2Max12|MacMiniM2Pro10|theubuntu[0-9a-z-]*|thedebian[0-9a-z-]*|k3s-rehearsal[0-9a-z-]*)\b' \
   "Real machine names (the home CI hosts and the rehearsal VMs included); use role descriptions instead."
 
 report "CGNAT / WAN addresses" \
@@ -217,6 +217,10 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
   check_py "no page references a stats key that does not exist" \
     "A page names a figure stats.yml does not have; Jekyll would print nothing in its place. Fix the page or add the figure." \
     check-stats-refs.py --docs docs --readme README.md --stats docs/_data/stats.yml
+  # V1.0's history is frozen, so no freshness rule: its kinds, its sums and a method for every figure instead.
+  check_py "history data is consistent and every figure has a method" \
+    "docs/_data/history.yml is written by 'make history'; fix the generator or the history block of stats_methods.yml, not the file." \
+    gather-history.py --verify --data-dir docs/_data
 fi
 
 # A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one

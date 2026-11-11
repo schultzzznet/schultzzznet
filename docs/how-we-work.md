@@ -3,7 +3,7 @@ title: How we work
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
-  - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The platform was brought up on 2026-11-10/11, so nothing here claims uptime."
+  - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The cluster was brought up on 2026-11-10/11, so nothing here claims uptime; most of these ways of working were learned on V1.0, from 2025-12-21 ([History](history.html))."
   - "**Seen working (dated):** a hand patch on the live site was reverted by Flux (2026-11-10); a restore from the backup store alone worked once (2026-11-10); a throwaway ruleset blocked a pull request on a red gate (2026-11-10)."
   - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert has reached a person."
   - "**Two axes** ([below](#two-axes-what-you-write-and-who-applies-it)): what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, still scripted and push at the edges, so not fully GitOps yet."
@@ -14,7 +14,7 @@ summary:
 
 {% include in-short.html %}
 
-This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The platform was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It is a day old, and nothing here claims uptime.
+This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The cluster was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It is a day old, and nothing here claims uptime. The ways of working are older: most were learned on V1.0, from 2025-12-21 to 2026-11-10 ([History](history.html)).
 
 **Why there are no links to the records.** The repository behind this page is private, by choice. A claim here comes from a run record with fixed fields: date, what was done, result, what it proves, what it does not prove. I can show one on request.
 

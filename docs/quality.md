@@ -6,7 +6,7 @@ summary:
   - "**What stops a merge (read from the hosting API, 2026-11-08):** the main branch is protected: a pull request, two named checks, linear history, administrators bound. Proven on 2026-11-08 on a throwaway branch; main's own was not tested. Only those two checks are required. The aggregate gate is deliberately not required yet, with the fix open; the local-cluster gate and app tests are advisory."
   - "**Maturity is now scored against objectives, not a ladder:** the new platform's objectives page is still a draft with no start date. Its generated register (the 2026-11-10 status file) counts 12 steps (2 done, 2 done on a local cluster, 5 partly, 2 not started, 1 gated) and 109 rules (3 built, 19 partly, 87 not built)."
   - "**Old grades are dated, not current:** the 3.47 radar, the 2.72 portfolio, the ladder and the 3-of-5 second opinion belong to V1.0 (2026-08-06 to 2026-10-18)."
-  - "**Not built yet:** mutation testing, the nightly dependency sweep, a load generator, blue/green and canary. Tracing is deployed but no trace has been read. The platform is about a day old, so nothing here is an uptime claim."
+  - "**Not built yet:** mutation testing, the nightly dependency sweep, a load generator, blue/green and canary. Tracing is deployed but no trace has been read. The cluster is about a day old, so nothing here is an uptime claim."
 ---
 
 {% assign s = site.data.stats -%}

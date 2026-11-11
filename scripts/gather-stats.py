@@ -1052,6 +1052,9 @@ def yaml_keys(path):
     return pairs, scalars
 
 
+OTHER_DATA_GROUPS = frozenset(("history",))
+
+
 def check_methods(stats_pairs=None, data_dir=DATA):
     problems = []
     for name in ("stats.yml", "stats_methods.yml"):
@@ -1061,7 +1064,9 @@ def check_methods(stats_pairs=None, data_dir=DATA):
         for d in yaml_scan(os.path.join(data_dir, name))[2]:
             problems.append(f"{name}: the key '{d}' appears more than once (the last one would silently win)")
     pairs = stats_pairs if stats_pairs is not None else yaml_keys(os.path.join(data_dir, "stats.yml"))[0]
-    methods = set(yaml_keys(os.path.join(data_dir, "stats_methods.yml"))[0])
+    # Groups whose figures live in another data file are checked by that file's own generator
+    # (history.yml: scripts/gather-history.py --verify), not against stats.yml.
+    methods = {(g, k) for g, k in yaml_keys(os.path.join(data_dir, "stats_methods.yml"))[0] if g not in OTHER_DATA_GROUPS}
     for g, k in pairs:
         if (g, k) not in methods:
             problems.append(f"{g}.{k} is in stats.yml but has no method in stats_methods.yml")

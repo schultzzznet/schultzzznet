@@ -5,6 +5,9 @@
 #                   private repos; reads only), then run make check over the result
 #   make stats-dry  the same measuring, checking and leak guard, printing the result and writing nothing
 #   make site       build the site locally with GitHub's own gem, then assert on it
+#   make history    measure V1.0's frozen history into docs/_data/history.yml (needs V1_REPO and
+#                   V2_REPO, checkouts of the two private platform repositories, and gh logged in)
+#   make history-check  measure again and fail if docs/_data/history.yml no longer matches its sources
 #
 # make stats needs three things that no public file should hard-code:
 #   KUBECONFIG      the cluster's kubeconfig. REQUIRED, no default, so a run can never measure the
@@ -26,7 +29,7 @@ PLATFORM_REPO  ?=
 HARDWARE_REPOS ?= $(HOME)/VisualStudioProjects
 export PLATFORM_REPO HARDWARE_REPOS
 
-.PHONY: help check stats stats-dry site need-kubeconfig
+.PHONY: help check stats stats-dry site need-kubeconfig history history-check need-history-repos
 
 help:
 	@sed -n 's/^#   //p' $(MAKEFILE_LIST)
@@ -48,3 +51,15 @@ stats-dry: need-kubeconfig
 
 site: check
 	./scripts/build-site.sh
+
+# V1.0 is dormant, so its history is frozen: make history writes it once, make history-check proves it unchanged.
+need-history-repos:
+	@test -n "$(V1_REPO)" || { echo "V1_REPO is required: make history V1_REPO=... V2_REPO=..." >&2; exit 2; }
+	@test -n "$(V2_REPO)" || { echo "V2_REPO is required: make history V1_REPO=... V2_REPO=..." >&2; exit 2; }
+
+history: need-history-repos
+	V1_REPO="$(V1_REPO)" V2_REPO="$(V2_REPO)" ./scripts/gather-history.py
+	$(MAKE) check
+
+history-check: need-history-repos
+	V1_REPO="$(V1_REPO)" V2_REPO="$(V2_REPO)" ./scripts/gather-history.py --check
