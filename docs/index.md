@@ -1,9 +1,9 @@
 ---
 title: The estate
-reread: 2026-11-11
+reread: 2026-11-12
 body_read: 2026-11-11
 summary:
-  - "**What it is:** a training system, on purpose. V2.0, a new K3s cluster, built 2026-11-10 and 11 on six retired machines (the oldest date from 2011). The cluster is about a day old and **has no uptime to quote**. No paying customers, no users, no public entrance, no load."
+  - "**What it is:** a DevSecOps environment for building apps from the current state of the art, on retired hardware, to prove that is possible, and to be a platform for rapidly developing, deploying and maintaining any app, the killer app included. Reliability is the aim, not yet a claim: the cluster is a day old, with no uptime, users or public name. A training system, on purpose."
   - "**Proven (dated):** admission policies refuse off-list or undigested images (one real refusal, 2026-11-10); one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10, with limits. The default-deny probe failed (a 1-3 s gap at pod start)."
   - "**Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
   - "**History:** the cluster is a day old; the platform is not. V1.0 ran from 2025-12-21 to 2026-11-10 (Docker Swarm first, k3s from 2026-04, Swarm retired 2026-06-09): 2,051 commits and 226 merged pull requests, written up here in public since 2026-04-18. V2.0 is its next step on the same six machines: [History](history.html)."
@@ -24,6 +24,15 @@ summary:
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
 # A training system, on purpose: the latest platform technology on the weakest hardware I could put to use, AI on every side, to learn as much as possible before the day a killer app needs it.
+
+## TL;DR: what this is, why it exists, what it is for
+
+| | |
+|---|---|
+| **What is here** | A DevSecOps environment for building apps, put together from the current state of the art and run on retired hardware: everything is code in git and applied by a reconciler (GitOps), images are signed and admission refuses unsigned or unlisted ones, secrets are encrypted in git, databases have backups and a restore drill, and monitoring and alerts run on the same cluster. Details and dates: [Platform](platform.html), [DevSecOps](devsecops.html), [Reliability](reliability.html). |
+| **Why it was made** | To prove it is possible: that one person, with AI doing much of the building and a person approving every merge, can run this whole stack well on the weakest hardware available. If it works here it works anywhere, and any other hardware is an upgrade. The proof is dated and public, including what has failed: [History](history.html), [V1.0 against V2.0](versions.html), [Lessons](lessons.html). |
+| **What it is for** | A platform for rapidly developing, deploying and maintaining any app, the reference apps today and the killer app when it arrives, and to be reliable enough that the app is the only thing that needs attention. **That reliability is the aim, not yet a claim:** the cluster is days old and has no uptime to quote, and [Status](status.html) says what is proven, built, planned and open. |
+
 
 **Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
 
