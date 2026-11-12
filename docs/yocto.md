@@ -455,6 +455,7 @@ that the first device had not:
 
 ## Read next
 
+- **[Applications of the platform](applications.html)**: where this image sits among the workloads the platform is meant to carry, with what the platform still lacks for it.
 - **[DevSecOps, end to end](devsecops.md)**: the same supply chain pointed at a cluster.
 - **[How the platform builds and ships things](platform.md)**: the delivery chain this page shares (V1.0, retired 2026-11-10; read it with that label).
 - **[High availability, audited](reliability.md)**: the *configured, plausible, inert* class.

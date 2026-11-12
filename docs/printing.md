@@ -13,6 +13,8 @@ summary:
 
 {% include in-short.html %}
 
+Where printing sits among the applications of the platform (a source of parts for the rig and the rover, not a workload on the cluster) is on [Applications of the platform](applications.html#3d-printing).
+
 ![OpenSCAD](https://img.shields.io/badge/OpenSCAD-code%20CAD-F9D72C)
 ![Prusa](https://img.shields.io/badge/printer-CORE%20One%2B-FA6831)
 ![k3s](https://img.shields.io/badge/gallery%20pod-previous%20platform-lightgrey)

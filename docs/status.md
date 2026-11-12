@@ -182,6 +182,8 @@ This repository. The commit count is taken before the commit that carries the fi
 
 ## What this page is not
 
+**It does not say which workloads the platform carries.** That is [Applications of the platform](applications.html), with a dated status word on each.
+
 **It is a snapshot, not a feed.** `make stats` runs the generator against the cluster, read-only,
 and the file it writes is committed like any other change. Between runs the numbers stand still
 while the estate does not. A guard fails the build when the file is more than three weeks
