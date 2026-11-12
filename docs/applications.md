@@ -182,8 +182,23 @@ When one is chosen it gets its own repository and arrives by the same written co
 
 ---
 
+## Hoped and expected
+
+These are aims, kept apart from the tables above on purpose. None is a result, and none has a record. Each says what it rests on. When one comes true it moves into the table above with its dated record, and when it does not, the entry stays here with the reason.
+
+| Application | Hoped or expected | What it rests on |
+|---|---|---|
+| Embedded Linux (Pi) | **Expected:** the signing, bill-of-materials and A/B update chain that ran on V1.0 runs again on the new platform, and a field update is applied with rollback. | The planned rows in the table above; the same tools are already picked for the cluster's own images. |
+| Embedded Linux (i.MX 8M Nano) | **Hoped:** it reaches the same image pipeline as the Pi without a second set of rules. | The Pi pipeline being reusable; only survey scripts exist today. |
+| The mower | **Hoped:** an RTK fix on the real receiver, then one real mowing pass driven by a pattern from git. | The bench rig and the receiver reading above; the fix depends on antenna placement and a correction source, not on the platform. |
+| The rover | **Hoped:** telemetry, alerts and the tracker make the rig easier to run and debug than running it alone. | A planned test, not a result; the rig works without a cluster. |
+| 3D printing | **Expected:** parts built from source in CI, with each printed result recorded against its change. | The parts-as-code flow already works by hand; CI for it is not built. |
+| The reference apps | **Expected:** Loc8, then Talk, land on the platform by the written contract without touching platform code; **hoped:** that this takes days, not weeks. | Warn did it once, by its author. The Land test is a one-run rehearsal. |
+| The killer app | **Hoped:** that when it appears, the platform is the part nobody has to think about, so the first work is the app and its launch gates. **Expected:** a first week of surprises anyway. | The app standard, the template and the gates exist as written; none has met a real app. |
+
 ## What this page does not prove
 
+- **That any hope above is likely.** They are aims with the reasons given, not forecasts.
 - **That the platform is reliable.** It is days old. The aim is reliability; there is no uptime to quote.
 - **That a second application would land.** Warn is one app, moved by its author with full knowledge of the platform. The Land test exists to answer that, and has been rehearsed once.
 - **That any of the hardware applications needs the platform.** The rig runs without a cluster. Whether telemetry, alerts and a tracker make it better is a planned test, not a result.
