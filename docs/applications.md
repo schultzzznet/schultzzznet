@@ -14,7 +14,7 @@ summary:
 
 {% include in-short.html %}
 
-The aim of this estate is to be a platform that real applications run on, and to show it. This page is the account of how far that has got, **and the honest answer on 2026-11-12 is: not far.** Exactly one application, the Warn backend, is running on the new platform, and the cluster it runs on is two days old. The other applications are real work (a hardened Linux image, a robot rig that draws straight lines, printed parts), but they were served by V1.0 until it was torn down on 2026-11-10, run on a bench or a workstation, or are only planned. The killer app does not exist at all. Every row below carries a date and one of four words: **proven** (a dated record shows it working), **built** (it exists, its working on the platform is not shown), **planned**, **open** (a question with no answer yet). Nothing here is an uptime or a user claim, and "production" appears only as a goal.
+The aim of this estate is to be a platform that real applications run on, and to show it. This page is the account of how far that has got, **and the honest answer on 2026-11-12 is: not far.** Exactly one application, the Warn backend, is running on the new platform, and the cluster it runs on is days old. The other applications are real work (a hardened Linux image, a robot rig that draws straight lines, printed parts), but they were served by V1.0 until it was torn down on 2026-11-10, run on a bench or a workstation, or are only planned. The killer app does not exist at all. Every row below carries a date and one of four words: **proven** (a dated record shows it working), **built** (it exists, its working on the platform is not shown), **planned**, **open** (a question with no answer yet). Nothing here is an uptime or a user claim, and "production" appears only as a goal.
 
 The word *application* is used loosely on purpose. A mobile app, a Linux image and a robot rig put different demands on the platform: public reads, signed delivery, a vulnerability record, a place to keep telemetry. That spread is the reason for choosing them.
 
@@ -23,7 +23,7 @@ The word *application* is used loosely on purpose. A mobile app, a Linux image a
 | Embedded Linux (Pi) | Signed A/B Linux image with a bill of materials | Hardware-proven image; its supply-chain services were on V1.0 and are planned again | [below](#embedded-linux-two-boards) |
 | Embedded Linux (i.MX 8M Nano) | An image for a second board | Planned; survey scripts only | [below](#embedded-linux-two-boards) |
 | Mower | RTK-GPS pattern mowing, tried on a bench rig | Rig proven on the bench; no mower opened, no RTK fix | [below](#the-mower) |
-| Rover | Shared robot code, plus a camera rover scaffold | Built; the shared parts are proven by host tests | [below](#the-rover) |
+| Rover | Shared robot code, plus a camera rover scaffold | Built; host tests exist, no run record cited | [below](#the-rover) |
 | 3D printing | Parts as source code | Built; not on the cluster | [below](#3d-printing) |
 | Reference apps | Warn, Loc8, Talk | Warn proven on the cluster; Loc8 and Talk planned | [below](#the-reference-apps) |
 | The killer app | An application that does not exist yet | Open | [below](#the-killer-app) |
@@ -48,12 +48,12 @@ The word *application* is used loosely on purpose. A mobile app, a Linux image a
 | Signed A/B update, rollback and signing on hardware | proven | 2026-07-06, re-proven 2026-08-30 | The second date is the move to the current Yocto LTS |
 | A release delivered over the air into the other slot | proven | 2026-09-01 | A bundle that broke later updates was withdrawn, not patched |
 | A build from an empty cache restored 490 of 490 tasks; with a dead mirror, 0 | proven | 2026-09-25 | Not re-run since |
-| Scanner truth: 0 findings, then about 100 raw matches, then 46 after triage | proven, old figure | 2026-07 | First build on the previous LTS; not re-measured |
+| Scanner truth: 0 findings, then about 100 raw matches, then 46 after triage | proven | 2026-07 | Old figure: first build on the previous LTS; not re-measured |
 | Nightly upload of the bill of materials | open | 2026-10-27 | Refused for 28 of 28 retained nightly logs; fixed by hand once; the scheduled run was never shown to work, and the tracker is now gone |
 | Vulnerability tracker, fleet service and dependency mirror on the new platform | planned | 2026-11-11 | None built |
 | The same image carries the small bench rig used for the [mower and rover](#the-mower) work | proven | 2026-10-26 | An image, not a platform service; power cuts caused an automatic fall-back to the other slot |
 | Secure boot | planned | 2026-11-07 | Written down only; the current page says there is none |
-| A second board (i.MX 8M Nano) | planned | 2026-11-07 | Three commits: survey and backup scripts, a source brief, a written secure-boot chain. Nothing has been built, flashed or booted, and the survey was not checked as run |
+| A second board (i.MX 8M Nano) | planned | 2026-11-07 | Three commits (counted 2026-11-12): survey and backup scripts, a source brief, a written secure-boot chain. Nothing has been built, flashed or booted, and the survey was not checked as run |
 | Pi 4 as a target | planned | 2026-11-07 | The default machine was changed; no boot is shown |
 
 **What the platform still lacks for it.** Every service it used on V1.0: an artifact store, a tracker that takes the nightly upload, a fleet service, a dependency mirror, and an alert that reads the nightly job's exit code (nothing did, which is how 28 failures went unseen). The image pipeline is a candidate for the platform's signing and CI; it does not use them today. The second board is not an example of the platform at all yet.
@@ -62,7 +62,7 @@ The word *application* is used loosely on purpose. A mobile app, a Linux image a
 
 ## The mower
 
-**What it is.** A project to replace the brain of old robotic lawn mowers with an RTK-GPS pattern-mowing stack, keeping the drive motors, blade and battery. It is a learning application, **not the killer app**. The north star ("drop it into any garden") is an aspiration, not a result. Everything is at the bench stage: no mower has been opened or driven, no RTK fix has ever been obtained, and nothing has cut grass. The repository has {{ site.data.stats.hardware.mower_commits }} commits as of {{ site.data.stats.generated_at | slice: 0, 10 }}.
+**What it is.** A project to replace the brain of old robotic lawn mowers with an RTK-GPS pattern-mowing stack, keeping the drive motors, blade and battery. It is a learning application, **not the killer app**. The north star ("drop it into any garden") is an aspiration, not a result. Everything is at the bench stage: no mower has been opened or driven, no RTK fix has ever been obtained, and nothing has cut grass. The repository has 268 commits, counted from the repository on 2026-11-12.
 
 The hardware that exists is a small wheeled bench rig: a Pi on the A/B image, a microcontroller, motor drivers, wheel tachometers, a camera and a hobby GNSS receiver, on a printed LEGO Technic frame from the [printing](#3d-printing) work.
 
@@ -79,9 +79,9 @@ The hardware that exists is a small wheeled bench rig: a Pi on the A/B image, a 
 | Three straight parallel 800 mm lanes, 200 mm apart, on wheel ticks alone | proven | 2026-11-06 | Lanes within about 1 degree of the tape, end about 7 mm off target; the referee was ink from a printed pen holder on the floor, not the rig's own estimate |
 | Repeat runs overlap | proven | 2026-11-07 | Lines within about 1 cm run to run; turn pairs read 181 to 182.5 degrees for a 180 target |
 | A rolling-diameter correction | proven | 2026-11-07 | At the first value every lane drew 5 to 8 percent short; the second value was measured. A ratio guess of 1.015 made one lane lean 13 degrees while the ticks said straight |
-| A real GNSS receiver read by the tool | proven | 2026-10 | 10 seconds: any 3D fix 100 percent, **RTK fixed 0 percent**, verdict poor. Proof the tool works, and proof RTK is not shown |
+| A real GNSS receiver read by the tool | proven | 2026-10-13 | 10 seconds: any 3D fix 100 percent, **RTK fixed 0 percent**, verdict poor. Proof the tool works, and proof RTK is not shown. Date is that of the mower roadmap entry recording it |
 | A/B install of the image on the rig | proven | 2026-10-26 | Both slots on the same bundle |
-| Nightly simulation gate | built | 2026-09-13 | It failed every night until a missing read-only key was added; a simulation result is not a field result |
+| Nightly simulation gate | built | 2026-07-30 | Added with the first platform commit; its checkout of the rover repository was fixed on 2026-10-11, after the shared code moved there on 2026-09-13. No run result is cited here, and a simulation result is not a field result |
 | Gyro in the loop | planned | 2026-10-26 | Ordered; the reader code is tested in simulation only, never on the chip |
 | Turn scatter of about 5 degrees on lane runs | open | 2026-11-07 | The ticks cannot see wheel slip; the gyro is the intended fix |
 | RTK base and fix, mower teardown, cutting safety, docking | planned | 2026-11-12 | The roadmap says Phase 0 |
@@ -93,7 +93,7 @@ The hardware that exists is a small wheeled bench rig: a Pi on the A/B image, a 
 
 ## The rover
 
-**What it is.** Two things. First, a shared platform for slow ground machines: a safety-gated serial wire contract with the microcontroller as the safety authority, firmware core, an image base, a microcontroller update tool, navigation geometry and RTK tools. The bench rig above runs on it ({{ site.data.stats.hardware.rover_platform_commits }} commits, as of {{ site.data.stats.generated_at | slice: 0, 10 }}). Second, a video rover: a software scaffold for a self-driving camera carrier ({{ site.data.stats.hardware.video_rover_commits }} commits). No video rover exists; its printed parts are on the [printing](#3d-printing) side and do not yet go together.
+**What it is.** Two things. First, a shared platform for slow ground machines: a safety-gated serial wire contract with the microcontroller as the safety authority, firmware core, an image base, a microcontroller update tool, navigation geometry and RTK tools. The bench rig above runs on it (33 commits, counted from the repository on 2026-11-12). Second, a video rover: a software scaffold for a self-driving camera carrier (3 commits, same count date). No video rover exists; its printed parts are on the [printing](#3d-printing) side and do not yet go together.
 
 **How it uses the platform (or will).**
 
@@ -103,8 +103,8 @@ The hardware that exists is a small wheeled bench rig: a Pi on the A/B image, a 
 
 | Claim | Status | Date | Note |
 |---|---|---|---|
-| The safety gate and the wire contract pass host tests | proven | 2026-10 | Test counts are on the [status page](status.html); they count definitions, not a pass rate. It is not certified and has not driven a real blade |
-| The three implementations agree byte for byte on the reference frames | proven | 2026-10 | Byte equality, not interoperability on hardware |
+| The safety gate and the wire contract have host tests | built | 2026-09-13 | Date of the platform commit. Test counts are on the [status page](status.html); they count definitions, not a pass rate, and no dated run record is cited here. It is not certified and has not driven a real blade |
+| The three implementations are pinned to the same reference frames | built | 2026-10-04 | Date of the latest golden-vector commit; no dated run record is cited here, and equality in tests is not interoperability on hardware |
 | Boot safety and the persistent journal installed on the rig | proven | 2026-10-26 | The first install found a shell-compatibility fault, fixed the same day |
 | A second consumer of the shared code | built | 2026-09-19 | The video rover scaffold runs against an in-process simulator only |
 | A rover that drives, docks or charges | planned | 2026-11-12 | Nothing physical exists |
@@ -122,7 +122,7 @@ The hardware that exists is a small wheeled bench rig: a Pi on the A/B image, a 
 
 | Claim | Status | Date | Note |
 |---|---|---|---|
-| A printed copy of an open LEGO frame fits, hole for hole | proven | 2026-11-03 | From the record of that day; no photograph is published here |
+| A printed copy of an open LEGO frame fits, hole for hole | built | 2026-11-03 | The commit "the printed pair is perfect" and a recorded fit gauge; no photograph or measurement is published here, so it is not marked proven |
 | Frame, plate and pen-holder parts for the rig | built | 2026-11-06 | Not yet in the printing page's parts list (regenerated 2026-10-27) |
 | Publish only parts that git tracks, behind the leak guard | built | 2026-10-27 | |
 | Gallery and print pipeline on the new cluster | open | 2026-11-11 | An owner decision: add it as an application or retire it |
@@ -166,13 +166,13 @@ When one is chosen it gets its own repository and arrives by the same written co
 
 | Item | Status | Date | Honest count |
 |---|---|---|---|
-| App standard: about 90 rows in groups from delivery to launch | built (written) | 2026-11-11 | Part of the register's 109 rules, of which 3 are built, 19 partly, 87 not. No app has a score |
-| App template and a scaffolding script | built, partly | 2026-11-11 | Passes its manifest check; one-file tenant entry, secrets layout, attack cases and drift report are not built |
-| The Land test: a never-seen open-source app from an empty repository to public, signed, traced and backed up | built (a rehearsal) | 2026-11-09 | One green run on a local test cluster with Warn as the stand-in, 635 seconds, after one red run; later commits have no green run. Not the real test: no random draw, no public address. The target times are proposals |
-| Launch gates: 16 items such as terms, privacy, breach runbook, legal entity and store accounts | built (a register) | 2026-11-11 | 0 of 16 done; only the owner can do them. No stranger may sign up until they pass |
+| App standard: about 90 rows in groups from delivery to launch | built | 2026-11-11 | Written, not enforced. Part of the register's 109 rules, of which 3 are built, 19 partly, 87 not. No app has a score |
+| App template and a scaffolding script | built | 2026-11-11 | Only partly: passes its manifest check; one-file tenant entry, secrets layout, attack cases and drift report are not built |
+| The Land test: a never-seen open-source app from an empty repository to public, signed, traced and backed up | built | 2026-11-09 | A rehearsal: one green run on a local test cluster with Warn as the stand-in, 635 seconds, after one red run; later commits have no green run. Not the real test: no random draw, no public address. The target times are proposals |
+| Launch gates: 16 items such as terms, privacy, breach runbook, legal entity and store accounts | built | 2026-11-11 | A register only: 0 of 16 done; only the owner can do them. No stranger may sign up until they pass |
 | Client release path to testers | planned | 2026-11-11 | Not built; no client has one |
 | A register of "cheap now, expensive later" items | built | 2026-11-11 | About 30 items, mostly never run |
-| Restore from backup | proven once | 2026-11-10 | One drill, on-demand, scratch cluster |
+| Restore from backup | proven | 2026-11-10 | Once: one drill, on-demand, scratch cluster |
 | Rebuild the whole platform from git, timed | planned | 2026-11-12 | Never run |
 | Load test and a way to raise the ceiling per app | planned | 2026-11-12 | Not built |
 
@@ -184,7 +184,7 @@ When one is chosen it gets its own repository and arrives by the same written co
 
 ## What this page does not prove
 
-- **That the platform is reliable.** It is two days old. The aim is reliability; there is no uptime to quote.
+- **That the platform is reliable.** It is days old. The aim is reliability; there is no uptime to quote.
 - **That a second application would land.** Warn is one app, moved by its author with full knowledge of the platform. The Land test exists to answer that, and has been rehearsed once.
 - **That any of the hardware applications needs the platform.** The rig runs without a cluster. Whether telemetry, alerts and a tracker make it better is a planned test, not a result.
 - **Anything about users.** There are none.
