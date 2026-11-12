@@ -2,6 +2,8 @@
 # Each entry is a date and one or two sentences (markdown allowed); the full account lives on the page it links to.
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
+- date: 2026-11-12
+  text: "A new page, [Applications of the platform](applications.html), lists the workloads the platform is meant to carry (embedded Linux, the mower, the rover, 3D printing, the reference apps and the killer app) with a dated proven, built, planned or open row for each claim and what the platform still lacks for it. One application is proven on the new platform; the killer app does not exist."
 - date: 2026-11-11
   text: "A new page, [History](history.html), shows the line from V1.0 to V2.0: V1.0 ran from 2025-12-21 to 2026-11-10, with 2,051 commits, 226 merged pull requests and a commit in every calendar month from December 2025 to November 2026, measured by a committed script and frozen. It lists dated milestones and receipts anyone can check: commits to this public repository, with the push times GitHub recorded, that published V1.0's figures before V2.0 existed. The cluster is a day old; the platform is not. To stay within the twelve-entry cap, the 2026-10-27 note on the embedded side's vulnerability upload was dropped; it is still on [the embedded page](yocto.html#two-claims-on-this-page-were-false-on-27-october)."
 - date: 2026-11-11
@@ -24,5 +26,3 @@
   text: "The default-deny network probe on the new cluster is recorded as a fail. After about 30 seconds every blocked path is blocked, but a new pod is open for roughly one to three seconds after it starts. Whether another network engine or a start-up wait closes the gap is untested. [Status](status.html)."
 - date: 2026-11-10
   text: "The host layer was rehearsed on three blank local virtual machines: ready in 4 minutes 11 seconds from creation, and a second full run changed nothing. It found four defects on the way. It is one distribution, no node failure and no three-member quorum test, so it shows flow and idempotence, not the real topology. [How we work](how-we-work.html)."
-- date: 2026-10-30
-  text: "Alerting and monitoring is now written down as one loop: alerts straight to chat, an hourly post composed by code, a morning digest, and a daily second reader that is a cloud model, with a person approving every action and grading a monthly sample. It also corrects two statements: a cloud model now sees a day's alert text, and the local model no longer writes the hourly post. [The loop](aiops.html#the-loop-two-models-one-human)."

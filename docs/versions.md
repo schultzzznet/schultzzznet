@@ -189,7 +189,7 @@ The first four delivery rows carry a cell from the two axes explained in [How we
 | Area | V1.0 | V2.0 | Change | V2.0 status | Evidence and why |
 |---|---|---|---|---|---|
 | 3D printing and embedded | Printing as source, OpenSCAD and Python. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Unchanged. The preview gallery pod on V1.0 is gone. | kept | - | **Evidence:** Parts list dated 2026-10-27; newer frame, plate and marker holder not listed. **Why:** Mechanical work is outside the cluster. |
-| 3D printing and embedded | Signed A/B over-the-air updates for a Pi with a bill of materials. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Unchanged. The tracker it fed was inside V1.0 and is gone. A new one is planned. | kept | planned | **Evidence:** Yocto page, 2026-11-11. **Why:** The heartbeat from devices to the cluster is also planned. |
+| 3D printing and embedded | Signed A/B over-the-air updates for a Pi with a bill of materials. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Unchanged. The tracker it fed was inside V1.0 and is gone. A new one is planned. | kept | planned | **Evidence:** Yocto page, 2026-11-11 ([Applications](applications.html#embedded-linux-two-boards)). **Why:** The heartbeat from devices to the cluster is also planned. |
 
 ### Process
 

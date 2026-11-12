@@ -15,7 +15,8 @@
     - { title: How we work, url: /how-we-work.html }
 - section: Apps
   pages:
-    - { title: The apps, url: /apps.html }
+    - { title: Applications of the platform, url: /applications.html }
+    - { title: The reference apps, url: /apps.html }
 - section: AI
   pages:
     - { title: Alerting & ops agent, url: /aiops.html }

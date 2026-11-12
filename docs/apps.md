@@ -178,6 +178,8 @@ features, such as push notifications, that the code does not have.
 
 ## Where this fits
 
+How these apps sit beside the other workloads (the embedded image, the mower and rover work, printing and the killer app that does not exist yet) is on [Applications of the platform](applications.html).
+
 The apps are the workload, and [the platform](platform.md) is the point. They are why the
 database failover mattered, why [the incident](incident.md) had somewhere to land, and why
 a synthetic traffic generator (V1.0; [the estate page](index.md#none-of-this-is-a-demo) describes it)
