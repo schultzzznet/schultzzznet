@@ -13,6 +13,12 @@
     - { title: High availability, url: /reliability.html }
     - { title: Quality & maturity, url: /quality.html }
     - { title: How we work, url: /how-we-work.html }
+- section: Academy
+  pages:
+    - { title: Academy, url: /academy.html }
+    - { title: "0: The big picture", url: /academy-big-picture.html }
+    - { title: "1: CI at home", url: /academy-ci.html }
+    - { title: "3: Flux and GitOps", url: /academy-flux.html }
 - section: Apps
   pages:
     - { title: Applications of the platform, url: /applications.html }
