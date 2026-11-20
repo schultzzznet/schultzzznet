@@ -17,21 +17,32 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
   it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
   changes on purpose, and production becomes the main line.
 
-- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster is about a day old, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (18 of 18 scrape targets up, 12 alert rules, no dashboards, about an hour of history on 2026-11-11); alerts to a person, replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
+- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster is about nine days old, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (on 2026-11-20: 57 scrape targets up, 51 alert rules, 7 dashboards, about 1.3 days of history); alerts reach a chat channel since 2026-11-16, which pages nobody. Replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
 - A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to V1.0 and is not part of this one (see the AI paragraph below).
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
 - The rule of the whole thing: assert the property, do not trust the report.
 
-> **Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
+> **Not measured yet (2026-11-20):** SBOM projects, alerts reaching a person (they reach a chat channel, which pages
+> nobody), and electricity cost.
 >
-> **In short, as of 2026-11-11.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
+> **In short, as of 2026-11-20.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
 > paying customers, no users and no load. It continues V1.0, which ran from 2025-12-21 to 2026-11-10 with 2,051 commits and
-> 226 merged pull requests ([History](https://schultzzznet.github.io/schultzzznet/history.html)). **Proven 2026-11-10, with limits:** admission policies are Ready and refused an off-list image once;
-> one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10 (a few megabytes, not real size,
-> and only one backup machine). **Failed:** the default-deny network probe, because a new pod is open for one to three seconds.
-> **Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name. Figures
-> that cannot be measured yet say "not measured yet". V1.0 is described in dated notes. Start with
+> 226 merged pull requests ([History](https://schultzzznet.github.io/schultzzznet/history.html)).
+> **Proven, with limits:** admission policies refused an off-list image (2026-11-10); restore drills of the warning app's
+> database (2026-11-10) and of the login service's database (2026-11-15) passed, on databases of megabytes, from one backup
+> machine. **Software failure drills, 2026-11-16 and 17:** 17 run on the live cluster (pods, database primaries and
+> standbys, the pooler, the ingress, cluster DNS, admission, node drains), 15 passed and none lost an acknowledged write. They
+> found one design flaw, the connection pooler holding on to a failed login after a database failover, fixed and passed on a
+> re-run with a thin margin; one miss, with both backup-plugin pods down, is still open.
+> **Power-off drills, 2026-11-19:** the first (a plain worker) passed; the second found a timing flaw: cluster DNS stalled
+> for about 51 seconds and two of the probe's test writes failed, so the series stopped and starts again from the first drill after the fix.
+> The fix, cluster DNS on every node, is in progress: two of its five steps were live on 2026-11-20, the rest held while two
+> unexplained failed lookups are looked into. **New rule, 2026-11-20:** every failure scenario is rehearsed first in a
+> simulated cluster shaped like home, then run live (that suite is planned, not built). **Failed:** the default-deny network probe (2026-11-10), because a new
+> pod is open for one to three seconds. **Not live:** replicated storage, an off-site backup copy, a public name.
+> No single point of failure is proven fixed yet. Figures that cannot be measured yet say "not measured yet". V1.0 is
+> described in dated notes. Start with
 > [*V1.0 and V2.0: what changed*](https://schultzzznet.github.io/schultzzznet/versions.html) (the diff list),
 > [*How we work*](https://schultzzznet.github.io/schultzzznet/how-we-work.html), the
 > [*status*](https://schultzzznet.github.io/schultzzznet/status.html) or
@@ -95,21 +106,21 @@ cluster. What each figure counts, and the command behind it, is on the
 | Nodes (Ready) | 6 (6) |
 | CPU cores | 48 |
 | Memory | 99 GB |
-| Pods running | 38 |
-| Kustomizations ready | 18 of 18 |
-| Admission policies ready | 2 of 2 |
-| Tenants with default-deny (structural count) | 6 of 6 |
-| Database instances ready | 3 of 3 |
-| Backup objects completed in the last 24 hours | 1 |
-| Latest restore drill on the home site | 2026-11-10, pass |
-| Single points accepted, fixed, open | 13, 0, 9 |
-| Alert rules | 12 |
-| Decision records | 8 |
-| Run records (pass of total) | 26 of 35 |
-| Test definitions (counted, not run) | 58 |
-| CI workflows | 9 |
+| Pods running | 72 |
+| Kustomizations ready | 23 of 23 |
+| Admission policies ready | 5 of 5 |
+| Tenants with default-deny (structural count) | 10 of 10 |
+| Database instances ready | 6 of 6 |
+| Backup objects completed in the last 24 hours | 2 |
+| Latest restore drill on the home site | 2026-11-15, pass |
+| Single points accepted, fixed, open | 13, 0, 14 |
+| Alert rules | 51 |
+| Decision records | 15 |
+| Run records (pass of total) | 71 of 96 |
+| Test definitions (counted, not run) | 89 |
+| CI workflows | 12 |
 
-*Measured 2026-11-11T07:49:50Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-20T08:54:54Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 V1.0, frozen and measured by `scripts/gather-history.py`: 2,051 commits from 2025-12-21 to 2026-11-05, 226 merged pull
@@ -128,15 +139,21 @@ requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with recei
   does. "Months of uptime" would not be true.
 - **Is not highly available throughout.** The rule is that a single point of failure on an app's own path (the app, its login,
   its database, what its writes and failover depend on, its object store) is never accepted; only the shared way in, power, the
-  network, the internet line and supporting systems may be. Read on 2026-11-11, the register of single points holds 22 rows: 13
-  accepted, 0 fixed and 9 open, and 6 of the open ones are on the warning app's own path (pods, database, operator, backup plugin,
-  login, scaling). Storage is node-local, and no machine has been switched off to see what survives. The failure-domain review of
-  2026-09-09 belonged to V1.0 and is not carried over; redoing it for this cluster (kill each machine role on a throwaway cluster,
-  then on the home site, and record what survived) is a written plan item, not yet run. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
-- **Is not zero-loss.** The one database cluster has three instances and a nightly backup; a restore drill passed on 2026-11-10
-  on a database of a few megabytes. A scheduled-backup restore and an off-site copy are untested. V1.0's
+  network, the internet line and supporting systems may be. Read on 2026-11-20, the register of single points holds 27 rows: 13
+  accepted, 0 fixed and 14 open, and 7 of the open ones are on the warning app's own path (pods, database, the login service and
+  its database, operator, backup plugin, scaling); 6 are on the shared path (among them cluster DNS, the ingress and admission)
+  and 1 is a supporting system. A row only moves to fixed when a machine is powered off and the app goes on. Storage is node-local.
+  The software failure drills (17 on 2026-11-16 and 17) timed each piece's failover; the power-off drills began on 2026-11-19:
+  the first passed, the second found the cluster DNS timing flaw and stopped the series, which starts again from the first drill
+  once the fix is in. From 2026-11-20 each scenario is rehearsed first in a simulated cluster shaped like home, then run live;
+  that simulated suite is planned, not built. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
+- **Is not zero-loss.** Two database clusters (the warning app's and the login service's) have three instances each, a
+  synchronous standby asked for in the specification, and a nightly backup to one machine. Restore drills passed on 2026-11-10
+  and 2026-11-15 on databases of megabytes. No acknowledged write was lost in the failure drills, which is a result of those
+  drills, not a guarantee. Point-in-time recovery, a total-loss restore and an off-site copy are untested. V1.0's
   synchronous-commit figures are not carried over.
-- **Is not a user base.** There are no users on the new cluster; durable identity is not live. The apps are deliberately modest demos that exercise every layer.
+- **Is not a user base.** There are no users on the new cluster. The login service runs two replicas on its own database since
+  2026-11-15. The apps are deliberately modest demos that exercise every layer.
 
 > **V1.0 (retired 2026-11-10): corrections, 2026-10-27.** Five statements on the site had turned stale in the pessimistic direction
 > (pull requests, secrets in git, drift checking, the ops agent, a runner count), two on the embedded page
@@ -154,8 +171,8 @@ requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with recei
 
 ## The parts, briefly
 
-**Platform.** K3s on six nodes built by playbook and reconciled from git, node-local storage, an operator-managed PostgreSQL cluster
-with backups to an S3-compatible store on a small always-on Mac, admission policies and default-deny network rules (one probe failed, see above). Monitoring was merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and its pods were Running at 07:00 UTC) and on 2026-11-11 it was read: 18 of 18 scrape targets up, 12 alert rules, no dashboards. V1.0 (retired 2026-11-10): it ran Ceph, MinIO, Prometheus, Loki, Grafana and Alertmanager; that is history. Apps are Spring Boot and
+**Platform.** K3s on six nodes built by playbook and reconciled from git, node-local storage, two operator-managed PostgreSQL clusters
+(the warning app's behind a connection pooler; the login service connects directly) with backups to an S3-compatible store on a small always-on Mac, admission policies and default-deny network rules (one probe failed, see above). Monitoring was merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day) and runs with two metrics replicas since 2026-11-19; read on 2026-11-20: 57 scrape targets up, 51 alert rules, 7 dashboards. Alerts reach a chat channel; nothing pages a person. The cluster moved to a newer minor release of K3s on 2026-11-18, node by node, by playbook. V1.0 (retired 2026-11-10): it ran Ceph, MinIO, Prometheus, Loki, Grafana and Alertmanager; that is history. Apps are Spring Boot and
 Flutter. It is standard Kubernetes, but I have not tested it on a managed distribution, so I do
 not claim it would move unchanged.
 

@@ -1,12 +1,12 @@
 ---
 title: High availability — what has it, what does not, and how we know
-reread: 2026-11-11
-body_read: 2026-11-11
+reread: 2026-11-20
+body_read: 2026-11-20
 summary:
-  - "**Where it stands, 2026-11-11:** the cluster was rebuilt on 10 and 11 November and was 13 to 14 hours old when read on that day; the platform behind it goes back to 2025-12-21 ([History](history.html)). Nothing here is an uptime claim. Three control-plane servers, three database instances on three machines and two copies of the app are running; none of it has had a machine switched off yet."
-  - "**No current count:** the old page scored 7 of 13 failure domains. That count belonged to the retired platform. No new score is derived until the tests have been run. The app pods restarted 10 times each during bring-up; the cause was not checked."
-  - "**Single points register (read 2026-11-11):** 22 rows, 13 accepted, 0 fixed, 9 open. Open: DNS, ingress, admission, and the warning app's pods, database, operator, backup plugin, login, scaling. Monitoring was running on 2026-11-11 and was read: 18 of 18 scrape targets up, 12 alert rules."
-  - "**Tried so far:** one restore drill (pass, 2026-11-10) and one default-deny probe (fail: a new pod is open for 1 to 3 seconds). Not tried: node loss, power cut, loss of one server, failover of the floating address."
+  - "**Where it stands, 2026-11-20:** the request path has a written design, hop by hop, and 17 live software drills ran against its pieces (15 pass, 2 fail, no acknowledged write lost). There are **0 power-off proofs**: of 7 planned power-off drills, 2 ran on 2026-11-19, 1 passed and 1 failed, and the series starts again from the first. Nothing here is an uptime claim."
+  - "**Single points register (read 2026-11-20):** 27 rows, 13 accepted, 0 fixed and 14 open. 7 of the 14 open rows are on an app's path, 6 on the shared path and 1 supporting. A point on an app's path is never accepted, and only a power-off record makes a row fixed."
+  - "**The biggest finding:** two cluster DNS replicas looked highly available and failed on timing under a real power-off: lookups stalled 51 s and two of the probe's test inserts failed. The fix, DNS on every node with each node using its own, is live since 2026-11-20 for the first two of five steps; the next two wait on a clean soak, and the last proves it stays."
+  - "**Also found:** a connection pooler that cached a failed login (fixed: a primary failover went from 48.6 s to 27.9 s), extra seconds when both backup plugin pods are down (open), and a sign-in probe that cannot see a login database outage (open). Restores: 3 drills, all pass."
   - "**Kept as record:** V1.0's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
 
@@ -17,7 +17,7 @@ summary:
 "Highly available" is the easiest claim in infrastructure to make and the hardest to keep
 true. This page is the audit: which failure domains survive losing one machine, which do not,
 and what happened when the assumptions were exercised. It has two parts. The first is the
-**new platform, read on 2026-11-11**. The second is the **V1.0, until 2026-11-10**,
+**new platform, read on 2026-11-20**. The second is the **V1.0, until 2026-11-10**,
 kept whole because what it taught still applies and because deleting history is how a page
 stops being honest.
 
@@ -25,142 +25,142 @@ Status words used in the first part: **proven** (seen working on a live run, wit
 **built** (in place, nothing has been switched off to see),
 **planned**, **open**. Defined once on [how we work](how-we-work.html).
 
+{% assign ev = site.data.stats.evidence %}
+{% assign ob = site.data.stats.observability %}
+
 ---
 
-## The new platform, 2026-11-11
+## The new platform, 2026-11-20
 
-V1.0 was torn down on 2026-11-10 and replaced by a new cluster of six machines:
-three control-plane servers and three laptop agents. The nodes were 13 to 14 hours old when read on that day on 2026-11-11. That
-is too young to say anything about uptime and this page does not. Every row below is a reading of
-one moment, taken from the live cluster (read-only) and from the register of single points of
-failure that the new platform keeps.
+V1.0 was torn down on 2026-11-10 and replaced by a new cluster of six machines: three
+control-plane servers and three laptop agents. That is too young to say anything about uptime,
+and this page does not. Every row below comes from a dated record or a live reading.
 
-**There is no count of tolerant domains here, on purpose.** The old page scored itself 7 of 13
-on 2026-09-09. A new score needs the failure tests to have been run, and none has been.
-Counting configuration as tolerance is the mistake V1.0 spent months correcting.
+**What changed since 2026-11-11.** On 2026-11-11 nothing had been switched off and this page
+could only list what was built. Since then 17 software failure drills ran on the live site
+(2026-11-16 and 17), the first two power-off drills ran (2026-11-19), and four simulations on
+throwaway clusters. The login service moved from one replica in development mode to two replicas
+on its own three-instance database. The register grew by five rows (the control plane, the
+floating address, the house name service, delivery and the login database), all open. The
+power-off drills found one design flaw that a review on paper had passed, and its fix is half
+live. There is still no count of tolerant domains: a new score waits for the power-off proofs.
 
-| Domain | State on 2026-11-11 | Status |
+### The design: the request path, hop by hop
+
+From a phone to a write in the reference app (the warning app), as it runs on 2026-11-20.
+
+| Hop | How many | Spread | What takes over | Target (a proposal) | Status |
+|---|---|---|---|---|---|
+| Name in the house | 1 house name service | none | nothing | none | open |
+| Public entrance | none yet: a private overlay name, then a public entrance, is decided and not built | - | - | - | planned |
+| Floating ingress address | 1 holder of 3 servers, by a short lease | one candidate per server | another server takes the lease | back within 30 s | built |
+| Ingress | 2 | soft: both may land on one machine (an open finding) | the other replica | back within 30 s | built |
+| Reference app | 2 to 4, autoscaled, disruption budget | hard, one per machine | the other pods | no failed request beyond those in flight | proven by pod kill and drain |
+| Login service | 2, production mode, sessions in its database | hard, one per machine | the other replica; a login in progress is lost with its pod | sign-in back within 30 s | proven by pod kill |
+| Login database | 3 instances, reached directly | required, one per machine | a standby is promoted | back within 30 s | proven by switchover and kill |
+| Connection pooler | 2 | required, one per machine | the other pod | writes back within 10 s | proven by pod kill |
+| App database | 3 instances, quorum commit to 1 of 2 standbys, durability required | required, one per machine | a standby is promoted | 30 s, no committed write lost | proven by kill and drain |
+| Database operator, backup plugin | 2 each, leader election | the same two machines | the other takes the lease | 30 s or 60 s (an owner question) | operator proven by kill; plugin missed |
+| Backup store | 1 small always-on Mac | none | nothing | at most 5 minutes of data lost | accepted (supporting) |
+
+Under the path: three servers with embedded quorum storage and a floating API address; cluster
+DNS (one per node since 2026-11-20, below); admission with 2 replicas that fails closed; one
+replica of each reconciler controller (an open row, delivery); metrics on 2 replicas and alert
+routing on 3, with {{ ob.scrape_targets }} scrape targets and {{ ob.alert_rules }} alert rules
+read on {{ site.data.stats.generated_at | date: "%Y-%m-%d" }}; alerts reach a chat channel only, and
+nothing pages a person. Block storage is node-local by design: a database instance stays with its machine, so the
+data survives a machine only through its three instances.
+
+**Accepted single points** (owner, 2026-11-08): the public entrance, the entry node, the mains
+supply, the internet line, the core switch and the home router until the first launch gate is
+passed for a business app; the external image registry until a mirror serves the cluster; and, as
+supporting points, monitoring, the backup store, the signing key, the owner and two rehearsal
+stores. **The rule:** a point on an app's own path is never accepted, only fixed or open, and a row
+becomes fixed only through a record that powered the first one off and saw the app go on.
+
+### The scenarios and how each piece fared
+
+Software drills (a pod or process killed, a node drained) and power-off drills ran on the live
+site under a probe that times requests, sign-ins, lookups and writes. Simulations ran on throwaway
+clusters. Pass or fail is the record's own; a missed time target is a fail; owed means planned.
+
+| Piece | Process kill (live) | Drain (live) | Power-off (live) | Simulation |
+|---|---|---|---|---|
+| A plain worker | - | pass, 610 of 610 and 608 of 608 requests (2026-11-17) | **pass**, drill 1 (2026-11-19): 0 failed requests, lookups or inserts; whole 2.6 min after power-on | - |
+| Reference app pods | pass, 578 of 578 (2026-11-16) | with the worker above | owed | owed |
+| Ingress | pass, 567 of 567 (2026-11-16) | - | owed | owed |
+| Connection pooler | pass, 185 of 185 writes, gap 0.41 s (2026-11-16) | - | owed | owed |
+| App database | standby pass, 5.3 s; primary **fail**, 48.6 s (2026-11-16), then pass, 27.9 s after the pooler fix (2026-11-17) | standby's machine 5.4 s, primary's machine 11.6 s, both pass (2026-11-17) | owed | owed |
+| Login database | switchover pass, 11.4 s (2026-11-16); primary kill pass, 21.5 s (2026-11-17) | - | owed | owed |
+| Login service | pass, 378 of 378 (2026-11-16); a login started on one replica and finished on the other not shown | - | owed | owed |
+| Database operator | both pods with the primary, pass, 27.6 s (2026-11-17) | - | owed | owed |
+| Backup plugin | both pods with the primary, **fail**, 35.2 s and 34.9 s against 30 s; one pod, pass, 26.0 s (2026-11-17) | - | owed | owed |
+| Cluster DNS | pass, 280 of 280 lookups, one waited 5.03 s (2026-11-16) | - | **fail**, drill 2 (2026-11-19): lookups stalled 51.1 s, 2 of the probe's inserts failed | node loss pass, change-over rehearsal pass (2026-11-19) |
+| Admission | pass, 47 of 47 (2026-11-16) | - | held with one replica in drill 2; not counted, the drill failed | owed |
+| API address and quorum | - | - | owed | drain, 30 of 30 API probes (2026-11-11) |
+| Ingress address | - | - | owed | owed |
+| Monitoring and logs | - | - | drill 1: node-loss alerts in chat about 6.5 min after dark | alerting trial pass (2026-11-18); log agent with the log store away, 0 lines lost (2026-11-19) |
+
+**Totals, 2026-11-20:** live software drills 17 run, 15 pass, 2 fail (the first primary kill,
+fixed; both plugin pods with the primary, open); neither failure lost an acknowledged write.
+Power-off drills 2 of 7 run, 1 pass, 1 fail, and the series starts again from the first.
+Simulations 4, all pass, plus one test of the log agent in Docker (pass). Restores 3, all pass.
+None of this is a power-off proof of a register row: drill 1's machine held no row, on purpose.
+
+| Restore | What | Result |
 |---|---|---|
-| Control plane | Three servers with embedded quorum storage, none tainted (they also run workloads), and a floating API address held by a small pod on each server. No power-off and no loss-of-one-server test has been run. The register's 22 rows all read `proof: none`, so no power-off proof exists. One of the three floating-address pods restarted twice during bring-up (cause not checked). | Built |
-| Relational data | One database cluster of three instances on three different machines (a hard anti-affinity rule), a two-pod connection pooler, 5 GiB of local disk each. The cluster spec read live on 2026-11-11 says durability required, synchronous method any, number 1 (quorum-synchronous: one standby of two must confirm), with required pod anti-affinity. No replication state (`pg_stat_replication`) was read and no failover was observed. A switchover on update is by configuration, not yet observed. | Proven for placement (2026-11-11); commit mode built |
-| Block storage | Not replicated. Volumes are node-local, so the database survives the loss of a machine only through its three instances. This is a reviewed trade, and it strains the objective to recover quickly; it is not a pass. | Open (accepted trade) |
-| Stateless apps | The warning app runs 2 replicas, may scale from 2 to 4, and has a disruption budget. The live deployment carries a hard spread rule (skew 1 per machine, do not schedule otherwise), read 2026-11-11. Both pods restarted 10 times each during bring-up, the last about 11 hours before the read and none since; cause not checked. | Built |
-| Identity | One Keycloak replica in development mode on an in-memory database: a restart loses its state (from the probe record, not a live read). | Open |
-| Ingress | Two replicas of the ingress controller, plain HTTP, reachable on the home network only. There is no public name. | Built |
-| Cluster DNS | Two replicas read on 2026-11-11, scalable from 2 to 4. Placement across machines was not checked beyond that read. The register carries this row as open (cluster DNS). | Built |
-| Object store for backups | One small always-on Mac, one copy, no off-site copy. In the register as a supporting point, accepted (backup store), not open; see the register section for its end condition. | Open (accepted by the owner) |
-| Monitoring | Running and read. The metrics, alert and dashboard stack was merged on 2026-11-11; its first live run failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. Read on 2026-11-11: 18 of 18 scrape targets up, 12 alert rules, no dashboards. There is no log store. Alerts reach no person. In the register as accepted (monitoring). | Open |
-| Image registry | External (the code host's). A node without an image cached cannot start the pod if the registry is unreachable. | Open (accepted by the owner, 2026-11-08) |
-| Public edge | None on this platform. The single public entrance is an accepted decision (2026-11-08), not a built thing. | Open (accepted by the owner, 2026-11-08) |
-| Physical layer | One switch, one router, one provider line, one mains supply. | Open (accepted by the owner, 2026-11-08) |
-| Operations agent | Not wired to the new platform. | Open |
+| 2026-11-08 | V1.0, three databases from the network storage copy | pass: 134 s, 179 s, 968 s |
+| 2026-11-10 | The reference app's database into a scratch cluster, from the store alone | pass: about 60 s, a few MB, an on-demand backup |
+| 2026-11-15 | The login database into a scratch cluster | pass: backup 12 s, restore 81 s, 13 MB |
+| not run | An off-site copy, point-in-time, total loss, a second restore of each | open |
 
-### The register of single points
+### What the scenarios found
 
-The new platform keeps a machine-checked list of every single point of failure it knows of, each
-with a decision: fixed, accepted by the owner with a date and an end condition, or open. Read on
-2026-11-11 it held 22 rows: **13 accepted, 0 fixed and 9 open**. None is fixed because "fixed" requires a
-record that powered the first one off and saw the app go on, and every row reads `proof: none`.
+| Found | Flaw | Status |
+|---|---|---|
+| 2026-11-16, app primary kill | The connection pooler cached the failed login to the old primary for 15 s, so writes came back about 25 s after the database could take them | fixed: retry after 2 s; 48.6 s down to 27.9 s against a 30 s target, a thin margin |
+| 2026-11-16, same drill | About 16 s of that is the wait for the primary's lease to expire | by design, it stays |
+| 2026-11-17, plugin kill | With both backup plugin pods down, the operator starts the failover about 13.5 s after the kill instead of about 3 s: about 7 s more | open |
+| 2026-11-19, power-off drill 2 | Two DNS replicas, spread over machines, looked highly available and failed on timing. A dead machine's DNS pod stays in the service until the node is marked not ready (about a minute), and a lookup's retries go to the same dead pod: a 51 s stall on the other nodes and two failed inserts, where a pod kill (the endpoint dropped at once) had passed. A simulation reproduced it in minutes | fix in progress: DNS on every node, each node using its own. Steps 1 and 2 of 5 live since 2026-11-20; steps 3 and 4 (the old add-on switched off) wait on a clean soak, and step 5 (proving it stays) follows them. The row stays open until a power-off passes |
+| 2026-11-19, simulation | A surge rollout of the per-node DNS stalled after a silent node outage in 10 of 20 runs | worked around: rolls one node at a time; not reported upstream yet |
+| 2026-11-19, rehearsal | The change-over's service still reached the old pods, and a server restarted 8 s after another gave a 10 s failed lookup | fixed in the run sheet before the live change-over |
+| 2026-11-17, sign-in probe | The service-level sign-in probe does not need the database, so it stayed 61 of 61 good through a login database outage of about 20 s | open: a probe that needs the database is to be designed |
+| 2026-11-17, drains | Node-local storage ties each database instance to its machine: two of three while the machine is out | by design; replicated storage wanted back later, decision first |
+| 2026-11-10, restore | The store given as a LAN broadcast name, a full quota, default-deny blocking the recovery job, the reconciler reverting every hand patch | fixed at the time; only a change in git held |
+| 2026-11-19, drills 1 and 2 | Three alerts that a lost node fires were missing from the run sheet's expected list | fixed in the run sheet |
 
-- **Open (9):** cluster DNS, ingress, admission, the warning app's pods, its database, the database
-  operator, the backup plugin, its login, its scaling.
-- **Accepted (13), all dated 2026-11-08 where they are on the shared path:** the single public entrance and
-  the entry node, one mains supply, one internet line, the core switch, the home router, the external image
-  registry, and, as supporting points, monitoring, the backup store, the signing key, the owner and
-  two rehearsal stores.
-- **End conditions differ.** The shared-path points are accepted until the first launch gate is passed
-  for a business app. Monitoring ends when a critical alert is missed because of it or the first business
-  app launches. The registry ends when a mirror serves the cluster. The two rehearsal stores never end.
-- **Only the owner accepts**, and only on the shared path and for supporting points. A point on a
-  business app's own function path (the app, its login, its database, what its writes and failover depend on, and the
-  object store the app itself uses) is never accepted: it is fixed, or open. Six of the nine open rows are on that
-  path, which by the platform's own rule is not a state to live with.
-- **The backup store is a supporting point, not an app-path one,** so it may be accepted. It is the one
-  accepted row that could reach the app: if the store is down the write-ahead log waiting to be archived fills the
-  database volume and writes stop. How long that takes is not measured, so the acceptance ends when it is measured
-  to be under a day or real user data lives in the app.
-- **No review of node loss exists for this cluster yet.** The failure-domain review of 2026-09-09 was V1.0's. A plan
-  item to redo it (kill each machine role on a throwaway cluster, then on the home site, and write down what
-  survived) is written and not run; the register rows are to be updated from its record.
+**The DNS change-over, live on 2026-11-20.** Step 1 put a DNS pod on every node beside the old
+pair; step 2 made each node's lookups go to its own pod. Since step 2 the probe on every node has
+counted no failed and no slow lookup. In step 1's soak one node failed 2 of about 7,100 lookups,
+both fast, and no DNS pod logged an error: the cause is not known, so a log line per failed lookup
+goes in before steps 3 and 4. A process slip on the way: step 2 was merged in the same command
+that read step 1's baseline, so the two failures were seen after the merge. The lesson: read the
+referee, then merge.
 
-### Restore on the new platform
+**Default-deny, 2026-11-10: fail, not retried.** A new pod is not under default-deny for its first
+one to three seconds (1, 2 and 2 probes got through in three timed runs). Fix candidates exist and
+none has been tried.
 
-**Drill of 2026-11-10: pass.** A scratch cluster was built from the object store alone, with no
-help from the live cluster. A marker row written beforehand came back, with all six tables, in
-about 60 seconds on a few megabytes of data.
+### Where it stands, 2026-11-20
 
-What it does **not** prove: restore time at a realistic size, restore from a scheduled backup
-(the drill used an on-demand one), point-in-time restore, restore after losing the live cluster
-itself, that an app works against the restored database (none was pointed at it), or that the backups keep arriving on schedule.
+| | Reading |
+|---|---|
+| Register of single points | {{ ev.single_points_accepted | plus: ev.single_points_fixed | plus: ev.single_points_open }} rows: {{ ev.single_points_accepted }} accepted, {{ ev.single_points_fixed }} fixed, {{ ev.single_points_open }} open ({{ ev.single_points_open_app }} on an app's path, {{ ev.single_points_open_shared }} shared, {{ ev.single_points_open_supporting }} supporting) |
+| Open, on the reference app's path | its pods, its database, its login, the login database, the database operator, the backup plugin, its scaling |
+| Open, shared and supporting | the control plane, the floating address, the house name service, cluster DNS, ingress, admission; delivery |
+| Power-off proofs | **0**; V1.0 had 16 and none carried over |
+| Not tried at all | a control-plane server or the floating address holder powered off, two machines at once, a whole-site power cut and the cold start after it, a network cut between machines, a full disk |
 
-It hit three walls, each an honest finding:
+**What comes next, in order:** finish the DNS change-over after a clean soak with the new
+logging; build a throwaway cluster shaped like the home site (three servers, three agents) and
+run one scenario per point that claims a second one there, nightly, so that from 2026-11-20 no
+live drill runs before its scenario has passed in simulation; then the owner runs the power-off
+drills again from the first, one machine at a time with an abort rule; then the leftovers of the
+software drills (the plugin's extra seconds, a login finished on the other replica, the second
+restores). Every power-off needs the owner at the machines.
 
-- **The quota refused the recovery pod.** The namespace's memory quota was nearly used up, so the
-  second set of pods did not fit.
-- **Default-deny blocked the recovery job** from the API server and from the store, because the
-  allow rules selected only the live cluster's label and the recovery pod carries another.
-- **Flux reverted every hand patch of the quota within minutes.** Only a change in git held.
-  That is the reconciler working as intended, and it also means the drill cannot be fixed at the
-  console.
-
-The first backup had also **failed**: the store had been given as a LAN-only name that resolves by
-broadcast (mDNS), and cluster DNS does not do mDNS, so the backup agent could not connect. Giving the
-store by address fixed it. The bootstrap now refuses such an endpoint,
-and its self-test proves that the refusal can itself fail, so it is not a check that always
-says yes.
-
-No weekly restore job exists on the new platform. The weekly drill described further down
-belongs to V1.0.
-
-### Default-deny held, except for the first one to three seconds
-
-*2026-11-10. Result: **fail**.*
-
-Network policy on the new cluster denies by default. Probed on the live site about 30 seconds
-after a pod started, everything was blocked as intended: a pod in a test namespace could not
-reach the app's database or pooler, could not use any port but two on the internet, and could
-not reach the store or the router. The control (a pod carrying the app's labels reaching the
-pooler) worked.
-
-But a probe started the moment a pod ran got through. In three timed runs, 1, 2 and 2 probes
-were open before the first block, 0.5 to 1.5 seconds apart. So a new pod is **not** under
-default-deny for the first one to three seconds. A workload that connects at once, such as a
-compromised image calling home on start, can use that. Fix candidates exist (a different network
-engine, or an init-time wait); **none has been tried**. Ingress from outside the cluster and
-DNS egress limits were not tested either.
-
-### What has not been tried
-
-- Losing a node (power switched off, not a drain).
-- A power cut of the whole site and the cold start after it.
-- Losing one control-plane server.
-- Failover of the floating API address.
-- Restoring a scheduled backup, as opposed to an on-demand one.
-- A point-in-time restore.
-
-Fault injection and the reboot loop of V1.0 are not part of the new platform's records (not checked on the live cluster). The
-principle from the old drain incident is applied again: kubeconfig is meant to point at the floating
-address, never at one machine's name (not checked here). One related fix is dated: the host layer's first check
-expected an HTTP 200 from the API server where it answers 401, and was corrected on 2026-11-10 (merge date not checked).
-
-### What is still open, 2026-11-11
-
-The register's 9 open rows: cluster DNS, ingress, admission, the warning app's pods, its database, the
-database operator, the backup plugin, its login and its scaling.
-
-Visible and accepted by the owner (register, 2026-11-08), so not open but not fixed: no live
-monitoring and no alerts to a person, the single public entrance, one backup store machine with
-no off-site copy, the single switch, router, line and mains supply.
-
-Findings that are **not register rows**:
-
-- No replicated block storage (a reviewed trade).
-- A one to three second gap at the start of every pod before default-deny applies.
-- Keycloak in development mode on an in-memory database.
-- No power-off proof for any domain.
-
-A reliability page that only lists wins is marketing. This list is the one the next tests are
-for.
+A reliability page that only lists wins is marketing. These tables are the list the next tests
+are for.
 
 ---
 
