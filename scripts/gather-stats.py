@@ -159,7 +159,7 @@ SCHEMA = [
         ("rules_total", "int"), ("rules_built", "int"), ("rules_partly", "int"),
         ("inventory_total", "int"), ("inventory_proven", "int"), ("inventory_built", "int"),
         ("single_points_accepted", "int"), ("single_points_fixed", "int"), ("single_points_open", "int"),
-        ("single_points_open_app", "int"), ("single_points_open_shared", "int"),
+        ("single_points_open_app", "int"), ("single_points_open_shared", "int"), ("single_points_open_supporting", "int"),
     ]),
     ("observability", [
         ("scrape_targets", "int"), ("alert_rules", "int"), ("recording_rules", "int"),
@@ -172,7 +172,7 @@ SCHEMA = [
     ]),
     ("repo", [
         ("commits", "int"), ("commits_30d", "int"), ("age_days", "int"), ("adrs", "int"),
-        ("records", "int"), ("records_pass", "int"), ("records_fail", "int"),
+        ("records", "int"), ("records_pass", "int"), ("records_fail", "int"), ("records_partial", "int"), ("records_note", "int"),
         ("check_scripts", "int"), ("playbooks", "int"), ("manifests", "int"),
         ("runbooks", "int"), ("docs_pages", "int"), ("loc", "int"), ("loc_code", "int"),
         ("tests_java", "int"), ("app_warn_version", "ver"),
@@ -716,8 +716,9 @@ def measure_observability(plat, ctx):
         targets = prom.get("/api/v1/targets?state=active")["activeTargets"]
         groups = prom.get("/api/v1/rules")["groups"]
         # Oldest sample held anywhere (blocks and the in-memory head), as the store itself reports it,
-        # against the store's own clock so this machine's clock cannot skew it.
-        q = prom.get("/api/v1/query?query=" + urllib.parse.quote("time() - prometheus_tsdb_lowest_timestamp_seconds"))
+        # against the store's own clock so this machine's clock cannot skew it. Since 2026-11-19 the store runs as two
+        # replicas that each report their own; the shorter of the two is taken, so the figure never overstates what is held.
+        q = prom.get("/api/v1/query?query=" + urllib.parse.quote("min(time() - prometheus_tsdb_lowest_timestamp_seconds)"))
         if q.get("resultType") != "vector" or len(q.get("result", [])) != 1:
             raise Fail("the metrics store did not report how old its oldest sample is")
         held = float(q["result"][0]["value"][1])
@@ -820,9 +821,10 @@ def load_records(plat):
             continue
         fields = record_fields(plat.read(f))
         d = re.match(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", fields.get("date", ""))
-        res = re.match(r"(pass|fail)\b", fields.get("result", "").lower())
+        # The platform's record check allows four results since 2026-11-11: pass, partial, fail and note.
+        res = re.match(r"(pass|partial|fail|note)\b", fields.get("result", "").lower())
         if not d or not res:
-            raise Fail("a run record has no readable Date or a Result other than pass or fail")
+            raise Fail("a run record has no readable Date or a Result other than pass, partial, fail or note")
         recs.append({"name": os.path.basename(f), "date": d.group(0), "result": res.group(1),
                      "home": "home site" in fields.get("where", "").lower()})
     if not recs:
@@ -847,7 +849,7 @@ def status_parse(text):
         m = re.search(pattern, text)
         if not m:
             raise Fail(f"the status page no longer has the '{what}' line in the shape this parser expects")
-        return [int(x) for x in m.groups()]
+        return [int(x) if x is not None else None for x in m.groups()]
 
     st = one(r"\*\*Order of work:\*\* ([0-9]+) of ([0-9]+) steps are done, ([0-9]+) done on kind only, "
              r"([0-9]+) partly done, ([0-9]+) not started and ([0-9]+) gated", "order of work")
@@ -856,9 +858,13 @@ def status_parse(text):
     inv = one(r"\*\*Inventory:\*\* ([0-9]+) components\. ([0-9]+) are proven on the new platform, ([0-9]+) built,",
               "inventory")
     sp = one(r"\*\*Single points:\*\* ([0-9]+) accepted, ([0-9]+) fixed and ([0-9]+) open "
-             r"\(([0-9]+) on an app's path, ([0-9]+) on the shared path\)", "single points")
-    if sp[3] + sp[4] != sp[2]:
-        raise Fail("status page: the single points open on an app's path and on the shared path do not add up to the open count")
+             r"\(([0-9]+) on an app's path, ([0-9]+) on the shared path(?:, ([0-9]+) supporting)?\)", "single points")
+    # The open rows are on an app's path, on the shared path, or supporting (the status line names the third group only
+    # when it states it; otherwise it is the rest, and the rest may not be negative).
+    if sp[5] is None:
+        sp[5] = sp[2] - sp[3] - sp[4]
+    if sp[5] < 0 or sp[3] + sp[4] + sp[5] != sp[2]:
+        raise Fail("status page: the single points open on an app's path, on the shared path and supporting do not add up to the open count")
     done, total, kind, partly, notstarted, gated = st[0], st[1], st[2], st[3], st[4], st[5]
     if done + kind + partly + notstarted + gated != total:
         raise Fail("status page: the step counts do not add up")
@@ -880,7 +886,7 @@ def status_parse(text):
         "rules_total": ru[0], "rules_built": ru[1], "rules_partly": ru[2],
         "inventory_total": inv[0], "inventory_proven": inv[1], "inventory_built": inv[2],
         "single_points_accepted": sp[0], "single_points_fixed": sp[1], "single_points_open": sp[2],
-        "single_points_open_app": sp[3], "single_points_open_shared": sp[4],
+        "single_points_open_app": sp[3], "single_points_open_shared": sp[4], "single_points_open_supporting": sp[5],
     }
 
 
@@ -928,6 +934,8 @@ def measure_repo(plat, repo, ref):
         "records": len(recs),
         "records_pass": sum(1 for r in recs if r["result"] == "pass"),
         "records_fail": sum(1 for r in recs if r["result"] == "fail"),
+        "records_partial": sum(1 for r in recs if r["result"] == "partial"),
+        "records_note": sum(1 for r in recs if r["result"] == "note"),
         "check_scripts": sum(1 for f in files if re.fullmatch(r"scripts/check-[^/]+\.(py|sh)", f)),
         "playbooks": sum(1 for f in files if re.fullmatch(r"hosts/playbooks/[^/]+\.ya?ml", f)),
         "manifests": sum(1 for f in files if re.search(r"\.ya?ml$", f)

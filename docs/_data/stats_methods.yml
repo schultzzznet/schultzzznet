@@ -91,13 +91,14 @@ evidence:
   single_points_open: { label: "Single points open", how: "Same line; rows whose decision is open." }
   single_points_open_app: { label: "Open single points on an app's own path", how: "Same line; open rows whose scope is app (the app, its login, its database, what its writes and failover depend on). The rule says these are never accepted." }
   single_points_open_shared: { label: "Open single points on the shared path", how: "Same line; open rows whose scope is shared-path (cluster DNS, ingress, admission)." }
+  single_points_open_supporting: { label: "Open single points that are supporting", how: "Same line; open rows whose scope is supporting (not on any app's path, such as delivery). Taken from the line when it names them, otherwise the open count less the app and shared-path rows." }
   inventory_built: { label: "Components built, not proven", how: "Same page; components whose state is built." }
 observability:
   scrape_targets: { label: "Scrape targets", how: "Active targets the metrics store is scraping that report up, read from its own targets list (a target that is down or not yet scraped is not counted)." }
   alert_rules: { label: "Alert rules", how: "Alerting rules loaded in the metrics store, counted from its rules list." }
   recording_rules: { label: "Recording rules", how: "Recording rules loaded in the metrics store, counted from its rules list; 0 means none are loaded." }
   dashboards: { label: "Dashboards", how: "JSON dashboard files committed to git under the dashboard service's own manifest directory; dashboards kept elsewhere in git (for example inside a ConfigMap) or made by hand in the service are not counted, and the service is never logged in to. 0 means no such file exists today." }
-  metric_history_days: { label: "Metric history held", how: "Days between the oldest sample the metrics store actually holds and now, to two decimals (0.04 is about an hour): history held, not the configured retention." }
+  metric_history_days: { label: "Metric history held", how: "Days between the oldest sample the metrics store actually holds and now, to two decimals (0.04 is about an hour): history held, not the configured retention. With two replicas of the store, the shorter of the two." }
   alerts_reaching_a_person: { label: "Alerts that reach a person", how: "Not measured: alerts go to a chat channel, which pages nobody. The generator fails if the alert router gains a paging, phone or e-mail receiver, so this line cannot outlive the gap." }
   sbom_projects: { label: "SBOMs accepted by a tracker", how: "Not measured: no software-bill-of-materials upload job exists. The generator fails if one appears, so this line cannot outlive the gap." }
 ci:
@@ -115,6 +116,8 @@ repo:
   records: { label: "Run records", how: "Committed files; dated Markdown files in the records directory, each the result of one gate run." }
   records_pass: { label: "Run records with result pass", how: "Same files; the Result line starts with pass." }
   records_fail: { label: "Run records with result fail", how: "Same files; the Result line starts with fail. A failure is kept when it taught something." }
+  records_partial: { label: "Run records with result partial", how: "Same files; the Result line starts with partial (part passed, the open defects are named)." }
+  records_note: { label: "Run records with result note", how: "Same files; the Result line starts with note (a reading or a finding, not a pass or fail)." }
   check_scripts: { label: "Check scripts", how: "Committed files; scripts in the scripts directory whose name starts with check-." }
   playbooks: { label: "Ansible playbooks", how: "Committed files; top-level YAML files in the host playbook directory." }
   manifests: { label: "Kubernetes manifest files", how: "Committed files; YAML files under the platform, site and app folders that declare a kind." }

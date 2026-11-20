@@ -1,13 +1,13 @@
 ---
 title: What I'd do differently
-reread: 2026-11-11
-body_read: 2026-11-11
+reread: 2026-11-20
+body_read: 2026-11-20
 summary:
   - "**What it is:** the list of things that were wrong on the way, several still visible in the system. The rule for an entry is that it cost something and the cost can be described: regret without a number attached is just modesty."
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
   - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new cluster was about 14 hours old on 2026-11-11 and nothing here claims uptime; the platform's [history](history.html) goes back to 2025-12-21."
-  - "**New on 11 November:** sequels to lessons 3, 5, 8 and 13, and a new lesson 14 on the first night of the new platform. Reviewers are AI models of the same family that helps build the estate, so the dates matter more than the grades."
+  - "**New since the rebuild:** sequels to lessons 3, 5, 8 and 13 and lesson 14 (2026-11-11); lesson 15, two cluster DNS replicas that were highly available on paper and failed on timing when a machine lost power (2026-11-19); lesson 16, a change-over step merged before its referee was read (2026-11-20). Reviewers are AI models of the same family that builds the estate, so the dates matter more than the grades."
 ---
 
 # What I'd do differently
@@ -26,7 +26,8 @@ write — a "what we learned" section that names no mistakes is marketing.
 *Update, 2026-11-11: the platform described below was retired on 2026-11-10 and rebuilt as a
 new cluster on the same six machines. Lessons 1 to 13 are dated history of V1.0 and are left as written, apart from labelled notes. The sequels and lesson 14 describe
 the new platform, each with a date and a status word (proven, built-not-proven, planned, open).
-The cluster was about 14 hours old at 06:50 on 2026-11-11; nothing here implies it has run for long.*
+The cluster was about 14 hours old at 06:50 on 2026-11-11; nothing here implies it has run for long.
+Lessons 15 and 16 were added on 2026-11-20, from the first power-off drills and the change-over that followed them.*
 
 *Retraction, 2026-10-09: this page used to carry a badge saying the cluster had been fully
 rebuilt twice. I cannot back that number: the git history suggests more than two such
@@ -149,6 +150,11 @@ the opposite of the "pattern worth stealing" below. It is a stated, deferred gap
 decision: replicated block storage is the planned fix and is not built. Replication is left to the
 database layer, and it is recorded as straining the recover objective, because a lost machine
 takes its volumes with it. What follows is V1.0's lesson, kept as written.
+
+**Update, 2026-11-20 (still deferred, not started).** The drains of 2026-11-17 showed the cost in
+practice: while a machine is out, its database instance is out with it, and the database runs
+on two of its three instances. Replicated block storage is wanted back, with a decision record
+first; nothing of it is built.
 
 Replicated block storage (three nodes at the time) was the correct decision and I would make it
 again. The **sequencing** was wrong.
@@ -482,6 +488,70 @@ fallback, the red aggregate result stayed on the pull request and the green disp
 not reach it. The merge stayed blocked for 28 minutes after the green existed. "Re-run all
 jobs" cleared it.
 > A required check is a property of the pull request, not of the repository's latest run.
+
+---
+
+## 15. Highly available on paper is not highly available
+
+*Added 2026-11-20. Dated 2026-11-16 to 2026-11-20. Two replicas of cluster DNS failed on timing
+when a machine lost power.*
+
+Cluster DNS ran as two replicas, spread over two machines. On paper
+that is the textbook answer, and a software drill on 2026-11-16 agreed: a DNS pod was killed and
+the lookups carried on. Then, on 2026-11-19, a machine holding one of the two replicas was held
+off by its power button.
+
+**What happened (result: fail, 2026-11-19).** A killed pod is taken out of the service at once.
+A machine that simply stops is not: its pod stays an endpoint until the machine is marked
+NotReady, about a minute later. Each lookup sent to the dead pod waited 5 s, and its retries went
+to the same pod, so about half the lookups in the cluster were going nowhere. Lookups on the
+other machines stalled for 51.1 s, two of the probe's writes failed because a name could not be resolved, and
+the drill's abort rule ended the session. The users' requests were all answered, only because
+the apps kept their database connections open.
+
+**What found it and what would have found it sooner.** The paper review did not, because it
+cannot see timing. The software drill did not, because it removed the pod the polite way. A
+simulation on a four-node throwaway cluster reproduced the stall within minutes the same day,
+in six runs out of six, and then showed the fix (a DNS server on every node, each node preferring
+its own) with no failed lookup. It also found a rollout stall in the fix before the live site
+met it. The first two of the fix's five steps went live on 2026-11-20 (**built**); the single point stays **open**
+until a power-off drill passes.
+
+**What changed (planned, 2026-11-20).** Every failure scenario for a piece that claims a second
+instance, the production path and the major supporting systems is to be rehearsed nightly on a
+simulated cluster shaped like home, and no live drill runs before its simulation has passed. The
+ladder and the rule are on [how we work](how-we-work.html#10-failure-scenarios-simulate-then-pull-the-plug).
+
+**Cost:** one aborted drill session with the owner at the machines, two failed probe writes to
+the reference app's database, and the power-off series started again from drill 1.
+
+> **The transferable version:** "two replicas" is a count, not a property. The property is how
+> long the survivors take to stop sending work to the one that died, and only a failure that
+> arrives without warning measures it. Simulate that before you cause it for real.
+
+---
+
+## 16. Read the referee before you merge the next step
+
+*Added 2026-11-20. Dated 2026-11-20.*
+
+The DNS fix of lesson 15 is a change-over in five steps, each its own pull request, and each
+judged by a referee before the next one starts: a probe on every node that counts failed and slow
+lookups. The rule is to stop on any failed lookup.
+
+**What happened (process slip, 2026-11-20).** After the first step's soak, the second step was
+merged in the same command that read the referee. The referee had counted 2 failed lookups on
+one node out of about 7,100, both fast, with no error in any DNS log. Those 2 were read only
+after the merge, and the reconciler applied the step about half a minute later. Nothing broke:
+the probe has been clean on all six nodes since. The cause of the 2 failures is still unknown, so
+the last steps are held until a soak with a log line per failed lookup is clean.
+
+**What I'd do differently:** nothing clever. Read the referee, decide, then merge, as two
+separate actions. A check whose result arrives after the decision has been made is a log, not a
+gate, however good the check is.
+
+> **The transferable version:** the order matters more than the instrument. Batching "look" and
+> "act" into one command to save a minute quietly turns a stop rule into a footnote.
 
 ---
 

@@ -1,26 +1,29 @@
 ---
 title: How we work
-reread: 2026-11-11
-body_read: 2026-11-11
+reread: 2026-11-20
+body_read: 2026-11-20
 summary:
-  - "**What it is:** how changes are made, checked, approved and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The cluster was brought up on 2026-11-10/11, so nothing here claims uptime; most of these ways of working were learned on V1.0, from 2025-12-21 ([History](history.html))."
-  - "**Seen working (dated):** a hand patch on the live site was reverted by Flux (2026-11-10); a restore from the backup store alone worked once (2026-11-10); a throwaway ruleset blocked a pull request on a red gate (2026-11-10)."
-  - "**Not shown:** main's own branch protection was never tested; the delivery artifact is unsigned; monitoring is running since 2026-11-11 (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert has reached a person."
+  - "**What it is:** how changes are made, checked, approved, broken on purpose and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The cluster was brought up on 2026-11-10/11, so nothing here claims uptime; most of these ways of working were learned on V1.0 ([History](history.html))."
+  - "**Seen working (dated):** a hand patch reverted by Flux (2026-11-10); restores from the backup store alone, of the reference app's database (2026-11-10) and the login service's (2026-11-15); 17 live software failover drills on 2026-11-16/17, 15 pass and 2 fail, neither losing an acknowledged write."
+  - "**Failure scenarios** ([section 10](#10-failure-scenarios-simulate-then-pull-the-plug), 2026-11-20): five rungs, from one-node CI gates to the owner pulling the plug. The second power-off drill (2026-11-19) found a timing flaw in cluster DNS that a review on paper missed; a simulation reproduced it within minutes. So no live drill runs before its simulation has passed (**planned**)."
+  - "**Not shown:** no single point is proven fixed (only a power-off drill can do that: 2 of 7 run, 1 failed); main's own branch protection was never tested; alerts reach a chat channel, but nothing pages a person, waits for an acknowledgement or escalates."
   - "**Two axes** ([below](#two-axes-what-you-write-and-who-applies-it)): what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, still scripted and push at the edges, so not fully GitOps yet."
-  - "**The failures that taught me** are below, with dates."
+  - "**The failures that taught me** are below, with dates, including a change-over step merged before its referee was read (2026-11-20)."
 ---
 
 # How we work
 
 {% include in-short.html %}
+{% assign hw_ob = site.data.stats.observability %}
+{% assign hw_ev = site.data.stats.evidence %}
 
-This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The cluster was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It is a day old, and nothing here claims uptime. The ways of working are older: most were learned on V1.0, from 2025-12-21 to 2026-11-10 ([History](history.html)).
+This page describes how changes are made, checked, approved and recovered on the new platform, and what each way of working has and has not been shown to do. Every claim carries a date, and each section ends with what it does not prove. The cluster was rebuilt on 2026-11-10 and brought up on 2026-11-10/11. It was a day old when this page was first written (2026-11-11) and ten days old on 2026-11-20; nothing here claims uptime. The ways of working are older: most were learned on V1.0, from 2025-12-21 to 2026-11-10 ([History](history.html)).
 
 **Why there are no links to the records.** The repository behind this page is private, by choice. A claim here comes from a run record with fixed fields: date, what was done, result, what it proves, what it does not prove. I can show one on request.
 
 **Key to the labels.** "Proof B" is a test of whether the aggregate gate can be a required check (section 5). A "step" is one item in the order of work, and a "decision record" is a written decision with a number. Machines are described by role, never by name, and software without versions.
 
-V1.0 stories are collected in their own list at the end of section 9 and in the last section.
+V1.0 stories are collected in their own list at the end of section 9. How failures are rehearsed and then caused on purpose, from a one-node CI gate to a machine held off by its power button, is section 10 (added 2026-11-20).
 
 ## How to read this page
 
@@ -88,7 +91,7 @@ The first install has to exist before anything can pull, so it is pushed once by
 
 - **It measured before choosing.** The split above is why V2.0 changed one layer and left the rest alone.
 - **It added a detector first.** Seeing the 6 differences made the case for the rest.
-- **It had a daily drift guard with an alert.** V2.0 has not rebuilt it. The reconciler reverts drift instead, which is stronger for anything git names, and blind to anything git does not mention. Monitoring has run since 2026-11-11 with 12 alert rules. One of them, for a Kustomization that has not been Ready for 10 minutes, is written and live (**built**); it has never been seen to fire, and no alert has been seen to reach a person. Delivery to a person, a rule for the reconciler losing its source, and an independent drift check are **open**. V1.0's guard was also red for eight days (2026-11-02 to 2026-11-09) and unread, so an alert nobody reads is no better.
+- **It had a daily drift guard with an alert.** V2.0 has not rebuilt it. The reconciler reverts drift instead, which is stronger for anything git names, and blind to anything git does not mention. Monitoring has run since 2026-11-11, with 12 alert rules that day ({{ hw_ob.alert_rules }} in the generated figures of {{ site.data.stats.generated_at | date: "%Y-%m-%d" }}). One of them, for a Kustomization that has not been Ready for 15 minutes, is written and live (**built**); it was seen pending, not firing, in the power-off drills of 2026-11-19. Alerts reach a chat channel: the node-loss alerts arrived there about 6.5 minutes after a machine went dark on 2026-11-19, and the owner's phone shows them as chat messages. Nothing rings through silent mode, waits for an acknowledgement or escalates. Paging a person, a rule for the reconciler losing its source, and an independent drift check are **open**. V1.0's guard was also red for eight days (2026-11-02 to 2026-11-09) and unread, so an alert nobody reads is no better.
 
 ### The honest summary
 
@@ -298,6 +301,7 @@ test; being able to get the data back with nothing else is.
 | --- | --- | --- |
 | 2026-11-10 | pass, about 60 s | A database backup from the live site was restored into a scratch cluster using the store alone. A marker row and 6 tables came back. The data was a few MB, so no claim about time or size at scale |
 | Nightly backup, 02:00 on 2026-11-11 | completed | It has not been restored |
+| 2026-11-15 | pass: backup 12 s, restore 81 s | The login service's database, from the same store into a scratch cluster beside the live one. The two answered one comparison query identically, row for row; 13 MB. The same day showed that this database had had no completed backup until then: two nightly runs had failed on a missing secret, and were fixed |
 
 ### What the drill does not prove
 
@@ -305,8 +309,9 @@ test; being able to get the data back with nothing else is.
 - It does not prove a restore from a nightly backup. No nightly backup has been restored.
 - It does not prove survival of losing the store. The store is one small Mac with one copy, and
   there is no off-site copy.
-- It covers one database of the apps on the cluster, not all of them. "A random database is
-  restored" is the done-when for the step and it is not yet met.
+- It covers two databases (the reference app's and the login service's), each once, from an
+  on-demand backup. "A random database is restored" is the done-when for the step, and the
+  second restore of each is still owed (2026-11-20).
 
 ## 9. The failures that taught us
 
@@ -357,10 +362,62 @@ decision, and it does not exist. The status of a decision record says what was d
 runs. That is why this page uses its own status words, and why the generated status lists rules
 as built or not, apart from the decision records.
 
+**Two replicas that failed on timing (2026-11-19, result: fail).** Cluster DNS ran as two replicas on two machines, which reads as highly available. When one machine was switched off at its power button, lookups on the other machines stalled for 51.1 s and two of the probe's writes failed. A pod kill three days earlier had passed. Section 10 has the story and the rule it led to.
+
+**A step merged before its referee was read (2026-11-20).** In the cluster DNS change-over, the next step was merged in the same command that read the previous step's referee, so a small unexplained failure count was seen only after the merge. Section 10 has the details. Lesson: read the referee, then merge.
+
 ### V1.0 (retired 2026-11-10)
 
 - **Red guards.** The daily guards were red every day from 2026-11-02 to 2026-11-09 and nobody was looking. That is why I insist on an alert that reaches a person, and on a guard that is independent of the thing it guards.
 - **A wipe is not a migration.** Of V1.0's 257 alerts, 74 mechanisms and 16 power-off proofs, 0 have been carried over, and the cutover gate is not passed. The new platform starts with fewer safety nets, and this page lists the ones that are missing.
+
+## 10. Failure scenarios: simulate, then pull the plug
+
+*Added 2026-11-20. The figures are from the run records up to 2026-11-19 and from the live site on 2026-11-20.*
+
+A piece that claims a second instance is only as good as the minute after it loses the first. So failures are caused on purpose, on a ladder of five rungs. Each rung shows something the one below cannot, and none of them replaces the one above.
+
+| Rung | What runs it | What it can show | What it cannot show | Status, 2026-11-20 |
+| --- | --- | --- | --- | --- |
+| 1. Gates on every pull request | A throwaway cluster of one node in CI | Configuration, admission policies, signatures, a backup and restore round trip, the reference app's contract | Losing a node: there is only one | **built**; runs on every pull request |
+| 2. Simulations | Throwaway clusters of several nodes, run in containers on a home machine; a node is "lost" by cutting its network or stopping its container | Node loss, timing, change-overs, rollouts after an outage | Real hardware: network cards, disks, power, the router and switch, the floating address on a real network, the oldest machines' speed | **built** for cluster DNS and monitoring: 4 simulations from 2026-11-11 to 2026-11-19, all pass, plus a log agent outage test. Run by hand. The nightly suite is **planned** (below) |
+| 3. Live software drills | On the live site: kill a process, kill a database primary, drain a node, all under the probes below | Each piece's failover time, and whether any acknowledged write was lost | A machine that stops without warning | **proven** per piece: 17 drills on 2026-11-16/17, 15 pass, 2 fail (one fixed and re-run green, one open). Neither failure lost an acknowledged write. They do not count as proof for a single point |
+| 4. Live power-off drills | The owner at the machines, one machine held off by its power button, by a written run sheet, least damage first | The only proof that moves a single point to fixed | A mains cut of the whole site; two machines off at once | 2 of 7 run on 2026-11-19: 1 pass, 1 fail. The series starts again from drill 1 |
+| 5. Restore drills | A scratch database restored beside the live one, from the backup store alone | The backup can be read back, and how long it takes | The off-site copy, point-in-time recovery, the loss of the whole site | 3 run, all pass: one on V1.0 before it was retired (2026-11-08), and on this platform the reference app's database (2026-11-10) and the login service's (2026-11-15) |
+
+### The referees, and when to stop
+
+A drill is judged by referees that run before, during and after it, not by reading status afterwards:
+
+- **Probes from a machine outside the cluster**, each timed: the cluster API through its floating address, the reference app and the login service through the ingress, and writes through the connection pooler with a fresh name lookup each time, so that a gap in writes and the number of writes kept are both counted.
+- **A DNS probe on every node**, counting failed lookups and lookups slower than 1 s.
+- **The alerts**, compared with a list of the alerts each drill is expected to raise, written before it starts.
+
+**The stop rule.** A change-over step stops on any failed lookup or any new alert. A drill is aborted, the machine powered back on and the session ended, when a service is not back at twice its target, when an alert fires that was not expected, or when a second machine shows a problem. Two machines are never off at once, because each database instance lives on its own machine's disk.
+
+### The rule, decided 2026-11-20 (planned)
+
+Every failure scenario is first rehearsed on a simulated cluster shaped like home (three servers and three agents, the same manifests as far as a container cluster can carry them), nightly on a home CI host, and never on a pull request, because it is too slow for one. The scope, in order:
+
+1. every piece that claims a second instance (the reference app's pods, its database and the login service's, sign-in, the database operator, the backup plugin, cluster DNS, the ingress, admission, the floating address);
+2. the rest of the production path: the database's writes and failover, its object store, the connection pooler, the way in up to the node;
+3. the major supporting systems: delivery, monitoring and alerting, the backup path.
+
+**No live drill runs before its simulation has passed**, or the drill's record says why the scenario could not be simulated. Status on 2026-11-20: the rule is written down; of the scenarios in its scope, only the cluster DNS node loss (and its change-over) has been simulated, besides the earlier one-off trials of the monitoring stack and of a drain; the home-shaped cluster and the nightly run do not exist yet. The live drills stay, and become confirmations instead of discoveries.
+
+### Why: highly available on paper, not in a power cut
+
+On 2026-11-19 the second power-off drill held off a worker that ran one of the two cluster DNS replicas. Two replicas, spread over two machines, looked highly available on paper. They were not. A machine that stops without warning is marked NotReady only after about a minute (60 s in this drill), and until then its dead DNS pod stays in the service. Each lookup sent to it waits 5 s, and its retries go to the same dead pod. Lookups on the other machines stalled for 51.1 s, two of the probe's writes failed because a name could not be resolved, and the abort rule ended the session. The users' requests were all answered, because the apps keep their database connections open; any new connection in that minute would have failed as the probe's did.
+
+The software drill three days earlier had killed a DNS pod and passed, because a killed pod is removed from the service at once. A review on paper cannot see timing either. A simulation can: the same day, a four-node throwaway cluster reproduced the stall within minutes, in every one of six runs. It then showed the fix, a DNS server on every node with each node preferring its own, running with no failed lookup, and it found a rollout stall in the fix before the live site met it. Had the simulation come first, the flaw would have been found at no risk. That is the reason for the rule above.
+
+**The fix, built on 2026-11-20.** The change-over runs in five steps, one pull request at a time, each judged by the DNS probe before the next. The first two are live. Since the second, the probe on all six nodes has counted no failed lookup and none over 1 s. During the first step's hour-long soak, one node counted 2 failed lookups out of about 7,100, both fast, with no error in any DNS log and the cause unknown. The last steps are held until a soak with a log line for every failed lookup is clean. The single point stays **open** until a power-off drill passes.
+
+### A process slip, 2026-11-20
+
+The second step of the change-over was merged in the same command that read the first step's referee. The referee had counted those 2 failed lookups; they were read only after the merge, and the reconciler applied the step about half a minute later. Nothing broke: the probe has been clean since. But a referee whose verdict arrives after the decision is not a referee. **Read the referee, then merge.**
+
+**What this does not prove.** That anything here is highly available. Of the single points in the [register](reliability.html), {{ hw_ev.single_points_fixed }} are fixed in the generated figures of {{ site.data.stats.generated_at | date: "%Y-%m-%d" }}, because fixed needs a power-off drill that passed. The simulations run in containers on one machine and stand in for no hardware. The nightly rule is planned, not built, and it will be shown to work only when a simulation fails and stops a live drill.
 
 Related pages: [the delivery chain](platform.html#how-a-change-reaches-the-cluster),
 [what I'd do differently](lessons.html), [who reviews, honestly](ai-dev.html#who-reviews-honestly).

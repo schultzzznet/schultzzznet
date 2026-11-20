@@ -1,14 +1,14 @@
 ---
 title: The estate
-reread: 2026-11-12
+reread: 2026-11-20
 body_read: 2026-11-11
 summary:
-  - "**What it is:** a DevSecOps environment for building apps from the current state of the art, on retired hardware, to prove that is possible, and to be a platform for rapidly developing, deploying and maintaining any app, the killer app included. Reliability is the aim, not yet a claim: the cluster is a day old, with no uptime, users or public name. A training system, on purpose."
-  - "**Proven (dated):** admission policies refuse off-list or undigested images (one real refusal, 2026-11-10); one PostgreSQL cluster with a nightly backup and a restore drill that passed on 2026-11-10, with limits. The default-deny probe failed (a 1-3 s gap at pod start)."
-  - "**Not live:** alerts reaching a person and dashboards (monitoring itself is running: 18 of 18 scrape targets up on 2026-11-11), replicated storage, durable identity, an off-site backup copy, a public name, two of the three reference apps."
-  - "**History:** the cluster is a day old; the platform is not. V1.0 ran from 2025-12-21 to 2026-11-10 (Docker Swarm first, k3s from 2026-04, Swarm retired 2026-06-09): 2,051 commits and 226 merged pull requests, written up here in public since 2026-04-18. V2.0 is its next step on the same six machines: [History](history.html)."
-  - "**V1.0 against V2.0:** [a dated diff list](versions.html), area by area, including where V1.0 did better and what is not rebuilt yet. V1.0's own figures stay lower on this page under dated headings; none is a claim about the new cluster."
-  - "**Two axes:** what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, scripted and push at the edges, so not fully GitOps yet: [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
+  - "**What it is:** a DevSecOps environment for building apps from the current state of the art, on retired hardware, to prove that is possible, and to be a platform for rapidly developing, deploying and maintaining any app, the killer app included. Reliability is the aim, not yet a claim: the cluster was built on 2026-11-10, with no uptime, users or public name. A training system, on purpose."
+  - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write, one design flaw (the pooler) found and fixed, one miss still open. The default-deny probe failed (a 1-3 s gap at pod start)."
+  - "**Power-off drills (2026-11-19):** the first passed; the second found cluster DNS stalling for about 51 s, so the series restarts after the fix, which is in progress (two of five steps live on 2026-11-20). From 2026-11-20 every failure scenario is rehearsed in a simulated cluster shaped like home before it runs live. No single point is proven fixed yet."
+  - "**Not live:** alerts that page a person (they reach a chat channel), replicated storage, an off-site backup copy, a public name, two of the three reference apps."
+  - "**History:** the cluster is new; the platform is not. V1.0 ran from 2025-12-21 to 2026-11-10 (Docker Swarm first, k3s from 2026-04, Swarm retired 2026-06-09): 2,051 commits and 226 merged pull requests, written up here in public since 2026-04-18. V2.0 is its next step on the same six machines: [History](history.html)."
+  - "**V1.0 against V2.0:** [a dated diff list](versions.html), including where V1.0 did better. V2.0 is declarative and pull in the cluster, scripted and push at the edges, so not fully GitOps yet ([two axes](how-we-work.html#two-axes-what-you-write-and-who-applies-it)). V1.0's own figures stay lower on this page under dated headings; none is a claim about the new cluster."
 ---
 {% assign s = site.data.stats %}
 {% assign c = s.cluster %}
@@ -31,10 +31,10 @@ summary:
 |---|---|
 | **What is here** | A DevSecOps environment for building apps, put together from the current state of the art and run on retired hardware: everything is code in git and applied by a reconciler (GitOps), images are signed and admission refuses unsigned or unlisted ones, secrets are encrypted in git, databases have backups and a restore drill, and monitoring and alerts run on the same cluster. Details and dates: [Platform](platform.html), [DevSecOps](devsecops.html), [Reliability](reliability.html). |
 | **Why it was made** | To prove it is possible: that one person, with AI doing much of the building and a person approving every merge, can run this whole stack well on the weakest hardware available. If it works here it works anywhere, and any other hardware is an upgrade. The proof is dated and public, including what has failed: [History](history.html), [V1.0 against V2.0](versions.html), [Lessons](lessons.html). |
-| **What it is for** | A platform for rapidly developing, deploying and maintaining any app, the reference apps today and the killer app when it arrives, and to be reliable enough that the app is the only thing that needs attention. **That reliability is the aim, not yet a claim:** the cluster is days old and has no uptime to quote, and [Status](status.html) says what is proven, built, planned and open. Which real workloads it serves, or is meant to, is on [Applications of the platform](applications.html). |
+| **What it is for** | A platform for rapidly developing, deploying and maintaining any app, the reference apps today and the killer app when it arrives, and to be reliable enough that the app is the only thing that needs attention. **That reliability is the aim, not yet a claim:** the cluster is days old and has no uptime to quote. As of 2026-11-20, 17 software failure drills and the first two power-off drills have run, and no single point of failure is proven fixed yet: [Reliability](reliability.html) has the scenarios and results, and [Status](status.html) says what is proven, built, planned and open. Which real workloads it serves, or is meant to, is on [Applications of the platform](applications.html). |
 
 
-**Not measured yet (2026-11-11):** SBOM projects, alerts reaching a person, and electricity cost.
+**Not measured yet (2026-11-20):** SBOM projects, alerts reaching a person (they reach a chat channel, which pages nobody), and electricity cost.
 
 **What it is for.** Training: principles, technologies and everything around them, learned as
 deeply and as hands-on as possible, on a system that is actually running. **The hardware is
@@ -49,17 +49,26 @@ is protected for uptime's sake. On that day the direction changes on purpose: pr
 the main line and the experiments move to a branch.
 
 **It is running, and it is new.** On 2026-11-10 V1.0 was torn down, and the same
-six machines were rebuilt as a new K3s cluster that day and the next. As of 2026-11-11 it is about
+six machines were rebuilt as a new K3s cluster that day and the next. It is about
 {{ c.age_days }} days old by the count below, so no uptime is claimed. One of the three reference apps (the hazard-warning
-one) is deployed on it. Admission control and default-deny between tenant namespaces are live. A restore
-drill passed on 2026-11-10, with limits. Everything V1.0 measured, and every
+one) is deployed on it, with its login service. Admission control and default-deny between tenant namespaces are live. Restore
+drills passed on 2026-11-10 and 2026-11-15, with limits. **It has been broken on purpose.** On 2026-11-16 and 17, 17 software
+failure drills killed pods, database primaries and standbys, the connection pooler, the ingress, cluster DNS and admission,
+and drained nodes, each under a write probe: 15 passed and no acknowledged write was lost. They found one design flaw (the
+pooler held on to a failed login after a database failover; fixed, and the re-run passed with a thin margin) and one miss that
+is still open (with both backup-plugin pods down the failover started late). On 2026-11-19 the first power-off drills ran:
+the first passed, the second found that cluster DNS stalls for about 51 seconds when a node stops without warning. The
+series stopped there and starts again from the first drill once the fix, cluster DNS on every node, is in; on 2026-11-20 two
+of its five steps were live and the rest were held while two unexplained failed lookups are looked into. From 2026-11-20 a
+scenario is rehearsed first in a simulated cluster shaped like home, then run live. No single point of failure is proven
+fixed yet ([Reliability](reliability.html)). Everything V1.0 measured, and every
 correction it made, is kept further down under a dated heading and is not a claim about this cluster. The cluster is new;
 the platform is not: V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }}, with a commit in every calendar month from December 2025 to November 2026,
 and its [history](history.html) is measured month by month, with receipts in this public repository.
 
 **There are no paying customers, no users and no load at all.** The synthetic load generator went
 with V1.0. There is no public entrance and no public name. **Monitoring is running and has been read**: the
-metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 18 Kustomizations were Ready and its pods were Running. On the same day it was read: 18 of 18 scrape targets up, 12 alert rules, no dashboards. No alert is known to reach a person today. Where a figure below cannot be measured yet, it says *not measured yet*.
+metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day. The metrics store runs two replicas since 2026-11-19, and at the last reading it had {{ s.observability.scrape_targets }} scrape targets up, {{ s.observability.alert_rules }} alert rules and {{ s.observability.dashboards }} dashboards. Alerts reach a chat channel since 2026-11-16 (in the first power-off drill the node-loss alerts arrived about six and a half minutes after the machine went dark); nothing pages a person. Where a figure below cannot be measured yet, it says *not measured yet*.
 
 {% include in-short.html %}
 
@@ -72,7 +81,7 @@ metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run 
 | **What changed since V1.0** | [V1.0 and V2.0: what changed](versions.html): the diff list, area by area, with a status word on every V2.0 row |
 | **How it works today** | [How we work](how-we-work.html): changes, secrets, admission, approvals, home CI, and the restore drill, each dated and marked proven or not |
 | **5 minutes** | Add [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking), seven controls that were configured, green, and inert (found on V1.0, retired 2026-11-10; the habit carries over) |
-| **20 minutes** | Add [reliability](reliability.html), which describes the new platform as of 2026-11-11 (no uptime, no machine switched off yet), and [what outside reviews found](lessons.html#13-what-outside-reviews-found), which is about V1.0 (retired 2026-11-10) |
+| **20 minutes** | Add [reliability](reliability.html), which describes the new platform's failure scenarios and the drills run against them (no uptime; the first machines were switched off on 2026-11-19), and [what outside reviews found](lessons.html#13-what-outside-reviews-found), which is about V1.0 (retired 2026-11-10) |
 | **One story** | [One incident, in full](incident.html), from 2026-08-20 on V1.0 (retired 2026-11-10): a SEV1 quorum loss nothing detected, published because omitting it would be more impressive and less true |
 | **An hour** | Add [the delivery chain](platform.html), which describes the new platform (its V1.0 parts are labelled), and [the operations agent](aiops.html), which is V1.0 (retired 2026-11-10); [AI in development](ai-dev.html) is the cloud half of the AI story |
 | **Code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples), four extracted, runnable, commented artifacts, one with a self-test that demonstrates its own bug |
@@ -95,7 +104,7 @@ a check fails the build if this list stops being recent.
 
 Measured **{{ s.generated_at }}** by a script that queries the running cluster, not typed in.
 How each figure is counted is on [the status page](status.html). This is a snapshot of a cluster that
-is about a day old: it says what exists, never how long it has stayed up.
+was built on 2026-11-10: it says what exists, never how long it has stayed up.
 
 {% assign ready_color = "2EA44F" %}{% if c.nodes_ready != c.nodes %}{% assign ready_color = "D9534F" %}{% endif %}
 {% assign kust_color = "2EA44F" %}{% if rc.kustomizations_ready != rc.kustomizations %}{% assign kust_color = "D9534F" %}{% endif %}
@@ -108,27 +117,27 @@ is about a day old: it says what exists, never how long it has stayed up.
 ![fleet](https://img.shields.io/badge/fleet-{{ c.cores }}%20cores%20%C2%B7%20{{ c.ram_gb }}%20GB-575757)
 
 Also in that run: {{ c.namespaces }} namespaces, {{ c.restarts_total }} container restarts since the
-cluster was built (the reference app's two pods restarted ten times each during the bring-up, one control-plane server's virtual-address pod twice and the tracing pod once; none has restarted in the last seven hours of 2026-11-11, and no cause was verified),
+cluster was built (23 of them by 2026-11-11: the reference app's two pods restarted ten times each during the bring-up, one control-plane server's virtual-address pod twice and the tracing pod once, no cause verified; the failure drills since then kill pods on purpose),
 {{ ad.network_policies }} network policies across {{ ad.tenant_namespaces }} tenant namespaces,
 {{ db.backups_24h }} database backups completed in the last 24 hours, {{ db.backups_failed }} failed among
 {{ db.backups_total }} on record, and WAL archiving on {{ db.archiving_clusters }} of {{ db.clusters }}
-database cluster. Both the 2026-11-10 restore drill (last recorded {{ ev.restore_drill_home_last }}, result
+database clusters. The latest restore drill (recorded {{ ev.restore_drill_home_last }}, result
 {{ ev.restore_drill_home_result }}) and the default-deny probe ({{ ev.default_deny_probe_home_date }}, result
 {{ ev.default_deny_probe_home_result }}) are recorded results, not live checks.
 
-| Measured on the new cluster | State on 2026-11-11 |
+| Measured on the new cluster | State at the generation time above |
 |---|---|
-| Metric scrape targets up | 18 of 18 (read 2026-11-11) |
-| Alert rules loaded | 12 alerting rules and 0 recording rules (read 2026-11-11); alerts reaching a person are **not measured yet** |
-| Dashboards | 0 (none committed to git; the dashboard service has none provisioned) |
-| Metric history held | about 0.04 days, roughly an hour (the stack is new) |
+| Metric scrape targets up | {{ s.observability.scrape_targets }} |
+| Alert rules loaded | {{ s.observability.alert_rules }} alerting rules and {{ s.observability.recording_rules }} recording rules; they reach a chat channel (built 2026-11-16), and alerts reaching a person are **not measured yet** |
+| Dashboards | {{ s.observability.dashboards }} (committed to git) |
+| Metric history held | about {{ s.observability.metric_history_days }} days (the shorter of the two metrics replicas; the second is new since 2026-11-19) |
 | Storage replication | none: node-local volumes only (open; a reviewed trade) |
 | Off-site backup copy | none (open) |
 | First-party images that verify against the release key | admission checks this at creation; a count is **not measured yet** |
 
 **The three outside-referee badges are retired.** The scheduled-jobs heartbeat and the two public-endpoint
-uptime probes graded V1.0 from outside it. Their monitors were paused when V1.0 was torn down on 2026-11-10, and there is no public endpoint for a probe to watch. There is no external referee on the new cluster
-yet (open). Until there is one, the figures above are the cluster describing itself, and the page says so.
+uptime probes graded V1.0 from outside it. Their monitors were paused when V1.0 was torn down on 2026-11-10, and there is no public endpoint for a probe to watch. Since 2026-11-16 one outside referee is back: an
+off-site dead-man's switch on the alert heartbeat, which noticed a planted silence in about ten minutes in its test. It tells the owner, not this page, so the figures above are still the cluster describing itself, and the page says so.
 
 {% comment %}V1.0 material follows after the new-platform sections.{% endcomment %}
 
@@ -144,10 +153,11 @@ in the record, it is the record. Components are meant to be disposable, and
 several have been disposed of. What has persisted is the practice around the cluster, not the cluster.
 
 The chains here are meant to be wired end to end: commit, CI-built artifact, signed image, admission, and a reconciler
-that pulls the result in; backup, then restore drill. As of 2026-11-11 I have seen the first of these
-run on the new cluster ({{ rc.kustomizations_ready }} of {{ rc.kustomizations }} Kustomizations Ready), a nightly backup complete, and one
-restore drill pass (2026-11-10, with limits, described in [how we work](how-we-work.html)). I have **not** seen alert-to-person, a device heartbeat, a second backup
-copy, or a failover under load on this cluster. The satellite application is not running. It is a home-built platform
+that pulls the result in; backup, then restore drill. As of 2026-11-20 I have seen the first of these
+run on the new cluster ({{ rc.kustomizations_ready }} of {{ rc.kustomizations }} Kustomizations Ready), nightly backups complete, two
+restore drills pass (2026-11-10 and 2026-11-15, with limits, described in [how we work](how-we-work.html)), and database failovers
+under a write probe in the failure drills of 2026-11-16 and 17. I have **not** seen an alert page a person, a device heartbeat, a second backup
+copy, a failover under real load, or a single point of failure proven fixed by a power-off on this cluster. The satellite application is not running. It is a home-built platform
 with {{ c.nodes }} bare-metal nodes from retired laptops and small desktops, run with production habits and with no production duties.
 
 **V1.0 (retired 2026-11-10).** V1.0 was torn down in stages after a base backup of every database; the
@@ -202,8 +212,8 @@ flowchart TB
   style OFF fill:#f5f5f5
 ```
 
-No public edge, no metrics stack read from (merged 2026-11-11, pods Running at 07:00 UTC), no tracker, no fault injector, no outside referee and no operations agent
-appear above because none of them exists on the new cluster today. V1.0 had all of them; its picture is
+No public edge, no tracker, no fault injector, no outside referee and no operations agent
+appear above because none of them exists on the new cluster today. The monitoring stack does exist (merged 2026-11-11, read since) and is left out of the picture to keep it to the delivery and data chains. V1.0 had all of them; its picture is
 described in words in [V1.0 section](#v10-retired-2026-11-10) below.
 
 ## What it costs
@@ -261,13 +271,10 @@ All of this was read from the cluster or its records on 2026-11-11 unless it say
 - **Storage: node-local volumes are the only storage class.** Replicated storage is deferred (open). That is
   a reviewed trade: replication is left to the database layer, which keeps three copies of its own data. The cost is that a
   volume dies with its machine. (proven 2026-11-11: one default class, read back)
-- **Databases: {{ db.clusters }} PostgreSQL cluster, {{ db.instances }} instances on 3 nodes, PostgreSQL {{ db.postgres_major }}**, behind a
-  connection pooler. Quorum-synchronous commit is **built but not read back** on this cluster (built; the spec asks for one synchronous standby with required durability, and the failover-quorum safety check is off), unlike the
-  V1.0, where it was read back on 2026-10-09. Backups go through the barman-cloud plugin to an S3-compatible store
-  on a small always-on Mac outside the cluster: one machine, one copy, no off-site copy (open). The nightly backup completed at 02:00 UTC
-  on 2026-11-11 (proven 2026-11-11: the backup object reads completed). One restore drill passed on 2026-11-10 with limits (proven 2026-11-10, with limits; see [how we work](how-we-work.html)).
-- **Identity: one Keycloak pod in development mode on an in-memory database** (open). Users and sessions do not survive a restart.
-  It is a placeholder, not an identity system.
+- **Databases: {{ db.clusters }} PostgreSQL clusters (the reference app's and the login service's), {{ db.instances }} instances, three per cluster on three nodes, PostgreSQL {{ db.postgres_major }}**, each with a
+  connection pooler in front (the login service, though, connects to its database directly). Quorum-synchronous commit (the spec asks for one synchronous standby with required durability) was seen working once, for the reference app's database, in the power-off drill of 2026-11-19: with one standby's machine off, the primary kept committing through the other (the login database's not yet seen). V1.0 read its own back on 2026-10-09. Backups go through the barman-cloud plugin to an S3-compatible store
+  on a small always-on Mac outside the cluster: one machine, one copy, no off-site copy (open). Restore drills passed on 2026-11-10 (the app's database) and 2026-11-15 (the login service's), with limits (proven, with limits; see [how we work](how-we-work.html)). Killing a primary under a write probe lost no acknowledged write (2026-11-16 and 17); the first such kill missed its 30-second target at 48.6 s and found the pooler flaw, and after the fix it came back in 27.9 s (proven 2026-11-17, a thin margin).
+- **Identity: the login service runs two replicas in production mode on its own three-instance database** since 2026-11-15 (built; a pod kill passed on 2026-11-16). A sign-in started on one replica and finished on the other has not been shown.
 - **Tracing: one Tempo pod, running, restarted once (cause not verified).** Whether anything sends traces to it is **not verified**: I have not read its logs or run a trace query (built).
 - **A supply chain with teeth, and the qualification.** The admission engine, in refuse mode, rejects unsigned CI-built images and
   vendor images that are not on a list or not pinned by digest. Unsigned CI-built images were refused on a local test cluster on 2026-11-07, and one
@@ -275,9 +282,9 @@ All of this was read from the cluster or its records on 2026-11-11 unless it say
   signature-checked** (open): the list and the digest pin are the control, not a signature. **The Flux artifact is unsigned**
   (open). **There is no SBOM or vulnerability tracker** on the new cluster (planned). The regulatory picture (CRA, GDPR,
   app-store labels) is on [the compliance page](compliance.html).
-- **Not live on 2026-11-11:** dashboards and any alert that reaches a person (monitoring itself runs and was read on 2026-11-11), any public name or HTTPS, replicated storage, durable
-  identity, an off-site backup copy, a second Linux distribution in the host rehearsal, the host pull timer, any input to the
-  operations agent, fault injection, a vulnerability tracker, and two of the three reference apps.
+- **Not live on 2026-11-20:** any alert that pages a person (alerts reach a chat channel), any public name or HTTPS, replicated storage,
+  an off-site backup copy, a second Linux distribution in the host rehearsal, the host pull timer, any input to the
+  operations agent, scheduled fault injection, the simulated home-shaped failure suite (planned 2026-11-20), a vulnerability tracker, and two of the three reference apps.
 - **Retired from the present tense:** the chaos schedules, the operations agent, the reboot daemon and the 49-assertion audit were
   features of V1.0. Their history is in the dated section below.
 
@@ -310,8 +317,8 @@ reviewed. [The fuller account is on its own page](ai-dev.html), including the ti
 reviewer two things about this platform that were not true.
 
 **Run time: nothing, today (V1.0 only).** The operations agent and its local model, and the cloud reader that graded the
-agent's posts, were off-cluster pieces of V1.0. The alert-to-agent chain has **no inputs** on the new cluster because there is
-no monitoring to feed it. They are described, dated, under V1.0 below and in [the agent's page](aiops.html); none of it is a present claim.
+agent's posts, were off-cluster pieces of V1.0. The alert-to-agent chain has **no inputs** on the new cluster: monitoring
+runs and its alerts reach a chat channel, but no agent reads them. They are described, dated, under V1.0 below and in [the agent's page](aiops.html); none of it is a present claim.
 
 ---
 
@@ -324,10 +331,10 @@ to be here did. Status as of 2026-11-11.
 | Layer | What runs | Qualification |
 |---|---|---|
 | Platform | K3s (containerd, embedded etcd, flannel with the WireGuard backend, CoreDNS, Traefik, kube-vip), Ansible for the hosts, local VMs for rehearsal | The "retired laptops" part is literal. Rehearsal covers one distribution; a second is not live |
-| Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin, an S3-compatible store (Garage) on a small Mac outside the cluster, Keycloak in dev mode | One copy of the backups; identity is not durable |
+| Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin and PgBouncer, an S3-compatible store (Garage) on a small Mac outside the cluster, Keycloak (two replicas, own database, since 2026-11-15) | One copy of the backups; failovers drilled 2026-11-16 and 17, no power-off proof yet |
 | Change and secrets | Flux from a CI-built artifact, SOPS with age | The artifact is unsigned. Restoring secrets from the recovery key has not been tested (open) |
 | Supply chain | cosign, Kyverno admission (Deny), gitleaks, Renovate, pre-commit | Renovate is configured and not yet seen acting. Vendor images are not signature-checked. No tracker |
-| Observability | Tempo only | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day, pods Running at 07:00 UTC, 18 of 18 targets up when read |
+| Observability | Prometheus (two replicas since 2026-11-19), Alertmanager, Grafana, Loki, Tempo | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day; alerts reach a chat channel, nothing pages a person |
 | Applications | Java 25, Spring Boot 4 for the reference app | No load |
 | Embedded | Yocto, RAUC signed A/B OTA, Raspberry Pi | Unchanged; the heartbeat to the cluster is planned |
 

@@ -1,11 +1,12 @@
 ---
 title: "V1.0 and V2.0: what changed"
 description: A dated diff list between the retired cluster (V1.0) and the K3s home site (V2.0), area by area, with a status word on every V2.0 row.
-reread: 2026-11-11
+reread: 2026-11-20
 body_read: 2026-11-11
 summary:
   - "**What it is:** a diff list of V1.0 (the cluster retired on 2026-11-10) against V2.0 (the K3s home site, built on 2026-11-10 and 11), 70 rows in 16 areas, each row dated and given one of four status words."
   - "**Counts, 2026-11-11:** 14 kept, 32 changed, 6 new, 1 dropped, 17 not rebuilt yet. Of the V2.0 sides, 19 are proven, 17 built, 8 planned, 24 open; 2 are unchanged and outside the cluster."
+  - "**Moved since, 2026-11-20 (rows not yet redone):** 17 software failure drills (15 passed) and the first two power-off drills (1 passed, 1 failed on cluster DNS, the series restarts after the fix); cluster DNS moving to every node; the login service on its own replicated database; a second restore drill; alerts to a chat channel. The single-points register reads 27 rows, 13 accepted, 0 fixed and 14 open."
   - "**Where V1.0 was better:** 30 rows, among them a live reference to compare against, replicated storage, one database cluster per app, names on the LAN, an in-cluster registry that needed no internet, read monitoring and alerts, rehearsed upgrades, rollback and restore drills, a public entrance, scans and an audit log. Most of that is not rebuilt yet."
   - "**The first four delivery rows name their cell** of the two axes (what is written: declarative or scripted; who applies it: pull or push), explained in [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
   - "**V1.0 is kept as a diffed reference.** It ran from 2025-12-21 to 2026-11-10 ([History](history.html)). Nothing about it is deleted and every V1.0 fact keeps its date. It is not running; it is never evidence about V2.0."
@@ -16,6 +17,16 @@ summary:
 {% include in-short.html %}
 
 On 2026-11-10 I took V1.0 down and built V2.0 on the same six machines. V1.0 had run for 324 days by then, from its first commit on 2025-12-21 (Docker Swarm first, k3s from 2026-04-04, its last cluster built on 2026-09-04); [History](history.html) has it month by month. This page is the diff list: for each area, what V1.0 did, what V2.0 does today, whether that is a change, and how far V2.0 has got. It was read against the system on 2026-11-11 (the live readings at 07:00 UTC), when V2.0 was about a day old, so no row is an uptime claim. Where V1.0 did something better I say so in the row.
+
+**Update, 2026-11-20: the rows are owed a re-read.** The rows and the counts below are as read on 2026-11-11, except where a
+row says 2026-11-20. Since then several V2.0 sides have moved and the status words have not been redone: the power-off
+drills (Hardware and OS) began on 2026-11-19, the first passed and the second failed on a cluster DNS stall of about 51
+seconds, so the series starts again after the fix; cluster DNS (Cluster software) is being moved to one server on every
+node with a lookup probe on every node, two of five steps live on 2026-11-20; the login service (Storage and databases) runs
+two replicas in production mode on its own three-instance database since 2026-11-15, so there are two database clusters; a
+second restore drill passed on 2026-11-15; 17 software failure drills ran on 2026-11-16 and 17, 15 passed; monitoring is
+read and alerts reach a chat channel. From 2026-11-20 every failure scenario is rehearsed first in a simulated cluster shaped
+like home, then run live. [Reliability](reliability.html) and [Status](status.html) hold the current state.
 
 ## The key
 
@@ -85,7 +96,7 @@ The shape matters more than the totals: most of what V1.0 had for watching, scan
 | Networking and ingress | Ingress behind one small edge machine on a public tunnel service. A public name existed; an outside probe read 99.95 percent over 7 days on 2026-10-27. Public exposure was attacked on a schedule (exposure contracts, a template scanner, a pentest whose findings were fixed on 2026-11-01). | No public entrance and no public name. Ingress is reachable inside only. Nothing public exists to attack, so no exposure scan runs. | not rebuilt yet | planned | **Evidence:** Read 2026-11-11: no public path. The outside probe monitors were paused on 2026-11-10. **Why:** V1.0 was better: it had a real front door. My reason for waiting: nothing needs a front door yet. The 99.95 percent figure is a V1.0 note of 2026-10-27; I did not find the probe record itself in the old repository on 2026-11-11. |
 | Networking and ingress | The ingress controller ran on the cluster. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Same controller, class-selected, behind the floating address, plain HTTP only. The certificate manager is installed but no certificate is issued from it. | kept | built | **Evidence:** Ingress and load-balancer Kustomizations applied, three certificate-manager pods Running, read 2026-11-11. **Why:** TLS and names are the open parts. A running controller with no certificate issued proves nothing. |
 | Networking and ingress | V1.0 had working names from a LAN DNS service and mDNS host names. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | V2.0 has no names yet: the DNS plan for a home zone is not decided. Pods cannot use mDNS, so the backup store is addressed by IP, learned from a fault on 2026-11-10. | not rebuilt yet | open | **Evidence:** Decision register 2026-11-11, DNS plan row open. **Why:** V1.0 was better: names worked. A refusal in the bootstrap script now stops the same mistake. |
-| Networking and ingress | One switch carried every etcd and storage host; one router held the DHCP reservations. Both accepted as single points. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Same switch, router and internet line, because the machines are the same. | kept | open | **Evidence:** Single-points register read 2026-11-11: 22 rows, 13 accepted, 9 open. **Why:** Nothing was fixed here; the 2026-11-08 review found the switch was missing from the register. |
+| Networking and ingress | One switch carried every etcd and storage host; one router held the DHCP reservations. Both accepted as single points. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Same switch, router and internet line, because the machines are the same. | kept | open | **Evidence:** Single-points register read 2026-11-20: 27 rows, 13 accepted, 0 fixed and 14 open; the switch and the router are among the accepted rows. **Why:** Nothing was fixed here; the 2026-11-08 review found the switch was missing from the register. |
 
 ### Storage and databases
 

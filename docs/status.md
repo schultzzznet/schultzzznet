@@ -1,13 +1,14 @@
 ---
 title: Status
 description: Every figure measured by a command, with the command beside it. A dated snapshot of the new platform, not a feed.
-reread: 2026-11-11
-body_read: 2026-11-11
+reread: 2026-11-20
+body_read: 2026-11-20
 summary:
-  - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Dated 2026-11-11."
-  - "**The cluster is about a day old:** it was rebuilt on 2026-11-10 and 2026-11-11, so nothing here is an uptime claim (the platform's [history](history.html) goes back to 2025-12-21). It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
-  - "**Two evidence records are shown with what they do not prove:** a restore drill passed on 2026-11-10 and a default-deny probe failed the same day (a new pod was open for about 1 to 3 seconds). Open item."
-  - "**Monitoring is running and read, and there is no external referee yet.** Figures that no probe can read yet say not measured yet, never zero and never an old number. V1.0's headline figures are kept below as history only."
+  - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Regenerated 2026-11-20."
+  - "**The cluster was built on 2026-11-10 and 2026-11-11,** so nothing here is an uptime claim (the platform's [history](history.html) goes back to 2025-12-21). It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
+  - "**Evidence, with what it does not prove:** restore drills passed on 2026-11-10 and 2026-11-15; the default-deny probe of 2026-11-10 failed (a new pod open for about 1 to 3 s). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. Power-off drills (2026-11-19): 1 passed, 1 failed on cluster DNS; the series restarts after the fix."
+  - "**Single points of failure, 2026-11-20:** 27 rows, 13 accepted, 0 fixed and 14 open. Nothing is proven fixed until a machine is powered off and the app goes on, and from 2026-11-20 each scenario is first rehearsed in a simulated cluster shaped like home (planned, not built)."
+  - "**Monitoring is running and read; alerts reach a chat channel, nothing pages a person.** One outside referee watches the alert heartbeat since 2026-11-16. Figures that no probe can read yet say not measured yet, never zero and never an old number."
 ---
 
 # Live status
@@ -28,7 +29,7 @@ The generator reads the cluster read-only, and the main branch of the private pl
 repository counts. None of it was typed in. The last column says what was counted, and where the label is
 wider than the count, it says so.
 
-**The cluster is about a day old.** V1.0 was torn down on 2026-11-10 and this one was
+**The cluster is new.** V1.0 was torn down on 2026-11-10 and this one was
 brought up on 2026-11-10 and 2026-11-11. The platform is older: V1.0 ran from 2025-12-21, and its frozen
 [history](history.html) is measured month by month. Nothing on this page is an uptime claim, and a count of things that
 exist is not a claim that they have worked for any length of time. Where a figure cannot be measured yet, the
@@ -38,13 +39,15 @@ The other pages hold snapshots written by hand on a given day, and they drift: a
 once. This page exists so that there is one place where the figures are regenerated rather than remembered,
 and so that the staleness of those figures is itself a number you can read.
 
-## No external referee yet (open, 2026-11-11)
+## One outside referee, no public one (2026-11-20)
 
 On V1.0, outside monitors graded the public endpoint and the scheduled jobs, and their
 badges sat on this page. Those monitors were paused on 2026-11-10 when the platform was torn down (proven on 2026-11-10 by the
-teardown record). There is no public entrance to the new platform yet and no
-external referee watching it, so the badges are gone from this page rather than left showing a false failure.
-This is an open item: a new referee is planned together with a public entrance, and until then the page makes
+teardown record). Since 2026-11-16 an off-site dead-man's switch watches the new platform's alert heartbeat again: in its
+test a planted silence was noticed in about ten minutes and reported to the owner from outside the house (proven
+2026-11-16, once). It is not shown here as a badge, and it watches the alert path, not the apps. There is no public
+entrance to the new platform yet and no outside probe of one, so the old badges are gone from this page rather than left
+showing a false failure. A probe of the entrance is planned together with a public entrance; until then the page makes
 no availability claim of any kind.
 
 ## V1.0 (retired 2026-11-10), measured 2026-10-27 (history only)
@@ -84,7 +87,7 @@ still apply to any monitor; the badges themselves are gone.*
 ## The new platform, group by group
 
 Each group below states what its figures are, and what they do not show. Anything about the new platform is
-dated 2026-11-11 unless it says otherwise.
+dated 2026-11-20 unless it says otherwise.
 
 {% assign order = "cluster,storage,reconciler,admission,databases,evidence,observability,ci,repo,hardware,site" | split: "," %}
 {% assign titles = "The cluster,Storage,The reconciler,Admission and policy,Databases,Evidence records,Observability,CI,The platform repository,Hardware repositories,This site" | split: "," %}
@@ -98,24 +101,26 @@ dated 2026-11-11 unless it says otherwise.
 {% when "cluster" %}
 What Kubernetes reports about itself, three control-plane servers and three laptop agents. These are counts of
 API objects, so a CronJob that is suspended is still a CronJob, and a pod that finished is still a pod.
-Status on 2026-11-11 (proven by a read that day): all nodes Ready, the pods Running and the namespaces as
-counted below. The age row is the age of the cluster, about a day, so no restart or age figure here is a
-stability claim.
+All nodes Ready, the pods Running and the namespaces as counted below, at the generation time above. The age row is
+the age of the cluster, so no restart or age figure here is a stability claim, and the failure drills since 2026-11-16
+kill pods and drain nodes on purpose, which adds restarts.
 {% when "storage" %}
 There is one storage class, node-local, and it is the default. A volume lives on one machine, so there is **no
 replication at the storage layer**: losing that machine loses that volume's data, and durability comes from
-database replicas and backups instead. The question of replicated block storage is open: it is not built, and no dated plan is published here. Claims bound
+database replicas and backups instead. Replicated block storage is open: it is not built; it is wanted back later, with a decision record first and no date. The node drains of 2026-11-17 showed the cost: a database runs two of three instances while the node holding the third is out. Claims bound
 is a count of claims that found a volume, not a statement about their health.
 {% when "reconciler" %}
 The GitOps reconciler applies the repository to the cluster. At the generation time above, {{ s.reconciler.kustomizations_ready }} of {{ s.reconciler.kustomizations }} Kustomizations
-were Ready (measured). A hand reading at 07:00 UTC on 2026-11-11 found all 18 Ready. Two limits. The artifact the reconciler reads is **not signed**
+were Ready (measured). Two limits. The artifact the reconciler reads is **not signed**
 (planned: signing is not in place), and it is read through a moving tag, so what is applied is
 whatever the tag points at when the reconciler looks. The artifact-signed row therefore reads
 **not measured yet**. A Ready Kustomization means the last apply succeeded; it does not mean the workload is
 correct.
 {% when "admission" %}
-The admission policies decide what may be created. On 2026-11-11 two policies are in Deny mode (proven 2026-11-11 by a
-read). The default-deny network count is **structural**: it counts tenant namespaces that have a policy
+The admission policies decide what may be created; the rows below count how many are Ready and how many refuse
+(Deny mode), read at the generation time above. Admission runs two replicas: killing one passed on 2026-11-16, and
+in the second power-off drill a pod was admitted through the one replica left, which is not counted as proof because
+that drill failed on cluster DNS. The default-deny network count is **structural**: it counts tenant namespaces that have a policy
 object, not whether traffic is actually blocked. Beside it sits the one record that tested it. The probe of
 {{ s.evidence.default_deny_probe_home_date }} has the result **{{ s.evidence.default_deny_probe_home_result }}**
 (proven 2026-11-10): steady-state traffic was blocked after about 30 seconds, but a newly started pod was open for about
@@ -127,21 +132,36 @@ PostgreSQL under an operator, and the page separates what is configured from wha
 commit is **configured, not read back**: the row counts clusters whose specification asks for it, and the
 platform does not yet ask each primary what is true right now. The backup rows count backup objects that still
 exist; the operator's plugin method leaves the cluster-level status empty, so the status field cannot be used
-to count them. One database cluster of three instances was healthy on 2026-11-11, and the nightly backup
-for 2026-11-11 showed completed when read (proven 2026-11-11 by that read; the time of day is not stated). A completed backup is not a tested restore: see the evidence records.
+to count them. There are two database clusters (the reference app's and the login service's), each of three
+instances spread over three nodes. A completed backup is not a tested restore: see the evidence records.
+**Failovers were drilled** on 2026-11-16 and 17 under a write probe, and no acknowledged write was lost: a standby
+kill 5.3 s; the app database's primary kill first missed its 30 s target at 48.6 s, which found the connection pooler
+holding on to a failed login, and after the fix passed at 27.9 s (a thin margin); the login database's switchover 11.4 s
+and primary kill 21.5 s; with the database operator killed too, 27.6 s; with both backup-plugin pods killed too, about
+35 s, a miss that is **open**. Node drains with the primary or a standby on the node passed. None of this is a
+power-off, and only a power-off can show a database row as fixed.
 {% when "evidence" %}
 The latest records of tests run on the platform, each with its date and result, and what it does **not**
-prove. Restore drill, {{ s.evidence.restore_drill_home_last }}, result
-**{{ s.evidence.restore_drill_home_result }}** (proven 2026-11-10): a marker row and six tables came back from the
-object store alone in about 60 seconds, on a few megabytes. Not shown: size and time at real size, restore of the
-scheduled backup, point-in-time recovery, loss of the object store host's disk, an application running against
-the restored database, an off-site copy. Host-layer rehearsal, {{ s.evidence.host_rehearsal_date }}, result
+prove. Latest restore drill, {{ s.evidence.restore_drill_home_last }}, result
+**{{ s.evidence.restore_drill_home_result }}**: the login service's database came back into a scratch cluster from
+the object store in 81 seconds after a 12-second backup, about 13 megabytes. An earlier drill on 2026-11-10 brought the
+reference app's database back the same way in about 60 seconds, on a few megabytes. Not shown: size and time at real
+size, point-in-time recovery, loss of the object store host's disk, an application running against the restored
+database, a total-loss restore, an off-site copy. Host-layer rehearsal, {{ s.evidence.host_rehearsal_date }}, result
 **{{ s.evidence.host_rehearsal_result }}**: from creating three virtual machines to the end of a second run that changed nothing took
 4 minutes 11 seconds, after earlier failed runs that exposed four defects. Not shown: a second distribution, x86 hardware, quorum or node failure, failover of the
-virtual address. The default-deny probe is described under admission and is a **fail**. A record shows one
-test on one day; it does not show the system keeps passing.
+virtual address. The default-deny probe is described under admission and is a **fail**.
+**Failure drills (not in the generated rows).** 17 software failure drills on 2026-11-16 and 17 (pod, primary and
+standby kills, the pooler, the ingress, cluster DNS, admission, node drains): 15 passed, 2 missed, one of the two since
+fixed and re-run. Power-off drills on 2026-11-19: 2 of 7 run, the first (a plain worker) passed, the second failed
+because cluster DNS stalled for about 51 seconds while a dead node's DNS replica was still listed; the series starts
+again from the first drill after the fix (cluster DNS on every node, two of five steps live on 2026-11-20, the rest held
+while two unexplained failed lookups are looked into). From 2026-11-20 each scenario is first rehearsed in a simulated
+cluster shaped like home; that suite is planned, not built. The single-points rows below count the register: a row
+moves to fixed only on a passing power-off, so 0 fixed is the honest figure. A record shows one test on one day; it
+does not show the system keeps passing.
 {% when "observability" %}
-**Monitoring is running and read on the new platform (2026-11-11).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 18 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for a short time, and the node exporter ran on all six machines. It was then read: 18 of 18 scrape targets up, 12 alert rules, 0 recording rules, 0 dashboards, about an hour of history; no alert is known to reach a person. The rows below that still read
+**Monitoring is running and read on the new platform.** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix landed the same day. The metrics store runs two replicas since 2026-11-19, so the history row is the shorter of the two. Alerts reach a chat channel since 2026-11-16 (a planted critical alert was delivered in its test); in the first power-off drill the node-loss alerts arrived about six and a half minutes after the machine went dark. Nothing rings through silent mode, waits for an acknowledgement or escalates, so alerts reaching a person stay **not measured yet**. The rows below that read
 **not measured yet** (alerts reaching a person, SBOM projects) have nothing to count, and a zero would claim there are none rather
 than that nothing is running. When the thing exists, the generator is built to fail until each row is given a real
 method, so a stale "not measured yet" cannot sit beside a live system unnoticed.
@@ -151,7 +171,7 @@ These rows count what the files declare, not where jobs ran: jobs that name a se
 GitHub-hosted image, and jobs whose runner is chosen at run time. No claim is made about where most jobs ran.
 {% when "repo" %}
 Counted from the committed main branch of the private platform repository, so unsaved work cannot move a
-number. The repository is about a week old, so its commit rates are short-window figures. The test figures are
+number. The repository was started on 2026-11-05, so its commit rates are short-window figures. The test figures are
 static counts of test definitions in the source, **not a pass rate**: nothing is built or run to produce them.
 Record counts show how many written records pass the repository's own format check, not how many tests passed.
 {% when "hardware" %}
