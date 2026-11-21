@@ -24,6 +24,34 @@ page as that page's measurement catches up; anything not measured there is "not 
 
 ---
 
+## The whole stack in one picture
+
+*New platform, state on 2026-11-21: the counts were read from the live cluster that day.*
+
+Every layer of the home site in one picture, from the hardware up to the apps. GitHub sits above all of it. The right-hand
+column shows how each layer changes:
+
+- **Pull:** Flux, inside the cluster, pulls the apps, the entry and the platform services.
+- **Push, by a person:** I run a bootstrap script for Flux and four Helm releases, and Ansible for K3s, the nodes and the host OS.
+- **By hand:** the OS install and the cables.
+
+The colours count copies:
+
+- **green:** more than one copy runs, spread over nodes;
+- **orange:** one copy, a single point;
+- **dashed:** planned, not built.
+
+Green is not the same as proven by a drill. In a simulation of the third power-off drill, losing a node that carries the
+ingress or a database pooler still broke new connections for up to about 90 seconds (about half of them, at the ingress),
+and that fix is open. The picture also marks what is not there yet: HTTPS on the web address waits for a certificate, and the
+site's own artifact is read by tag, not yet signed; only the images are. It was first drawn in pencil and redrawn in TikZ.
+
+<a href="assets/diagrams/stack.pdf"><img src="assets/diagrams/stack.png" alt="The home site as one stack: clients, entry, apps, platform services, the Kubernetes core, six nodes, host OS and hardware on the left; GitHub, CI on home runners and how each layer changes (pull, push, by hand) on the right" width="1760" loading="lazy" style="max-width:100%;height:auto"></a>
+
+[The PDF](assets/diagrams/stack.pdf) zooms and prints; the source is [stack.tex](assets/diagrams/stack.tex).
+
+---
+
 ## Why the cluster pulls
 
 *History, kept because the reasoning still holds. Written 2026-08 to 2026-10, on V1.0.*
