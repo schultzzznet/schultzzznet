@@ -327,7 +327,7 @@ The estate now reaches from an [embedded Linux image](yocto.html) with A/B updat
 retired laptops with its own CI on two small desktops at home, signed images checked again when they are admitted, and the
 cluster pulling its configuration from git, to a [local language model](aiops.html) on a small desktop with 16 GB of memory.
 Looking back over it, the owner's words were "I never thought this possible". Better hardware was not what made it possible.
-Four habits were, and a fifth follows from them:
+Four habits were, and they allow a fifth:
 
 - **Measure first.** The model host's memory ceiling (one small model beside a virtual machine swapped 10,000 to 25,000
   pages on every call), the 51-second DNS stall of lesson 15, and the 46 seconds a dead node's pods stay in rotation, which
@@ -335,7 +335,7 @@ Four habits were, and a fifth follows from them:
 - **Write it down, with a date.** About a hundred dated run records mean nothing depends on remembering what was proven, and
   a claim without a record reads as a claim.
 - **Let the checks refuse.** During an admission controller upgrade, a probe sent an unsigned image of ours every few
-  seconds for three minutes, and it was refused every time, before, during and after. The end-of-support check was found red
+  seconds for four and a half minutes, through a three-minute upgrade, and it was refused every time. The end-of-support check was found red
   on a component past its support date. That case also shows the other side: a mute kept after its reason had gone hid the red
   for four days.
 - **Old hardware teaches more than good hardware.** A laptop that hard-resets under sustained load, a 16 GB host that swaps,
@@ -345,8 +345,8 @@ What the four habits allow is the point: **dare, on sound principles.** Pick the
 measurement before the choice, a gate that can fail, a rehearsal before the live step, a timed rollback and a dated record
 make ambition safe. Marty Cagan's idea that the best options come from knowing what has
 [only just become possible](https://www.svpg.com/the-most-important-thing/) is the engine, so it pays to look again often.
-One day shows it: on one day the plan said a faster model server must wait for a datacenter GPU; the next, a look at what
-had changed found a plugin that runs that server on the small desktop's own chip, and a measurement of it went into the plan.
+One day shows it: on one day the plan said a faster model server must wait for a CUDA GPU; the next, a look at what
+had changed found a plugin that runs that server on the small desktop's own chip, and a measurement of it was proposed for the plan.
 And in the eleven days after the rebuild, the new cluster took a minor Kubernetes upgrade, DNS on every node, an admission
 controller upgrade, its first real power-off drills and a simulation of them. The DNS change and the admission upgrade were
 rehearsed on a scratch cluster first and the Kubernetes upgrade was dry-run first; the power-offs came before their
