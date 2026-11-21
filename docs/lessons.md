@@ -7,7 +7,7 @@ summary:
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
   - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new cluster was about 14 hours old on 2026-11-11 and nothing here claims uptime; the platform's [history](history.html) goes back to 2025-12-21."
-  - "**New since the rebuild:** sequels to lessons 3, 5, 8 and 13; lesson 14 (2026-11-11); 15, DNS highly available on paper but not in a power cut (2026-11-19); 16, a step merged before its referee was read (2026-11-20); and in lesson 8, why it works on old hardware at all and a report that names only the first failing rule (2026-11-21). Reviewers are AI models of the builder's family, so dates matter more than grades."
+  - "**New since the rebuild:** sequels to lessons 3, 5, 8 and 13; lesson 14 (2026-11-11); 15, DNS highly available on paper but not in a power cut (2026-11-19); 16, a step merged before its referee was read (2026-11-20); in lesson 8, why it works on old hardware, daring on sound principles, and a report naming only the first failing rule (2026-11-21). Reviewers are AI models of the builder's family."
 ---
 
 # What I'd do differently
@@ -327,18 +327,31 @@ The estate now reaches from an [embedded Linux image](yocto.html) with A/B updat
 retired laptops with its own CI on two small desktops at home, signed images checked again when they are admitted, and the
 cluster pulling its configuration from git, to a [local language model](aiops.html) on a small desktop with 16 GB of memory.
 Looking back over it, the owner's words were "I never thought this possible". Better hardware was not what made it possible.
-Four habits were:
+Four habits were, and a fifth follows from them:
 
-- **Measure first.** The model host's memory ceiling (one small model beside a virtual machine swapped thousands of pages on
-  every call), the 51-second DNS stall of lesson 15, and the half-open connections that failed a simulated power-off were each
-  found by measuring, never by reading a design.
+- **Measure first.** The model host's memory ceiling (one small model beside a virtual machine swapped 10,000 to 25,000
+  pages on every call), the 51-second DNS stall of lesson 15, and the 46 seconds a dead node's pods stay in rotation, which
+  failed a simulated power-off, were each found by measuring, never by reading a design.
 - **Write it down, with a date.** About a hundred dated run records mean nothing depends on remembering what was proven, and
   a claim without a record reads as a claim.
-- **Let the checks refuse.** In one evening the plan's own check refused an item count that two crossing changes had made
-  stale, the status build refused a hand-merged status page, and the end-of-support check went red on a component past its
-  support date. The same evening shows the other side: a mute kept after its reason had gone hid that red for nine days.
+- **Let the checks refuse.** During an admission controller upgrade, a probe sent an unsigned image of ours every few
+  seconds for three minutes, and it was refused every time, before, during and after. The end-of-support check was found red
+  on a component past its support date. That case also shows the other side: a mute kept after its reason had gone hid the red
+  for four days.
 - **Old hardware teaches more than good hardware.** A laptop that hard-resets under sustained load, a 16 GB host that swaps,
-  nodes with no GPU: each forces a lesson a larger platform hides behind spare capacity, and each became a rule or a gate.
+  nodes with no GPU: each forces a lesson a larger platform hides behind spare capacity, and each forced a written decision.
+
+What the four habits allow is the point: **dare, on sound principles.** Pick the ambitious thing and make it work, because a
+measurement before the choice, a gate that can fail, a rehearsal before the live step, a timed rollback and a dated record
+make ambition safe. Marty Cagan's idea that the best options come from knowing what has
+[only just become possible](https://www.svpg.com/the-most-important-thing/) is the engine, so it pays to look again often.
+One day shows it: on one day the plan said a faster model server must wait for a datacenter GPU; the next, a look at what
+had changed found a plugin that runs that server on the small desktop's own chip, and a measurement of it went into the plan.
+And in the eleven days after the rebuild, the new cluster took a minor Kubernetes upgrade, DNS on every node, an admission
+controller upgrade, its first real power-off drills and a simulation of them. The DNS change and the admission upgrade were
+rehearsed on a scratch cluster first and the Kubernetes upgrade was dry-run first; the power-offs came before their
+simulation, the order lesson 15 turned into a rule. All of it is recorded. Speed and confidence are not a
+trade here; the principles are what make them the same thing.
 
 The limits stay real, and each is written down with an open item: a simulated power-off of a node holding an ingress replica
 and a database pooler replica failed (new connections failed for up to about 90 seconds against targets of 10 and 30), the
@@ -346,10 +359,10 @@ database backups have one copy on one machine until a second copy has run and be
 a GPU. A home lab and a platform can run on the same hardware; the difference is that every limit is written down, dated and
 owned.
 
-One more, from the same morning: **a report names only the first rule an object fails.** A log collector's 149 audit
-findings all said "host paths". Once a narrow exception for its three host paths went live, the next hourly scan named the
-next rule (an added capability) on the same seven objects. The exception's tests had used a trimmed copy of the workload, so
-they passed. Test an exception against the real manifest, and read a report's count as a lower bound until it reaches zero.
+One more, from the same morning: **a report names only the first rule an object fails.** A log collector's audit findings
+all said "host paths". Once a narrow exception for its three host paths went live, the next hourly scan named the
+next rule (an added capability) on the same seven objects. The exception's tests had used small made-up pods, not the
+collector's own manifest, so they passed. Test an exception against the real manifest, and read a report's count as a lower bound until it reaches zero.
 
 ---
 
