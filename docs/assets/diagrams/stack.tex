@@ -67,7 +67,7 @@
 % ---------------------------------------------------------------- entry
 \node[multi, minimum width=6.0cm] (apivip) at (4.2,21.65) {API address (VIP)\\[-1pt]\scriptsize kube-vip on the 3 servers (set by Ansible)};
 \node[multi, minimum width=7.0cm] (webip) at (13.0,21.65) {Web address (HTTP, LAN only) $\to$ Traefik $\times$2\\[-1pt]\scriptsize kube-vip load balancer; HTTPS waits for a certificate\script};
-\node[tag, align=left, anchor=west] at (16.75,21.65) {kubectl and Flux use the API address;\\browsers and apps use the web address};
+\node[tag, align=left, anchor=west] at (16.75,21.65) {kubectl uses the API address;\\browsers use the web address};
 \draw[flow] ($(owner.south)+(-1.8,0)$) -- node[left, tag] {kubectl} ($(apivip.north)+(0,0)$ -| {$(owner.south)+(-1.8,0)$});
 \draw[flow] ($(owner.south)+(1.6,0)$) |- ($(webip.north)+(-1.5,0.5)$) -- ($(webip.north)+(-1.5,0)$);
 \draw[flow, dashed, draw=plan] (internet.south) -- ($(webip.north)+(2.6,0)$);
@@ -96,7 +96,7 @@
 
 \node[single, minimum width=2.6cm] (portal) at (19.9,18.3) {portal $\times$1};
 \node[tag, align=left, anchor=north west, text width=4.4cm] at (17.4,17.2)
-  {Every tenant gets: a default-deny network policy, a quota, Pod Security \emph{restricted}, and signed images only. The databases are run by CNPG and backed up to the Mac Mini.};
+  {Every tenant gets a default-deny network policy, a quota and Pod Security \emph{restricted} (the two node agents run privileged). Admission: the app's own images must be signed by CI; any other image must come from a listed vendor, pinned by digest. The databases are run by CNPG and backed up to the Mac Mini.};
 
 % traffic from the web address to the apps
 \coordinate (fan) at ($(webip.south)+(0,-0.45)$);
@@ -109,8 +109,8 @@
 % ---------------------------------------------------------------- platform services
 \newcommand{\svc}[5]{\node[#1, minimum width=#2, minimum height=1.3cm] (#3) at #4 {#5};}
 \svc{multi}{3.4cm}{kyverno}{(1.95,11.85)}{Kyverno $\times$2\\[-1pt]\scriptsize admission: signatures,\\[-2pt]\scriptsize baseline pod rules (Deny)\script}
-\svc{single}{3.2cm}{flux}{(5.55,11.85)}{Flux\\[-1pt]\scriptsize source + kustomize,\\[-2pt]\scriptsize 1 controller each}
-\svc{multi}{3.2cm}{cnpg}{(8.95,11.85)}{CNPG operator $\times$2\\[-1pt]\scriptsize + backup plugin $\times$2\script}
+\svc{single}{3.2cm}{flux}{(5.55,11.85)}{Flux\\[-1pt]\scriptsize source + kustomize,\\[-2pt]\scriptsize 1 controller each\script}
+\svc{multi}{3.2cm}{cnpg}{(8.95,11.85)}{CNPG operator $\times$2\script\\[-1pt]\scriptsize + backup plugin $\times$2 (Flux)}
 \svc{single}{3.0cm}{certm}{(12.25,11.85)}{cert-manager $\times$1\\[-1pt]\scriptsize internal certificates\script}
 \svc{multi}{3.3cm}{dns}{(15.65,11.85)}{Cluster DNS\\[-1pt]\scriptsize CoreDNS on every node}
 \svc{multi}{3.5cm}{logagent}{(19.6,11.85)}{Log agent\\[-1pt]\scriptsize OpenTelemetry, every node}
@@ -147,27 +147,27 @@
   {3 Dells (NVMe for etcd) and 3 MacBook Pros; unmanaged switches, one of them carrying all three servers; the house router};
 
 % ================================================================ right side (x 24..34)
-\node[ghbox, minimum width=10cm, minimum height=4.7cm, anchor=north west] (gh) at (24.0,26.0) {};
+\node[ghbox, minimum width=10cm, minimum height=4.9cm, anchor=north west] (gh) at (24.0,26.0) {};
 \node[font=\bfseries\Large, anchor=north west] at (24.25,25.8) {GitHub: the king of it all};
 \node[anchor=north west, align=left, font=\small, text width=9.4cm] at (24.25,25.05) {%
   \textbf{git (main)}: the only way a change reaches the site; every change is a pull request that must pass its checks.\\[3pt]
-  \textbf{Actions}: the checks and builds run at home (below); signing, which holds a key, runs on GitHub's own runners.\\[3pt]
+  \textbf{Actions}: pull request checks run at home (below); on main, GitHub's own runners build, push and sign the image and push the site artifact (they hold the key and the write token).\\[3pt]
   \textbf{GHCR}: the images (signed) and the site's artifact (read by tag, not signed yet).\\[3pt]
   \textbf{Renovate}: proposes every version bump as a pull request.};
 
 \node[box, minimum width=10cm, minimum height=2.6cm, anchor=north west, align=left, text width=9.6cm] (ci) at (24.0,20.4) {%
   \textbf{CI on home runners}\\[2pt]
   \scriptsize 2 iMacs and a laptop (the laptop takes small jobs only). Every job gets a fresh VM, thrown away after.
-  They run the checks, build and scan the images, and run the kind gate: the whole site on a test cluster.};
+  They run the pull request checks, test builds and scans, and the kind gate: the whole site on a test cluster. They push nothing.};
 \draw[flow, line width=1pt] ($(gh.south)+(-2.5,0)$) -- node[right, tag] {jobs} ($(ci.north)+(-2.5,0)$);
-\draw[flow, line width=1pt] ($(ci.north)+(1.5,0)$) -- node[right, tag] {images, site artifact} ($(gh.south)+(1.5,0)$);
+\draw[flow, line width=1pt] ($(ci.north)+(1.5,0)$) -- node[right, tag] {results of the checks} ($(gh.south)+(1.5,0)$);
 
 \node[font=\bfseries\normalsize, anchor=west] at (24.0,16.9) {How each layer changes};
 
 % PULL: Entry, Apps, Platform services
 \draw[bracket, draw=pull] (22.25,23.0) -- (22.55,23.0) -- (22.55,8.1) -- (22.25,8.1);
 \draw[-{Stealth[length=3.5mm]}, line width=1.6pt, draw=pull] (24.0,15.3) -- (22.6,15.3);
-\node[how, text width=9.8cm] at (24.1,15.3) {\textcolor{pull}{\textbf{PULL}}: Flux, inside the cluster, fetches the site artifact from GHCR (by tag; signing it is the next step) and makes Entry, Apps and Platform services match it (23 Kustomizations). In the app namespaces, Kyverno refuses an image that CI did not sign.};
+\node[how, text width=9.8cm] at (24.1,15.3) {\textcolor{pull}{\textbf{PULL}}: Flux, inside the cluster, fetches the site artifact from GHCR (by tag; signing it is the next step) and makes the rest of Entry, Apps and Platform services match it (23 Kustomizations). Kyverno refuses an app image that CI did not sign, and any other image not pinned by digest to a listed vendor.};
 
 % PUSH by script: the four Helm releases
 \draw[-{Stealth[length=3.5mm]}, line width=1.6pt, draw=push] (24.0,12.4) -- (22.6,12.4);
@@ -200,8 +200,8 @@
 \node[how] at (25.35,-2.45) {planned, not built};
 \node[how, text width=21.6cm, text=ink!75] at (0,-1.35) {%
   \textbf{Green means more than one copy runs, not that a power-off drill proved it.} What a power-off drill has proved is
-  written down per part. A node lost with Traefik or a pooler on it still breaks new connections (about half, for Traefik) for up to about 90 seconds
-  in a simulation of the third power-off drill; the fix is open. The house DNS, the router, the switch, the Mac Studio and the Mini are single points outside the cluster.};
+  written down per part. In a simulation of the third power-off drill (a node lost with Traefik or a pooler on it), about half of the requests
+  failed for about 45 seconds and a few more up to about 90 seconds; the fix is open and the live drill not yet run. The house DNS, the router, the switch, the Mac Studio and the Mini are single points outside the cluster.};
 
 \end{tikzpicture}
 \end{document}

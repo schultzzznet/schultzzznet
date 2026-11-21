@@ -42,8 +42,8 @@ The colours count copies:
 - **dashed:** planned, not built.
 
 Green is not the same as proven by a drill. In a simulation of the third power-off drill, losing a node that carries the
-ingress or a database pooler still broke new connections for up to about 90 seconds (about half of them, at the ingress),
-and that fix is open. The picture also marks what is not there yet: HTTPS on the web address waits for a certificate, and the
+ingress or a database pooler failed about half of the requests for about 45 seconds and a few more up to about 90 seconds;
+that fix is open, and the live drill has not run yet. The picture also marks what is not there yet: HTTPS on the web address waits for a certificate, and the
 site's own artifact is read by tag, not yet signed; only the images are. It was first drawn in pencil and redrawn in TikZ.
 
 <a href="assets/diagrams/stack.pdf"><img src="assets/diagrams/stack.png" alt="The home site as one stack: clients, entry, apps, platform services, the Kubernetes core, six nodes, host OS and hardware on the left; GitHub, CI on home runners and how each layer changes (pull, push, by hand) on the right" width="1760" loading="lazy" style="max-width:100%;height:auto"></a>
