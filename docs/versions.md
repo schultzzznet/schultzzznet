@@ -21,8 +21,8 @@ On 2026-11-10 I took V1.0 down and built V2.0 on the same six machines. V1.0 had
 **Update, 2026-11-20: the rows are owed a re-read.** The rows and the counts below are as read on 2026-11-11, except where a
 row says 2026-11-20. Since then several V2.0 sides have moved and the status words have not been redone: the power-off
 drills (Hardware and OS) began on 2026-11-19, the first passed and the second failed on a cluster DNS stall of about 51
-seconds, so the series starts again after the fix; cluster DNS (Cluster software) is being moved to one server on every
-node with a lookup probe on every node, two of five steps live on 2026-11-20; the login service (Storage and databases) runs
+seconds, so the series starts again after the fix; cluster DNS (Cluster software) moved to one server on every
+node with a lookup probe on every node, all five steps live on 2026-11-20; the login service (Storage and databases) runs
 two replicas in production mode on its own three-instance database since 2026-11-15, so there are two database clusters; a
 second restore drill passed on 2026-11-15; 17 software failure drills ran on 2026-11-16 and 17, 15 passed; monitoring is
 read and alerts reach a chat channel. From 2026-11-20 every failure scenario is rehearsed first in a simulated cluster shaped

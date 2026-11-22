@@ -1,0 +1,177 @@
+# Where the work on the new platform stands, for the Progress page (docs/progress.md) and its picture
+# (docs/assets/diagrams/progress.png). Copied by hand on the as_of day from the private platform repository's generated
+# status page, its plan and its run records; every figure is a count on that day, never a target.
+# Written in the shape scripts/build-progress.py reads: quoted strings, whole numbers, two levels at most.
+# After a change: python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png
+# The guard fails when the sums do not add up, when the picture was drawn from other data, when this file is older than
+# 21 days, or when a newer docs/_data/stats.yml disagrees with a figure both files hold.
+as_of: "2026-11-22"
+counts:
+  steps_total: 12
+  steps_done: 2
+  steps_done_on_kind: 2
+  steps_partly: 5
+  steps_not_started: 2
+  steps_gated: 1
+  rules_total: 110
+  rules_built: 3
+  rules_partly: 20
+  rules_not_built: 87
+  records: 109
+  records_pass: 82
+  records_fail: 22
+  records_partial: 3
+  records_note: 2
+  records_latest: "2026-11-22"
+  single_points: 27
+  single_points_accepted: 13
+  single_points_fixed: 0
+  single_points_open: 14
+drills:
+  - kind: "Software failure drills"
+    short: "software"
+    where: "live"
+    dates: "2026-11-16 and 17"
+    run: 17
+    passed: 15
+    what: "A pod, a database primary or standby, the pooler, the ingress, cluster DNS or admission killed, or a node drained, each under a probe of what it serves (writes for the database drills). No acknowledged write was lost."
+  - kind: "Power-off drills"
+    short: "power-off"
+    where: "live"
+    dates: "2026-11-19"
+    run: 2
+    passed: 1
+    what: "A machine switched off without warning, the owner at the machines. The second found cluster DNS stalling for about 51 s."
+  - kind: "Restore drills"
+    short: "restore"
+    where: "live"
+    dates: "2026-11-10 and 2026-11-15"
+    run: 2
+    passed: 2
+    what: "A database restored from its backup store alone into a scratch cluster. Megabytes, not a full-size restore."
+  - kind: "Power-off rehearsals"
+    short: "rehearsals"
+    where: "simulated"
+    dates: "2026-11-20"
+    run: 3
+    passed: 2
+    what: "The same power-offs on a simulated cluster shaped like home. From 2026-11-20, each live drill is rehearsed there first."
+phases:
+  - number: 0
+    title: "Clear the deck"
+    group: "build"
+    state: "done"
+    note: "Done 2026-11-14. The open scan changes landed, old worktrees and branches swept, and a drift check found nothing live that git does not describe."
+  - number: 1
+    title: "Make the drills trustworthy"
+    group: "build"
+    state: "done"
+    note: "Done 2026-11-15: the app's pods stopped restarting, logs read back from every node, both databases backed up. One cause still to record: a trace store restart."
+  - number: 2
+    title: "Build the real gaps"
+    group: "build"
+    state: "partly"
+    note: "The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: one house service still runs as a single copy."
+  - number: 3
+    title: "Software failure drills"
+    group: "break"
+    state: "partly"
+    note: "17 drills on 2026-11-16 and 17: 15 passed, no acknowledged write lost. The phase's exit test is not passed yet."
+  - number: 4
+    title: "Power-off drills"
+    group: "break"
+    state: "current"
+    note: "2 live on 2026-11-19: 1 passed. Since 2026-11-20 each is rehearsed on a simulated cluster first: 3 run, 2 passed."
+  - number: 5
+    title: "What the proof unlocks"
+    group: "upgrade"
+    state: "partly"
+    note: "One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a security benchmark, a second backup copy, patching, a load test."
+now: "The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 in five steps. After its first step the probe saw no failed lookup; in the first soak 2 of about 7,600 failed, cause unknown. So the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for a fix or a decision on its targets."
+steps:
+  - number: 0
+    title: "Charter, objectives and rules"
+    state: "done"
+  - number: 1
+    title: "The skeleton and its checks"
+    state: "done"
+  - number: 2
+    title: "The reconciler, prune on"
+    state: "done-on-kind"
+  - number: 3
+    title: "The tenant template"
+    state: "done-on-kind"
+  - number: 4
+    title: "The first app, end to end"
+    state: "partly"
+  - number: 5
+    title: "An app with no cluster rights"
+    state: "partly"
+  - number: 6
+    title: "Keys held off the machine"
+    state: "not-started"
+  - number: 7
+    title: "Blank machines to a cluster"
+    state: "partly"
+  - number: 8
+    title: "The home site"
+    state: "partly"
+  - number: 9
+    title: "The three reference apps"
+    state: "partly"
+  - number: 10
+    title: "Rehearse a move and the survival tests"
+    state: "not-started"
+  - number: 11
+    title: "The cutover"
+    state: "gated"
+objectives:
+  - name: "Git is the only way"
+    rules: 10
+    built: 0
+    partly: 1
+  - name: "Secure by default"
+    rules: 12
+    built: 0
+    partly: 4
+  - name: "AI in development"
+    rules: 6
+    built: 0
+    partly: 0
+  - name: "AI in production"
+    rules: 8
+    built: 0
+    partly: 0
+  - name: "Observe and operate"
+    rules: 12
+    built: 0
+    partly: 1
+  - name: "Recover"
+    rules: 12
+    built: 0
+    partly: 3
+  - name: "Portable"
+    rules: 10
+    built: 1
+    partly: 3
+  - name: "Many hands"
+    rules: 7
+    built: 1
+    partly: 1
+  - name: "Contracts"
+    rules: 12
+    built: 0
+    partly: 3
+  - name: "Learning"
+    rules: 9
+    built: 1
+    partly: 2
+  - name: "Production-ready apps"
+    rules: 12
+    built: 0
+    partly: 2
+next:
+  - text: "The power-off drills again, from the first, each rehearsed on the simulated cluster before it runs live."
+  - text: "Close the known gap the third rehearsal found, or decide on its targets, rehearse it again, and only then run it live."
+  - text: "Then upgrade: a security benchmark run, a second backup copy, routine patching, a load test against a target, and a decision on AI-assisted operations last."
+  - text: "Alongside: the other two reference apps, keys held off the machine, and the cutover once every contract check is green."

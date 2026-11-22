@@ -7,7 +7,7 @@ summary:
   - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Regenerated 2026-11-20."
   - "**The cluster was built on 2026-11-10 and 2026-11-11,** so nothing here is an uptime claim (the platform's [history](history.html) goes back to 2025-12-21). It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
   - "**Evidence, with what it does not prove:** restore drills passed on 2026-11-10 and 2026-11-15; the default-deny probe of 2026-11-10 failed (a new pod open for about 1 to 3 s). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. Power-off drills (2026-11-19): 1 passed, 1 failed on cluster DNS; the series restarts after the fix."
-  - "**Single points of failure, 2026-11-20:** 27 rows, 13 accepted, 0 fixed and 14 open. Nothing is proven fixed until a machine is powered off and the app goes on, and from 2026-11-20 each scenario is first rehearsed in a simulated cluster shaped like home (planned, not built)."
+  - "**Single points of failure, 2026-11-20:** 27 rows, 13 accepted, 0 fixed and 14 open. Nothing is proven fixed until a machine is powered off and the app goes on, and from 2026-11-20 each scenario is first rehearsed in a simulated cluster shaped like home (three rehearsals ran there on 2026-11-20)."
   - "**Monitoring is running and read; alerts reach a chat channel, nothing pages a person.** One outside referee watches the alert heartbeat since 2026-11-16. Figures that no probe can read yet say not measured yet, never zero and never an old number."
 ---
 
@@ -155,9 +155,9 @@ virtual address. The default-deny probe is described under admission and is a **
 standby kills, the pooler, the ingress, cluster DNS, admission, node drains): 15 passed, 2 missed, one of the two since
 fixed and re-run. Power-off drills on 2026-11-19: 2 of 7 run, the first (a plain worker) passed, the second failed
 because cluster DNS stalled for about 51 seconds while a dead node's DNS replica was still listed; the series starts
-again from the first drill after the fix (cluster DNS on every node, two of five steps live on 2026-11-20, the rest held
-while two unexplained failed lookups are looked into). From 2026-11-20 each scenario is first rehearsed in a simulated
-cluster shaped like home; that suite is planned, not built. The single-points rows below count the register: a row
+again from the first drill after the fix (cluster DNS on every node, live in all five steps on 2026-11-20; after the first step the probe saw no failed lookup,
+and the two failed lookups of the first soak are still not explained). From 2026-11-20 each scenario is first rehearsed
+in a simulated cluster shaped like home; three rehearsals ran there on 2026-11-20 and two passed. The single-points rows below count the register: a row
 moves to fixed only on a passing power-off, so 0 fixed is the honest figure. A record shows one test on one day; it
 does not show the system keeps passing.
 {% when "observability" %}
