@@ -1,0 +1,10 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "description": "The public site. The same rules as the platform repository: best practices (actions pinned by digest), updates once a week, a 3-day cooldown, and nothing merges by itself: every update is a pull request that the guard checks and a person merges.",
+    "extends": ["config:best-practices"],
+    "schedule": ["* 0-5 * * 1"],
+    "minimumReleaseAge": "3 days",
+    "automerge": false,
+    "prConcurrentLimit": 3,
+    "prHourlyLimit": 2
+}
