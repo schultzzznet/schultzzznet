@@ -15,17 +15,17 @@
   \ProgressGroup{upgrade}{5}{5}%
 }
 \newcommand{\ProgressPhases}{%
-  \ProgressPhase{0}{done}{Clear the deck}{Done 2026-11-14. Open changes landed, old branches swept, and a drift check found nothing live that git does not describe.}%
-  \ProgressPhase{1}{done}{Make the drills trustworthy}{Done 2026-11-15. No noisy restarts, logs collected from every node, a fresh backup of both databases before the first break.}%
-  \ProgressPhase{2}{partly}{Build the real gaps}{The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: house DNS has one copy.}%
+  \ProgressPhase{0}{done}{Clear the deck}{Done 2026-11-14. The open scan changes landed, old worktrees and branches swept, and a drift check found nothing live that git does not describe.}%
+  \ProgressPhase{1}{partly}{Make the drills trustworthy}{By 2026-11-15: the app's pods stopped restarting, a log agent on every node, both databases backed up. Loose ends: a log query of two nodes, one restart cause.}%
+  \ProgressPhase{2}{partly}{Build the real gaps}{The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: one house service still runs as a single copy.}%
   \ProgressPhase{3}{partly}{Software failure drills}{17 drills on 2026-11-16 and 17: 15 passed, no acknowledged write lost. The phase's exit test is not passed yet.}%
   \ProgressPhase{4}{current}{Power-off drills}{2 live on 2026-11-19: 1 passed. Since 2026-11-20 each is rehearsed on a simulated cluster first: 3 run, 2 passed.}%
-  \ProgressPhase{5}{partly}{What the proof unlocks}{One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a second backup copy, patching, a load test, AI-assisted operations.}%
+  \ProgressPhase{5}{partly}{What the proof unlocks}{One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a security benchmark, a second backup copy, patching, a load test.}%
 }
 \newcommand{\ProgressPhaseCount}{6}
 \newcommand{\ProgressNowPhase}{4}
 \newcommand{\ProgressNowTitle}{Power-off drills}
-\newcommand{\ProgressNow}{The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 without losing a lookup, so the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for the fix.}
+\newcommand{\ProgressNow}{The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 in five steps. After its first step the probe saw no failed lookup; in the first soak 2 of about 7,600 failed, cause unknown. So the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for a fix or a decision on its targets.}
 \newcommand{\ProgressSteps}{%
   \ProgressStep{0}{done}{Charter, objectives and rules}%
   \ProgressStep{1}{done}{The skeleton and its checks}%
@@ -63,8 +63,8 @@
 \newcommand{\ProgressObjectiveCount}{11}
 \newcommand{\ProgressNext}{%
   \item The power-off drills again, from the first, each rehearsed on the simulated cluster before it runs live.%
-  \item Close the known gap the third rehearsal found, rehearse it again, and only then run it live.%
-  \item Then upgrade: a second backup copy, routine patching, a load test against a target, AI-assisted operations last.%
+  \item Close the known gap the third rehearsal found, or decide on its targets, rehearse it again, and only then run it live.%
+  \item Then upgrade: a security benchmark run, a second backup copy, routine patching, a load test against a target, and a decision on AI-assisted operations last.%
   \item Alongside: the other two reference apps, keys held off the machine, and the cutover once every contract check is green.%
 }
-\newcommand{\ProgressDataDigest}{579ad2a86ff474c4}
+\newcommand{\ProgressDataDigest}{cebddb1f18a1ec2a}

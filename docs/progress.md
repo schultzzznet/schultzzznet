@@ -22,7 +22,7 @@ are both drawn from that file, so they cannot disagree. A guard fails the build 
 the picture was drawn from other data, or when the file is more than three weeks old. The figures that [Status](status.html)
 also shows are measured there by a script, on their own date. Where the two dates differ, the numbers may differ too.
 
-This page shows where the work stands. It is not a promise of dates: the plan has none, and the next drill can turn a
+This page shows where the work stands. It is not a promise of dates: the plan sets no dates for the phases or the cutover, and the next drill can turn a
 pass into a fail.
 
 ## The picture
@@ -37,7 +37,7 @@ pass into a fail.
 
 The work runs in three parts and six phases. **Build** comes first, so that a failure test runs only on something built to
 survive it. **Break** is the drills, software first, then power-offs. **Upgrade** comes last, so that a rolling upgrade runs
-only on a cluster that has been shown to survive a node going away. One upgrade ran ahead of this order, on 2026-11-18, at
+only on a cluster that has been shown to survive a node going away. One Kubernetes upgrade ran ahead of this order, on 2026-11-18, at
 the owner's go; the phase table says so.
 
 | Phase | Part | State | Where it stands |

@@ -34,7 +34,7 @@ drills:
     dates: "2026-11-16 and 17"
     run: 17
     passed: 15
-    what: "A pod, a database primary or standby, the pooler, the ingress, cluster DNS or admission killed, or a node drained, each under a write probe. No acknowledged write was lost."
+    what: "A pod, a database primary or standby, the pooler, the ingress, cluster DNS or admission killed, or a node drained, each under a probe of what it serves (writes for the database drills). No acknowledged write was lost."
   - kind: "Power-off drills"
     short: "power-off"
     where: "live"
@@ -55,23 +55,23 @@ drills:
     dates: "2026-11-20"
     run: 3
     passed: 2
-    what: "The same power-offs on a simulated cluster shaped like home, run before each live drill."
+    what: "The same power-offs on a simulated cluster shaped like home. From 2026-11-20, each live drill is rehearsed there first."
 phases:
   - number: 0
     title: "Clear the deck"
     group: "build"
     state: "done"
-    note: "Done 2026-11-14. Open changes landed, old branches swept, and a drift check found nothing live that git does not describe."
+    note: "Done 2026-11-14. The open scan changes landed, old worktrees and branches swept, and a drift check found nothing live that git does not describe."
   - number: 1
     title: "Make the drills trustworthy"
     group: "build"
-    state: "done"
-    note: "Done 2026-11-15. No noisy restarts, logs collected from every node, a fresh backup of both databases before the first break."
+    state: "partly"
+    note: "By 2026-11-15: the app's pods stopped restarting, a log agent on every node, both databases backed up. Loose ends: a log query of two nodes, one restart cause."
   - number: 2
     title: "Build the real gaps"
     group: "build"
     state: "partly"
-    note: "The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: house DNS has one copy."
+    note: "The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: one house service still runs as a single copy."
   - number: 3
     title: "Software failure drills"
     group: "break"
@@ -86,8 +86,8 @@ phases:
     title: "What the proof unlocks"
     group: "upgrade"
     state: "partly"
-    note: "One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a second backup copy, patching, a load test, AI-assisted operations."
-now: "The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 without losing a lookup, so the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for the fix."
+    note: "One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a security benchmark, a second backup copy, patching, a load test."
+now: "The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 in five steps. After its first step the probe saw no failed lookup; in the first soak 2 of about 7,600 failed, cause unknown. So the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for a fix or a decision on its targets."
 steps:
   - number: 0
     title: "Charter, objectives and rules"
@@ -172,6 +172,6 @@ objectives:
     partly: 2
 next:
   - text: "The power-off drills again, from the first, each rehearsed on the simulated cluster before it runs live."
-  - text: "Close the known gap the third rehearsal found, rehearse it again, and only then run it live."
-  - text: "Then upgrade: a second backup copy, routine patching, a load test against a target, AI-assisted operations last."
+  - text: "Close the known gap the third rehearsal found, or decide on its targets, rehearse it again, and only then run it live."
+  - text: "Then upgrade: a security benchmark run, a second backup copy, routine patching, a load test against a target, and a decision on AI-assisted operations last."
   - text: "Alongside: the other two reference apps, keys held off the machine, and the cutover once every contract check is green."
