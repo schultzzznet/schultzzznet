@@ -1,0 +1,212 @@
+% Progress: where the work on the new platform stands, in one picture. The public version: no plan items, no machine names.
+% Every number and label comes from progress-data.tex, which scripts/build-progress.py writes from docs/_data/progress.yml.
+% Nothing here is a fact: this file is only the drawing. The guard keeps the data, this PDF and the PNG in step.
+% Build: python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png
+\documentclass[tikz,border=8mm]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{iftex,pdftexcmds,enumitem}
+\usetikzlibrary{calc}
+\makeatletter\let\StrCmp\pdf@strcmp\makeatother
+\input{progress-data.tex}
+% The data digest goes into the PDF's document info, so the guard can tell which data a built PDF was drawn from.
+\ifPDFTeX\pdfinfo{/ProgressData (progress-data \ProgressDataDigest)}\else\special{pdf:docinfo << /ProgressData (progress-data \ProgressDataDigest) >>}\fi
+
+% ---------------------------------------------------------------- colours (as in stack.tex)
+\definecolor{ink}{HTML}{1F2933}
+\definecolor{band}{HTML}{F4F6F8}
+\definecolor{bandline}{HTML}{CBD2D9}
+\definecolor{multi}{HTML}{2F855A}      % done, passed
+\definecolor{multifill}{HTML}{E3F4EA}
+\definecolor{plan}{HTML}{7B8794}       % not started
+\definecolor{pull}{HTML}{2B6CB0}       % now
+\definecolor{push}{HTML}{6B46C1}       % gated
+\definecolor{simc}{HTML}{2C7A7B}       % on a test cluster only, simulated
+\definecolor{partc}{HTML}{B7791F}      % partly
+\definecolor{partfill}{HTML}{FBF0D9}
+\definecolor{failc}{HTML}{C53030}      % failed
+
+\tikzset{
+  every node/.style={font=\small, text=ink},
+  step done/.style={fill=multi, draw=multi, line width=1pt},
+  step done-on-kind/.style={fill=simc!14, draw=simc, line width=1.4pt},
+  step partly/.style={fill=partfill, draw=partc, line width=1.4pt},
+  step not-started/.style={fill=white, draw=plan, dashed, line width=1pt},
+  step gated/.style={fill=push!9, draw=push, densely dotted, line width=1.6pt},
+  ink done/.style={text=white}, ink done-on-kind/.style={text=ink}, ink partly/.style={text=ink},
+  ink not-started/.style={text=ink!80}, ink gated/.style={text=ink},
+  stc done/.style={text=white}, stc done-on-kind/.style={text=simc}, stc partly/.style={text=partc!85!black},
+  stc not-started/.style={text=plan}, stc gated/.style={text=push},
+  phase done/.style={fill=multi, draw=multi, line width=1pt},
+  phase partly/.style={fill=partfill, draw=partc, line width=1.4pt},
+  phase current/.style={fill=pull!12, draw=pull, line width=2.6pt},
+  phase not-started/.style={fill=white, draw=plan, dashed, line width=1pt},
+  pink done/.style={text=white}, pink partly/.style={text=ink}, pink current/.style={text=ink}, pink not-started/.style={text=ink!80},
+  pstc done/.style={text=white}, pstc partly/.style={text=partc!85!black}, pstc current/.style={text=pull}, pstc not-started/.style={text=plan},
+  rule1/.style={fill=multi, draw=multi, line width=0.5pt},
+  rule2/.style={fill=partc, draw=partc, line width=0.5pt},
+  rule3/.style={fill=band, draw=bandline, line width=0.5pt},
+  drill pass/.style={fill=multi, draw=multi, line width=0.5pt},
+  drill fail/.style={fill=failc, draw=failc, line width=0.5pt},
+  drill simpass/.style={fill=multifill, draw=multi, line width=0.9pt},
+  drill simfail/.style={fill=failc!12, draw=failc, line width=0.9pt},
+  pill/.style={rounded corners=2pt, inner xsep=3pt, inner ysep=1.5pt, font=\sffamily\bfseries\scriptsize, text height=1.6ex, text depth=0.3ex},
+  head/.style={anchor=west, font=\bfseries\Large},
+  sub/.style={anchor=west, font=\small, text=ink!65},
+}
+\newcommand{\StateName}[1]{%
+  \ifnum\StrCmp{#1}{done}=0 DONE\fi
+  \ifnum\StrCmp{#1}{done-on-kind}=0 TEST CLUSTER ONLY\fi
+  \ifnum\StrCmp{#1}{partly}=0 PARTLY\fi
+  \ifnum\StrCmp{#1}{not-started}=0 NOT STARTED\fi
+  \ifnum\StrCmp{#1}{gated}=0 WAITS ON ITS GATE\fi
+  \ifnum\StrCmp{#1}{current}=0 NOW\fi}
+
+% ---------------------------------------------------------------- geometry
+\newcommand{\W}{30}          % picture width
+\newcommand{\TileW}{5.6}     % headline tile
+\newcommand{\PhW}{5.0}       % phase chevron pitch
+\newcommand{\StepGap}{0.2}
+\pgfmathsetmacro{\StepW}{(\W-11*\StepGap)/12}
+\newcommand{\DrillU}{0.42}    % cm per drill
+\newcommand{\RuleU}{0.52}    % cm per rule
+\newcommand{\RuleX}{14.8}    % where the rule bars start
+
+% A headline tile: index, value, of, label, sub line
+\newcommand{\ProgressTile}[5]{%
+  \pgfmathsetmacro{\x}{#1*(\TileW+0.5)}
+  \draw[draw=bandline, fill=white, rounded corners=4pt, line width=0.7pt] (\x,25.3) rectangle ++(\TileW,3.75);
+  \node[anchor=north west, inner sep=0pt] at (\x+0.3,28.75) {{\fontsize{30}{32}\selectfont\bfseries #2}\,{\Large\color{ink!60} of #3}};
+  \node[anchor=north west, inner sep=0pt, font=\small\bfseries, text width=5.0cm, align=left] (lbl) at (\x+0.3,27.5) {#4};
+  \node[anchor=north west, inner sep=0pt, font=\footnotesize, text=ink!70, text width=5.0cm, align=left] at ([yshift=-1.2mm]lbl.south west) {#5};
+  \fill[band] (\x+0.3,25.55) rectangle ++(\TileW-0.6,0.2);
+  \pgfmathsetmacro{\f}{(\TileW-0.6)*#2/#3}
+  \ifdim\f pt>0pt \fill[multi] (\x+0.3,25.55) rectangle ++(\f,0.2);\fi}
+
+% The bracket over the phases of one group: group, first phase, last phase
+\newcommand{\ProgressGroup}[3]{%
+  \pgfmathsetmacro{\a}{#2*\PhW+0.15}
+  \pgfmathsetmacro{\b}{(#3+1)*\PhW-0.25}
+  \draw[ink!45, line width=0.8pt] (\a,23.75) -- ++(0,0.22) -- (\b,23.97) -- ++(0,-0.22);
+  \node[fill=white, inner xsep=5pt, font=\bfseries, text=ink!75] at ($(\a,23.97)!0.5!(\b,23.97)$) {\MakeUppercase{#1}};}
+
+% A phase chevron and its note: number, state, title, note
+\newcommand{\ProgressPhase}[4]{%
+  \pgfmathsetmacro{\x}{#1*\PhW}
+  \pgfmathsetmacro{\n}{#1>0 ? 0.45 : 0}
+  \draw[phase #2, line join=round]
+    (\x,23.2) -- ++(\PhW-0.3,0) -- ++(0.45,-1.3) -- ++(-0.45,-1.3) -- ++(-\PhW+0.3,0) -- ++(\n,1.3) -- cycle;
+  \node[anchor=north west, inner sep=0pt, font=\scriptsize\bfseries, pink #2] at (\x+0.6,22.95) {PHASE #1};
+  \node[anchor=north west, inner sep=0pt, font=\small\bfseries, pink #2, text width=3.9cm, align=left] at (\x+0.6,22.5) {#3};
+  \node[anchor=south west, inner sep=0pt, font=\scriptsize\bfseries, pstc #2] at (\x+0.6,20.85) {\StateName{#2}};
+  \ifnum\StrCmp{#2}{current}=0
+    \node[pill, fill=pull, text=white, font=\sffamily\bfseries\small, inner xsep=6pt] at (\x+2.3,23.32) {WE ARE HERE};
+  \fi
+  \node[anchor=north west, inner sep=0pt, font=\footnotesize, text=ink!80, text width=4.45cm, align=left] at (\x+0.15,20.3) {#4};}
+
+% A step tile: number, state, title
+\newcommand{\ProgressStep}[3]{%
+  \pgfmathsetmacro{\x}{#1*(\StepW+\StepGap)}
+  \draw[step #2, rounded corners=4pt] (\x,12.75) rectangle ++(\StepW,3.5);
+  \node[anchor=north west, inner sep=0pt, font=\bfseries\fontsize{22}{24}\selectfont, ink #2] at (\x+0.2,16.0) {#1};
+  \node[anchor=north west, inner sep=0pt, font=\footnotesize\bfseries, ink #2, text width=\StepW cm-0.35cm, align=left] at (\x+0.2,15.0) {#3};
+  \node[anchor=south west, inner sep=0pt, font=\fontsize{6.5}{7.5}\selectfont\bfseries, stc #2, text width=\StepW cm-0.3cm, align=left] at (\x+0.2,12.95) {\StateName{#2}};}
+
+% A row of drills: index, kind, live|simulated, dates, run, passed
+\newcommand{\ProgressDrill}[6]{%
+  \pgfmathsetmacro{\y}{9.75-#1*1.45}
+  \ifnum\StrCmp{#3}{simulated}=0
+    \node[anchor=west, inner sep=0pt] at (0,\y) {{\small\bfseries #2}\enspace{\footnotesize\color{simc}\bfseries simulated, #4}};
+  \else
+    \node[anchor=west, inner sep=0pt] at (0,\y) {{\small\bfseries #2}\enspace{\footnotesize\color{ink!65}home site, #4}};
+  \fi
+  \foreach \k in {1,...,#5} {
+    \pgfmathtruncatemacro{\ok}{\k<=#6 ? 1 : 0}
+    \ifnum\StrCmp{#3}{simulated}=0
+      \ifnum\ok=1 \def\st{simpass}\else\def\st{simfail}\fi
+    \else
+      \ifnum\ok=1 \def\st{pass}\else\def\st{fail}\fi
+    \fi
+    \draw[drill \st, rounded corners=1pt] (\k*\DrillU-\DrillU,\y-0.75) rectangle ++(\DrillU-0.08,0.42);}
+  \pgfmathtruncatemacro{\failed}{#5-#6}
+  \node[anchor=west, inner sep=0pt, font=\footnotesize] at (#5*\DrillU+0.15,\y-0.54)
+    {\textcolor{multi}{\bfseries #6 passed}\enspace\textcolor{ink!50}{/}\enspace\textcolor{failc}{\bfseries \failed\ failed}};}
+
+% A rule bar: index, name, rules, built, partly, not built
+\newcommand{\ProgressRule}[6]{%
+  \pgfmathsetmacro{\y}{9.75-#1*0.56}
+  \node[anchor=east, inner sep=0pt, font=\footnotesize] at (\RuleX-0.2,\y) {#2};
+  \foreach \k in {1,...,#3} {
+    \pgfmathtruncatemacro{\c}{\k<=#4 ? 1 : (\k<=#4+#5 ? 2 : 3)}
+    \draw[rule\c, rounded corners=1pt] (\RuleX+\k*\RuleU-\RuleU,\y-0.18) rectangle ++(\RuleU-0.08,0.36);}
+  \node[anchor=west, inner sep=0pt, font=\scriptsize] at (\RuleX+#3*\RuleU+0.15,\y)
+    {\textcolor{multi}{\bfseries #4}\,\textcolor{ink!50}{/}\,\textcolor{partc!85!black}{\bfseries #5}\,\textcolor{ink!50}{/}\,\textcolor{ink!60}{#6}\enspace\textcolor{ink!50}{of #3}};}
+
+\begin{document}
+\hyphenpenalty=10000 \exhyphenpenalty=10000
+\begin{tikzpicture}[x=1cm, y=1cm]
+
+% ---------------------------------------------------------------- title
+\node[anchor=west, font=\bfseries\LARGE] at (0,30.6) {Progress: build, then break, then upgrade};
+\node[sub, text width=\W cm, align=left] at (0,29.8)
+  {Where the work on the new platform stands on \ProgressAsOf. Every number is a count on that day, from the platform's own status page,
+   its plan and its run records. The picture is drawn by a script from the site's progress data, and a check fails when the two disagree.};
+
+% ---------------------------------------------------------------- headline tiles
+\ProgressTiles
+
+% ---------------------------------------------------------------- the six phases
+\node[head] at (0,24.75) {The phases: a failure test runs only on something built to survive it};
+\ProgressGroups
+\ProgressPhases
+\node[anchor=north west, draw=pull, line width=1.2pt, rounded corners=3pt, fill=pull!5, inner sep=6pt,
+      font=\small, text width=\W cm-12pt-1.2pt, align=left] at (0,18.2)
+  {\textcolor{pull}{\bfseries Now, phase \ProgressNowPhase, \MakeLowercase{\ProgressNowTitle}:} \ProgressNow};
+
+\begin{scope}[yshift=-0.75cm]
+% ---------------------------------------------------------------- the twelve steps
+\node[head] at (0,16.85) {The build order: \ProgressStepCount\ steps};
+\node[sub, anchor=east] at (\W,16.85) {Each step has a done-when test. The colour is its state.};
+\ProgressSteps
+% legend
+\begin{scope}[shift={(0,12.2)}]
+  \foreach \s/\l [count=\i from 0] in {done/done, done-on-kind/done on a test cluster only, partly/partly done, not-started/not started, gated/waits on its gate} {
+    \draw[step \s, rounded corners=2pt] (\i*6.0,-0.2) rectangle ++(0.9,0.4);
+    \node[anchor=west, font=\footnotesize] at (\i*6.0+1.05,0) {\l};}
+\end{scope}
+
+% ---------------------------------------------------------------- drills
+\node[head] at (0,11.1) {Drills, one block each};
+\ProgressDrills
+\begin{scope}[shift={(0,3.65)}]
+  \foreach \s/\l [count=\i from 0] in {pass/passed, fail/failed, simpass/passed (simulated), simfail/failed (simulated)} {
+    \pgfmathsetmacro{\lx}{\i<2 ? \i*2.6 : 5.2+(\i-2)*3.6}
+    \draw[drill \s, rounded corners=1pt] (\lx,-0.18) rectangle ++(0.42,0.36);
+    \node[anchor=west, font=\footnotesize] at (\lx+0.55,0) {\l};}
+\end{scope}
+
+% ---------------------------------------------------------------- rules per objective
+\node[head] at (\RuleX-3.9,11.1) {Rules per objective};
+\node[anchor=west, font=\footnotesize, text=ink!65] at (\RuleX-3.9,10.45)
+  {one block per rule:\enspace\textcolor{multi}{\bfseries built}\,/\,\textcolor{partc!85!black}{\bfseries partly built}\,/\,not built};
+\ProgressRules
+
+% ---------------------------------------------------------------- what comes next
+\draw[pull, line width=1.2pt, rounded corners=5pt, fill=pull!4] (23.0,3.3) rectangle (\W,11.5);
+\node[anchor=north west, font=\bfseries\Large, text=pull] at (23.3,11.25) {What comes next};
+\node[anchor=north west, font=\small, text width=6.4cm, align=left] at (23.3,10.4) {%
+  \begin{enumerate}[leftmargin=1.3em, itemsep=5pt, topsep=0pt, label=\textbf{\arabic*.}]
+  \ProgressNext
+  \end{enumerate}};
+
+% ---------------------------------------------------------------- footnote
+\node[anchor=north west, font=\footnotesize, text=ink!65, text width=\W cm, align=left] at (0,2.85)
+  {\textbf{How to read it.} A test cluster is a throwaway cluster on one machine; the home site is the real one, six retired machines.
+   A failure drill passes when the service came back within its written target and no acknowledged write was lost. A known gap is a weakness
+   that is written down and not fixed yet. A count is never a promise: the next drill can turn a pass into a fail.};
+
+\end{scope}
+
+\end{tikzpicture}
+\end{document}

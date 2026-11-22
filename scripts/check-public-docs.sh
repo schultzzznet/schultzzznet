@@ -225,6 +225,11 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
   check_py "history data is consistent and every figure has a method" \
     "docs/_data/history.yml is written by 'make history'; fix the generator or the history block of stats_methods.yml, not the file." \
     gather-history.py --verify --data-dir docs/_data
+  # The Progress page's counts are copied by hand, so they get what a hand-kept number needs: sums that must add up, a
+  # date that can go stale, and a picture that is provably drawn from the same data.
+  check_py "progress data adds up, is fresh, and its picture is in step" \
+    "docs/_data/progress.yml is copied by hand from the private status page; fix it, then python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png." \
+    build-progress.py --check
 fi
 
 # A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one

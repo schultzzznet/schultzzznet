@@ -649,3 +649,16 @@ must_fail "a history figure whose method was removed" "$history_rule"
 scratch
 rm "$tmp/site/docs/_data/history.yml"
 must_fail "history.yml missing altogether" "$history_rule"
+
+# --- the Progress page (docs/_data/progress.yml): hand-copied counts, so the sums, the date and the picture must hold ---
+progress_rule="progress data adds up, is fresh, and its picture is in step"
+scratch
+sed -i.bak 's/^  steps_partly: 5$/  steps_partly: 6/' "$tmp/site/docs/_data/progress.yml"
+must_fail "a progress step count that no longer adds up" "$progress_rule"
+scratch
+sed -i.bak 's/title: "The cutover"/title: "The cut-over"/' "$tmp/site/docs/_data/progress.yml"
+must_fail "progress data changed without rebuilding the picture" "$progress_rule"
+scratch
+rm "$tmp/site/docs/assets/diagrams/progress.png"
+must_fail "the progress picture missing" "$progress_rule"
+(cd "$root" && python3 scripts/build-progress.py --self-test)
