@@ -6,7 +6,7 @@ summary:
   - "**How a change arrives (proven 2026-11-10/11):** pull request, required checks, squash merge, a publish step builds an artifact from main, and Flux on the cluster pulls it every 2 minutes. There is no inbound path and the pipeline holds no cluster credential."
   - "**Where CI runs:** anything holding a key runs on hosted runners; heavy jobs with no secret run on a fresh VM per job at home. By day nine of November 2026 the included hosted minutes were about 90 percent used (89.5 percent by my own tally, 92 by the budget tool, measured 2026-11-09), which is why the home path exists."
   - "**Admission (built 2026-11-10):** own images need a CI signature (one named image; Ready and enforcing on 2026-11-11, signature check itself not on record); vendor images pass a digest-pinned list. Default-deny fails for 1 to 3 s after a pod starts."
-  - "**Open:** the delivery artifact itself is not signed and is read through a moving tag; operators and ingress are installed by a bootstrap script, not reconciled; a new pod is outside default-deny for about 1 to 3 seconds. The cluster is about a day old, so nothing here claims uptime."
+  - "**Open:** further hardening of the delivery artifact is a known gap being worked on; operators and ingress are installed by a bootstrap script, not reconciled; a new pod is outside default-deny for about 1 to 3 seconds. The cluster is about a day old, so nothing here claims uptime."
 ---
 
 # The delivery chain
@@ -39,16 +39,29 @@ The colours count copies:
 
 - **green:** more than one copy runs, spread over nodes;
 - **orange:** one copy, a single point;
-- **dashed:** planned, not built.
+- **dashed:** planned, not built;
+- **dotted:** wanted, not designed yet (Rook-Ceph).
 
 Green is not the same as proven by a drill. In a simulation of the third power-off drill, losing a node that carries the
 ingress or a database pooler failed about half of the requests for about 45 seconds and a few more up to about 90 seconds;
-that fix is open, and the live drill has not run yet. The picture also marks what is not there yet: HTTPS on the web address waits for a certificate, and the
-site's own artifact is read by tag, not yet signed; only the images are. It was first drawn in pencil and redrawn in TikZ.
+that fix is open, and the live drill has not run yet. Only the app's own images are signed; every other image must be pinned
+by digest to a listed vendor. It was first drawn in pencil and redrawn in TikZ.
 
 <a href="assets/diagrams/stack.pdf"><img src="assets/diagrams/stack.png" alt="The home site as one stack: clients, entry, apps, platform services, the Kubernetes core, six nodes, host OS and hardware on the left; GitHub, CI on home runners and how each layer changes (pull, push, by hand) on the right" width="1760" loading="lazy" style="max-width:100%;height:auto"></a>
 
 [The PDF](assets/diagrams/stack.pdf) zooms and prints; the source is [stack.tex](assets/diagrams/stack.tex).
+
+### The design booklet
+
+*New platform, state on 2026-11-21: the public edition of my private design booklet.*
+
+The picture shows the stack; the [design booklet](assets/booklet/design.pdf) (PDF, 15 A3 landscape pages) explains it. It holds
+this picture, the intended end state drawn the same way, every row of the single-points register with its decision, 27 failure
+scenarios with what a user would notice and whether each is proven live, only simulated or not proven at all, the 31 core
+decisions with what was not chosen and the cost accepted, the safety net of checks, scans, signing, patching and drills, and
+the open items ordered by risk. The public edition keeps the reasoning and every proven or not-proven status; it leaves out
+machine names, addresses, versions and the detail of open security gaps, which it names only as known gaps being worked on.
+The source is [design.tex](assets/booklet/design.tex).
 
 ---
 
@@ -119,9 +132,8 @@ deadlock itself was recorded on the day).
 
 **Open, stated plainly (2026-11-11):**
 
-- **The artifact is not signed, and Flux verifies nothing on it.** It is read through a moving tag.
-  Anyone who could push that tag could change what the cluster runs. Signing and pinning it is the
-  stated next step; only the application images are signed today.
+- **Further delivery hardening is a known gap being worked on.** How a change is trusted on its way to the
+  cluster gets more steps; the detail stays private until they are built.
 - **Helm-chart software is not reconciled.** Operators, ingress, the admission engine, certificate
   management and the database operator are installed by the bootstrap script (read 2026-11-11: it runs the chart installs itself), because the site runs no
   Helm controller. They are in git but not held there by a controller. Open.
@@ -165,8 +177,8 @@ That trusts the digest as pinned on a reviewed pull request, nothing more. Open.
 
 *New platform, proven 2026-11-10/11.* There is no deploy job. A merge publishes an artifact and Flux
 applies it. The tag-versus-digest question is better than before: workloads are identified by
-content, not by a tag that a rollout could silently re-resolve, though the artifact itself is still read
-through a moving tag (open, above). Rolling out from git on merge, which V1.0 listed as
+content, not by a tag that a rollout could silently re-resolve; further delivery hardening is still open
+(above). Rolling out from git on merge, which V1.0 listed as
 not built, exists.
 
 ---
@@ -210,7 +222,7 @@ not built, exists.
   2026-11-10, a live check on 2026-11-11 shows it Ready with action Deny, the warn namespace set to enforce, and first-party pods running, which points to admission by signature having happened, but no record verifies it. It covers one named first-party image.
 - **Vendor images** are admitted by a closed list plus a digest pin, checked by a separate policy (Ready), not by signature. Open, see above.
 - **No vulnerability tracker or SBOM store runs now.** Planned. V1.0's counts are not carried over.
-- **Not signed:** the delivery artifact (open).
+- **Delivery hardening:** a known gap being worked on (above).
 
 One lesson holds regardless of the cluster: **a vulnerability scanner only matches what it can
 identify.** An SBOM whose components carry only generic package identifiers produces zero
