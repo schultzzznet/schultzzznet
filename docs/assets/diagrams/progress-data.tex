@@ -16,7 +16,7 @@
 }
 \newcommand{\ProgressPhases}{%
   \ProgressPhase{0}{done}{Clear the deck}{Done 2026-11-14. The open scan changes landed, old worktrees and branches swept, and a drift check found nothing live that git does not describe.}%
-  \ProgressPhase{1}{partly}{Make the drills trustworthy}{By 2026-11-15: the app's pods stopped restarting, a log agent on every node, both databases backed up. Loose ends: a log query of two nodes, one restart cause.}%
+  \ProgressPhase{1}{done}{Make the drills trustworthy}{Done 2026-11-15: the app's pods stopped restarting, logs read back from every node, both databases backed up. One cause still to record: a trace store restart.}%
   \ProgressPhase{2}{partly}{Build the real gaps}{The database operator, its backup plugin and the login service run two copies since 2026-11-15. Known gap: one house service still runs as a single copy.}%
   \ProgressPhase{3}{partly}{Software failure drills}{17 drills on 2026-11-16 and 17: 15 passed, no acknowledged write lost. The phase's exit test is not passed yet.}%
   \ProgressPhase{4}{current}{Power-off drills}{2 live on 2026-11-19: 1 passed. Since 2026-11-20 each is rehearsed on a simulated cluster first: 3 run, 2 passed.}%
@@ -67,4 +67,4 @@
   \item Then upgrade: a security benchmark run, a second backup copy, routine patching, a load test against a target, and a decision on AI-assisted operations last.%
   \item Alongside: the other two reference apps, keys held off the machine, and the cutover once every contract check is green.%
 }
-\newcommand{\ProgressDataDigest}{cebddb1f18a1ec2a}
+\newcommand{\ProgressDataDigest}{7a4d70c40bd48de8}

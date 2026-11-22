@@ -65,8 +65,8 @@ phases:
   - number: 1
     title: "Make the drills trustworthy"
     group: "build"
-    state: "partly"
-    note: "By 2026-11-15: the app's pods stopped restarting, a log agent on every node, both databases backed up. Loose ends: a log query of two nodes, one restart cause."
+    state: "done"
+    note: "Done 2026-11-15: the app's pods stopped restarting, logs read back from every node, both databases backed up. One cause still to record: a trace store restart."
   - number: 2
     title: "Build the real gaps"
     group: "build"
