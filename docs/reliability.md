@@ -5,7 +5,7 @@ body_read: 2026-11-20
 summary:
   - "**Where it stands, 2026-11-20:** the request path has a written design, hop by hop, and 17 live software drills ran against its pieces (15 pass, 2 fail, no acknowledged write lost). There are **0 power-off proofs**: of 7 planned power-off drills, 2 ran on 2026-11-19, 1 passed and 1 failed, and the series starts again from the first. Nothing here is an uptime claim."
   - "**Single points register (read 2026-11-20):** 27 rows, 13 accepted, 0 fixed and 14 open. 7 of the 14 open rows are on an app's path, 6 on the shared path and 1 supporting. A point on an app's path is never accepted, and only a power-off record makes a row fixed."
-  - "**The biggest finding:** two cluster DNS replicas looked highly available and failed on timing under a real power-off: lookups stalled 51 s and two of the probe's test inserts failed. The fix, DNS on every node with each node using its own, is live since 2026-11-20 for the first two of five steps; the next two wait on a clean soak, and the last proves it stays."
+  - "**The biggest finding:** two cluster DNS replicas looked highly available and failed on timing under a real power-off: lookups stalled 51 s and two of the probe's test inserts failed. The fix, DNS on every node with each node using its own, is live since 2026-11-20 in all five steps; no power-off drill has tested it on the home site yet."
   - "**Also found:** a connection pooler that cached a failed login (fixed: a primary failover went from 48.6 s to 27.9 s), extra seconds when both backup plugin pods are down (open), and a sign-in probe that cannot see a login database outage (open). Restores: 3 drills, all pass."
   - "**Kept as record:** V1.0's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
@@ -130,10 +130,11 @@ None of this is a power-off proof of a register row: drill 1's machine held no r
 | 2026-11-19, drills 1 and 2 | Three alerts that a lost node fires were missing from the run sheet's expected list | fixed in the run sheet |
 
 **The DNS change-over, live on 2026-11-20.** Step 1 put a DNS pod on every node beside the old
-pair; step 2 made each node's lookups go to its own pod. Since step 2 the probe on every node has
-counted no failed and no slow lookup. In step 1's soak one node failed 2 of about 7,100 lookups,
-both fast, and no DNS pod logged an error: the cause is not known, so a log line per failed lookup
-goes in before steps 3 and 4. A process slip on the way: step 2 was merged in the same command
+pair; step 2 made each node's lookups go to its own pod; steps 3 to 5 removed the old add-on, which
+stayed gone across four server restarts. After step 1 the probe on every node counted no failed
+lookup. In step 1's soak one node failed 2 of about 7,600 lookups, both fast, and no DNS pod logged
+an error: the cause is not known, so a log line per failed lookup went in, and only after a clean
+soak with it did steps 3 to 5 run. A process slip on the way: step 2 was merged in the same command
 that read step 1's baseline, so the two failures were seen after the merge. The lesson: read the
 referee, then merge.
 

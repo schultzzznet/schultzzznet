@@ -37,9 +37,9 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
 > re-run with a thin margin; one miss, with both backup-plugin pods down, is still open.
 > **Power-off drills, 2026-11-19:** the first (a plain worker) passed; the second found a timing flaw: cluster DNS stalled
 > for about 51 seconds and two of the probe's test writes failed, so the series stopped and starts again from the first drill after the fix.
-> The fix, cluster DNS on every node, is in progress: two of its five steps were live on 2026-11-20, the rest held while two
-> unexplained failed lookups are looked into. **New rule, 2026-11-20:** every failure scenario is rehearsed first in a
-> simulated cluster shaped like home, then run live (that suite is planned, not built). **Failed:** the default-deny network probe (2026-11-10), because a new
+> The fix, cluster DNS on every node, went live in all five steps on 2026-11-20; two failed lookups in its first soak are
+> still not explained. **New rule, 2026-11-20:** every failure scenario is rehearsed first in a
+> simulated cluster shaped like home, then run live (three rehearsals ran there on 2026-11-20, two passed). **Failed:** the default-deny network probe (2026-11-10), because a new
 > pod is open for one to three seconds. **Not live:** replicated storage, an off-site backup copy, a public name.
 > No single point of failure is proven fixed yet. Figures that cannot be measured yet say "not measured yet". V1.0 is
 > described in dated notes. Start with
@@ -145,8 +145,8 @@ requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with recei
   and 1 is a supporting system. A row only moves to fixed when a machine is powered off and the app goes on. Storage is node-local.
   The software failure drills (17 on 2026-11-16 and 17) timed each piece's failover; the power-off drills began on 2026-11-19:
   the first passed, the second found the cluster DNS timing flaw and stopped the series, which starts again from the first drill
-  once the fix is in. From 2026-11-20 each scenario is rehearsed first in a simulated cluster shaped like home, then run live;
-  that simulated suite is planned, not built. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
+  now that the fix is live (2026-11-20). From 2026-11-20 each scenario is rehearsed first in a simulated cluster shaped like
+  home, then run live; three rehearsals ran there on 2026-11-20, two passed. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
 - **Is not zero-loss.** Two database clusters (the warning app's and the login service's) have three instances each, a
   synchronous standby asked for in the specification, and a nightly backup to one machine. Restore drills passed on 2026-11-10
   and 2026-11-15 on databases of megabytes. No acknowledged write was lost in the failure drills, which is a result of those

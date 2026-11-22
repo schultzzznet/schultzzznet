@@ -584,10 +584,11 @@ lookups. The rule is to stop on any failed lookup.
 
 **What happened (process slip, 2026-11-20).** After the first step's soak, the second step was
 merged in the same command that read the referee. The referee had counted 2 failed lookups on
-one node out of about 7,100, both fast, with no error in any DNS log. Those 2 were read only
+one node out of about 7,600, both fast, with no error in any DNS log. Those 2 were read only
 after the merge, and the reconciler applied the step about half a minute later. Nothing broke:
-the probe has been clean on all six nodes since. The cause of the 2 failures is still unknown, so
-the last steps are held until a soak with a log line per failed lookup is clean.
+the probe has counted no failed lookup on all six nodes since. The cause of the 2 failures is
+still unknown, so the last steps waited for a clean soak with a log line per failed lookup, and
+ran later that day.
 
 **What I'd do differently:** nothing clever. Read the referee, decide, then merge, as two
 separate actions. A check whose result arrives after the decision has been made is a log, not a
