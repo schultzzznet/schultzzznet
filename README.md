@@ -8,8 +8,8 @@ DevSecOps is one layer of it: everything in git and pulled in by Flux on K3s, si
 encrypted secrets, PostgreSQL with restore drills, monitoring, CI on home machines. The platform is private; the write-up
 at **<https://schultzzznet.github.io/schultzzznet/>** is public.
 
-**Why it is interesting.** It is broken on purpose and the misses are published with dates. If it holds up on this
-hardware, it holds up anywhere.
+**Why it is interesting.** It is pushed to the edge, to prove it holds, and the misses are published with dates. If it runs on this
+hardware, it runs anywhere.
 
 - **Two replicas is a count, not a property.** Two cluster DNS replicas passed a pod-kill drill, then a power-off stalled
   lookups for 51 seconds. DNS on every node fixed it, proven by a power-off on 2026-11-25.
@@ -115,7 +115,7 @@ trained, so they point at work and dates that already exist rather than keeping 
 - The choice between a pull controller and push-on-merge made by 1 December, from what was measured.
 - Each one written up here with its measured result.
 
-**2. Prove it on the weakest hardware: break it on purpose, watch it heal.**
+**2. Push it to the edge on the weakest hardware, to prove it holds.**
 
 - The cause of the 5, 10 and 15 second request stalls named by measurement, and DNS lookup loss below 0.5 % on every
   machine (about 7 % on the two oldest today).
