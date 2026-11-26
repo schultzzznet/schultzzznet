@@ -65,7 +65,7 @@ Seven findings, each with a number and a link to the full account.
 
 **The platform itself** is a product production platform: the whole path from an idea to an app that runs and stays up,
 deciding what to build, building it, shipping it safely and running it. DevSecOps is the delivery and run layer of it, and
-the most proven one; the product layer (testing an idea before building it, cutting it into small slices) is the youngest.
+the most proven one; the product layer (testing an idea before building it, cutting it into small slices) is the youngest: [Product practice](product.html).
 It is kept ready for any app, so that on the day an app matters, the app is the only thing that needs attention. Until
 then it is a training system, on purpose. Today it carries one of three reference app backends (the
 hazard-warning one: Spring Boot, with a Flutter client) and its login service. The embedded Linux image, a rover and
