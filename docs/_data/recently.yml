@@ -2,6 +2,8 @@
 # Each entry is a date and one or two sentences (markdown allowed); the full account lives on the page it links to.
 # scripts/check-summaries.py fails the build if the newest entry is more than 45 days old, so this list cannot quietly
 # stop being a list of recent things. Nothing here may name a machine, an address, or an exact software version.
+- date: 2026-11-26
+  text: "A new lesson, [the same fault twice](lessons.html#17-the-same-fault-twice-three-months-apart): network power saving (Energy-Efficient Ethernet) dropped a wired link on the workstation in August, and in November two laptop nodes of the new cluster lost packets on a quiet link. The first lesson was carried only as a sentence, not as a check, so it was found late the second time. With power saving off on both nodes, 0 of 72,000 pings were lost; that it was the cause this time is not proven. To stay within the twelve-entry cap, the oldest entry (2026-11-11: this site moved to describing the new platform) was dropped."
 - date: 2026-11-22
   text: "A new page, [Progress](progress.html), shows where the work on the new platform stands in one picture, drawn by a script from a data file: build, then break, then upgrade, in six phases, with the power-off drills (phase 4) as now. Counts on 2026-11-22: 2 of 12 build-order steps done, 3 of 110 objective rules built, 18 of 21 drills on the home site passed, 82 of 109 run records pass, no single point proven fixed. To stay within the twelve-entry cap, the oldest entry (2026-11-10: V1.0 taken down in stages) was dropped; it is still on [How we work](how-we-work.html)."
 - date: 2026-11-20
@@ -24,5 +26,3 @@
   text: "Both home CI builder hosts started jobs in parallel for the first time, one job virtual machine at a time on each. The gates were still running when this was written, so this records that they started, not that they passed."
 - date: 2026-11-11
   text: "The new cluster's monitoring was merged on 2026-11-11. Its first live run failed on a missing namespace in the node exporter manifests; the fix landed the same day, and at 07:00 UTC all 19 Kustomizations were Ready and the monitoring pods were Running. Nothing from it has been read yet, so no alert reaches a person. [Status](status.html)."
-- date: 2026-11-11
-  text: "This site now describes the new platform. Figures that cannot be measured yet say \"not measured yet\" instead of keeping an old number, V1.0's facts sit in dated notes, and a new page, [How we work](how-we-work.html), covers the ways of working and the failures that shaped them. Public claims changed in this edit; the status page shows what is measured and what is not."

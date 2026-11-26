@@ -131,7 +131,7 @@
     \draw[drill \st, rounded corners=1pt] (\k*\DrillU-\DrillU,\y-0.75) rectangle ++(\DrillU-0.08,0.42);}
   \pgfmathtruncatemacro{\failed}{#5-#6}
   \node[anchor=west, inner sep=0pt, font=\footnotesize] at (#5*\DrillU+0.15,\y-0.54)
-    {\textcolor{multi}{\bfseries #6 passed}\enspace\textcolor{ink!50}{/}\enspace\textcolor{failc}{\bfseries \failed\ failed}};}
+    {\textcolor{multi}{\bfseries #6 passed}\enspace\textcolor{ink!50}{/}\enspace\textcolor{failc}{\bfseries \failed\ not passed}};}
 
 % A rule bar: index, name, rules, built, partly, not built
 \newcommand{\ProgressRule}[6]{%
@@ -180,7 +180,7 @@
 \node[head] at (0,11.1) {Drills, one block each};
 \ProgressDrills
 \begin{scope}[shift={(0,3.65)}]
-  \foreach \s/\l [count=\i from 0] in {pass/passed, fail/failed, simpass/passed (simulated), simfail/failed (simulated)} {
+  \foreach \s/\l [count=\i from 0] in {pass/passed, fail/not passed, simpass/passed (simulated), simfail/not passed (simulated)} {
     \pgfmathsetmacro{\lx}{\i<2 ? \i*2.6 : 5.2+(\i-2)*3.6}
     \draw[drill \s, rounded corners=1pt] (\lx,-0.18) rectangle ++(0.42,0.36);
     \node[anchor=west, font=\footnotesize] at (\lx+0.55,0) {\l};}

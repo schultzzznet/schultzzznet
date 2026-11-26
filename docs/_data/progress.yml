@@ -5,7 +5,7 @@
 # After a change: python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png
 # The guard fails when the sums do not add up, when the picture was drawn from other data, when this file is older than
 # 21 days, or when a newer docs/_data/stats.yml disagrees with a figure both files hold.
-as_of: "2026-11-22"
+as_of: "2026-11-26"
 counts:
   steps_total: 12
   steps_done: 2
@@ -17,15 +17,15 @@ counts:
   rules_built: 3
   rules_partly: 20
   rules_not_built: 87
-  records: 109
-  records_pass: 82
-  records_fail: 22
-  records_partial: 3
+  records: 133
+  records_pass: 98
+  records_fail: 23
+  records_partial: 10
   records_note: 2
-  records_latest: "2026-11-22"
-  single_points: 27
-  single_points_accepted: 13
-  single_points_fixed: 0
+  records_latest: "2026-11-25"
+  single_points: 30
+  single_points_accepted: 15
+  single_points_fixed: 1
   single_points_open: 14
 drills:
   - kind: "Software failure drills"
@@ -38,24 +38,24 @@ drills:
   - kind: "Power-off drills"
     short: "power-off"
     where: "live"
-    dates: "2026-11-19"
-    run: 2
-    passed: 1
-    what: "A machine switched off without warning, the owner at the machines. The second found cluster DNS stalling for about 51 s."
+    dates: "2026-11-19 and 25"
+    run: 5
+    passed: 2
+    what: "A machine switched off without warning, the owner at the machines. On 2026-11-19 the second drill found cluster DNS stalling for about 51 s. After the fix the series started again on 2026-11-25: the first drill passed, and the second passed in part on two runs. No acknowledged write was lost."
   - kind: "Restore drills"
     short: "restore"
     where: "live"
     dates: "2026-11-10 and 2026-11-15"
     run: 2
     passed: 2
-    what: "A database restored from its backup store alone into a scratch cluster. Megabytes, not a full-size restore."
+    what: "A database restored from its backup store alone into a scratch cluster. Megabytes, not a full-size restore. Not counted here, because it ran off the cluster: a restore by hand on 2026-11-24 from the same store and its copy passed in part. The newest backup restored in full; an older one stopped early at a log file the store listed but could not serve, since put back."
   - kind: "Power-off rehearsals"
     short: "rehearsals"
     where: "simulated"
-    dates: "2026-11-20"
-    run: 3
-    passed: 2
-    what: "The same power-offs on a simulated cluster shaped like home. From 2026-11-20, each live drill is rehearsed there first."
+    dates: "2026-11-20 and 25"
+    run: 5
+    passed: 3
+    what: "The same power-offs on a simulated cluster shaped like home. From 2026-11-20, each live drill is rehearsed there first. On 2026-11-25 two changes the live drills asked for were rehearsed with node cuts: three admission replicas passed, and the database operator's update passed in part (writes stopped for about 16 s at each switchover, against a 10 s target)."
 phases:
   - number: 0
     title: "Clear the deck"
@@ -81,13 +81,13 @@ phases:
     title: "Power-off drills"
     group: "break"
     state: "current"
-    note: "2 live on 2026-11-19: 1 passed. Since 2026-11-20 each is rehearsed on a simulated cluster first: 3 run, 2 passed."
+    note: "1 of 2 passed live on 2026-11-19. Again on 2026-11-25: drill 1 passed, drill 2 passed in part twice; cluster DNS proven fixed. Rehearsed first: 3 of 5 passed."
   - number: 5
     title: "What the proof unlocks"
     group: "upgrade"
     state: "partly"
     note: "One Kubernetes upgrade ran live on 2026-11-18, ahead of this order, at the owner's go. Owed: a security benchmark, a second backup copy, patching, a load test."
-now: "The second live power-off drill failed on cluster DNS. The fix, cluster DNS on every node, went live on 2026-11-20 in five steps. After its first step the probe saw no failed lookup; in the first soak 2 of about 7,600 failed, cause unknown. So the series starts again from the first drill. The third rehearsal fails on the simulated cluster: a known gap, and its live drill waits for a fix or a decision on its targets."
+now: "The power-off drills started again on 2026-11-25, after the cluster DNS fix. The first passed with nothing failed. The second passed in part, twice. In the morning, pod creates were refused for 32 s and a false critical alert, from a bug in the database operator, ended the session. That evening, after the operator's update, a changed alert and admission on three replicas, nothing failed and no row was lost, but one lookup of an outside name on another node took over 1 s, which misses the run sheet's line. Found on the way: packet loss between two laptop nodes, which stopped when their Ethernet power saving was switched off, and first connections to the database poolers that take about 1 s, cause unknown. The third drill waits for the known gap of its rehearsal to be closed, or for a decision on its targets."
 steps:
   - number: 0
     title: "Charter, objectives and rules"
@@ -171,7 +171,7 @@ objectives:
     built: 0
     partly: 2
 next:
-  - text: "The power-off drills again, from the first, each rehearsed on the simulated cluster before it runs live."
-  - text: "Close the known gap the third rehearsal found, or decide on its targets, rehearse it again, and only then run it live."
+  - text: "The owner weighs the second drill's one slow outside lookup. Then the third drill: close the known gap its rehearsal found, or decide on its targets, rehearse it again, and only then run it live."
+  - text: "Find why some first connections to the database poolers take about 1 s."
   - text: "Then upgrade: a security benchmark run, a second backup copy, routine patching, a load test against a target, and a decision on AI-assisted operations last."
   - text: "Alongside: the other two reference apps, keys held off the machine, and the cutover once every contract check is green."
