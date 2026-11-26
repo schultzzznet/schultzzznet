@@ -8,7 +8,7 @@ reread: 2026-11-26
 body_read: 2026-11-26
 summary:
   - "**What it is:** a diff list of V1.0 (the cluster retired on 2026-11-10) against V2.0 (the K3s home site, built on 2026-11-10 and 11), 70 rows in 16 areas, each row dated and given one of four status words."
-  - "**Counts, 2026-11-26 (all rows re-read):** 19 kept, 36 changed, 6 new, 1 dropped, 8 not rebuilt yet. Of the V2.0 sides, 29 are proven, 18 built, 4 planned, 17 open; 2 are unchanged and outside the cluster. On 2026-11-11 it was 17 not rebuilt and 19 proven."
+  - "**Counts, 2026-11-26 (all rows re-read):** 19 kept, 36 changed, 6 new, 1 dropped, 8 not rebuilt yet. Of the V2.0 sides, 29 are proven, 19 built, 4 planned, 16 open; 2 are unchanged and outside the cluster. On 2026-11-11 it was 17 not rebuilt and 19 proven."
   - "**Moved since 2026-11-11:** power-off drills (DNS fixed and proven 2026-11-25), DNS on every node, names on the LAN, a database cluster per app again, the login service on its own database, a second backup copy on the NAS, the audit log, outside referees, logs and dashboards, a read-only operations agent, an upgrade play run live."
   - "**Where V1.0 was still better:** 22 rows, among them a live reference to compare against, replicated storage, an in-cluster registry that needed no internet, broader monitoring (124 targets against 58), rehearsed rollback, more restore drills, a public entrance, a vulnerability tracker, scheduled fault injection and load, and host patching."
   - "**The first four delivery rows name their cell** of the two axes (what is written: declarative or scripted; who applies it: pull or push), explained in [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
@@ -25,8 +25,8 @@ On 2026-11-10 I took V1.0 down and built V2.0 on the same six machines. V1.0 had
 
 **Re-read, 2026-11-26.** Every row was checked against the platform's run records, registers and manifests. Rows whose
 V2.0 side moved carry the new date in their evidence; the rest keep 2026-11-11. One row was wrong on 2026-11-11: it said
-database objects were pruned, and the app's database already carried a do-not-prune mark (the login database, added later,
-does not). [Reliability](reliability.html) and [Status](status.html) hold the current state.
+database objects were pruned, and every database already carried a do-not-prune mark from the shared database component.
+[Reliability](reliability.html) and [Status](status.html) hold the current state.
 
 ## The key
 
@@ -57,9 +57,9 @@ Change types: **kept** (same idea, carried over), **changed** (a different way o
 | V2.0 status | Rows |
 |---|---|
 | proven | 29 |
-| built | 18 |
+| built | 19 |
 | planned | 4 |
-| open | 17 |
+| open | 16 |
 | no status (outside the cluster) | 2 |
 
 The shape matters more than the totals. On 2026-11-11 most of what V1.0 had for watching, scanning and surviving a lost machine was on the not-rebuilt side. By 2026-11-26 most of the watching and surviving is rebuilt, often thinner: what is still missing is scheduled fault injection and load, host patching, a public entrance, a vulnerability tracker and the delivery guards. What is new is still about how change reaches the cluster and what it is allowed to run.
@@ -106,7 +106,7 @@ The shape matters more than the totals. On 2026-11-11 most of what V1.0 had for 
 | Storage and databases | Operator-managed PostgreSQL, 13 clusters on 2026-10-27, 8 healthy on 2026-11-10 after the old major version was retired; each app and service could have its own cluster, so one failure stayed in one place. | Two clusters of three instances: the reference app's behind a pooler (since 2026-11-10) and the login service's (since 2026-11-15); the shape is enforced by a check. | kept | proven | **Evidence:** Both clusters 3 of 3 ready, read 2026-11-26. **Why:** Each app keeps its own cluster again, so one failure stays in one place. |
 | Storage and databases | Quorum synchronous commit was read back on each primary on 2026-10-09, after I found it silently dropped for 23 days. | Asked for in the spec. Seen working once, for the reference app's database, in the power-off of 2026-11-19: with one standby's machine off, the primary kept committing through the other. The login database's has not been seen. | kept | proven | **Evidence:** Power-off record 2026-11-19. **Why:** V1.0 learned that a spec is not a reading. One reading, one database. |
 | Storage and databases | Major-version upgrade without downtime: a parallel cluster by logical replication, then a pause of the pooler; 87 to 142 s, no errors (2026-09). A guard failed when a successor did not mirror its predecessor. *(V1.0, as of 2026-11-05 to 2026-11-10.)* | None live. A major-version upgrade of the app's schema passed on a scratch cluster (2026-11-11); no mirror guard exists. The database operator itself was upgraded live on 2026-11-25: one switchover per database, and no probed request failed. | not rebuilt yet | open | **Evidence:** Scratch-cluster record 2026-11-11; operator upgrade record 2026-11-25; carry-over register read 2026-11-26. **Why:** V1.0 was better: the procedure ran live, scripted and measured. |
-| Storage and databases | Push delivery, so nothing pruned database objects; the Flux handover was partial (12 of 17 Kustomizations suspended on 2026-11-08). | Prune is on for every Kustomization. The app's database cluster and its object store carry a do-not-prune mark (since 2026-11-08); the login database, added on 2026-11-15, does not, so a path refactor could still delete it and its disk. | new | open | **Evidence:** Manifests read 2026-11-26. Correction: this row said on 2026-11-11 that database objects were pruned; the app database's mark was already there. **Why:** The reconciler gives revert but takes away a safety net, one object at a time. |
+| Storage and databases | Push delivery, so nothing pruned database objects; the Flux handover was partial (12 of 17 Kustomizations suspended on 2026-11-08). | Prune is on for every Kustomization. Every database cluster, its backup store and its backup schedule carry a do-not-prune mark from the shared database component (since 2026-11-08), so the login database, added on 2026-11-15, has it too; a check refuses a database without it. | new | built | **Evidence:** Rendered manifests of both databases read 2026-11-26; on a throwaway cluster the backup drill removes the files from git and the database, its store and its schedule stay. Not tried on the home site. Correction: this row said on 2026-11-11 that database objects were pruned. **Why:** The reconciler gives revert but takes away a safety net; the mark puts it back for the data. |
 | Storage and databases | Durable identity provider on its own replicated database. The apps signed people in on the provider's own page (authorization code with PKCE). *(V1.0, as of 2026-11-05 to 2026-11-10.)* | Two replicas in production mode on their own three-instance database since 2026-11-15; a pod kill passed on 2026-11-16, and account deletion is live since that day. The Warn app signed in through it once, on 2026-11-16, on the owner's word. | kept | proven | **Evidence:** Records of 2026-11-15 and 2026-11-16. **Why:** Users survive a restart again. A sign-in that starts on one replica and ends on the other has not been shown. |
 
 ### Backup and restore
