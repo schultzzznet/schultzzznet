@@ -17,7 +17,7 @@ as possible, on a **running system**: since 2026-11-10 a new cluster with one de
   it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
   changes on purpose, and production becomes the main line.
 
-- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster is about nine days old, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (on 2026-11-20: 57 scrape targets up, 51 alert rules, 7 dashboards, about 1.3 days of history); alerts reach a chat channel since 2026-11-16, which pages nobody. Replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
+- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster was built on 2026-11-10 and 11, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (on 2026-11-20: 57 scrape targets up, 51 alert rules, 7 dashboards, about 1.3 days of history); alerts reach a chat channel since 2026-11-16, which pages nobody. Replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
 - A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to V1.0 and is not part of this one (see the AI paragraph below).
 - The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
 - It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
@@ -107,20 +107,20 @@ cluster. What each figure counts, and the command behind it, is on the
 | CPU cores | 48 |
 | Memory | 99 GB |
 | Pods running | 72 |
-| Kustomizations ready | 23 of 23 |
+| Kustomizations ready | 24 of 24 |
 | Admission policies ready | 5 of 5 |
-| Tenants with default-deny (structural count) | 10 of 10 |
+| Tenants with default-deny (structural count) | 11 of 11 |
 | Database instances ready | 6 of 6 |
 | Backup objects completed in the last 24 hours | 2 |
 | Latest restore drill on the home site | 2026-11-15, pass |
-| Single points accepted, fixed, open | 13, 0, 14 |
-| Alert rules | 51 |
-| Decision records | 15 |
-| Run records (pass of total) | 71 of 96 |
+| Single points accepted, fixed, open | 15, 1, 14 |
+| Alert rules | 91 |
+| Decision records | 19 |
+| Run records (pass of total) | 98 of 133 |
 | Test definitions (counted, not run) | 89 |
-| CI workflows | 12 |
+| CI workflows | 14 |
 
-*Measured 2026-11-20T08:54:54Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-26T03:54:00Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 V1.0, frozen and measured by `scripts/gather-history.py`: 2,051 commits from 2025-12-21 to 2026-11-05, 226 merged pull
@@ -139,14 +139,16 @@ requests and 12,937 CI runs, torn down on 2026-11-10. Month by month, with recei
   does. "Months of uptime" would not be true.
 - **Is not highly available throughout.** The rule is that a single point of failure on an app's own path (the app, its login,
   its database, what its writes and failover depend on, its object store) is never accepted; only the shared way in, power, the
-  network, the internet line and supporting systems may be. Read on 2026-11-20, the register of single points holds 27 rows: 13
-  accepted, 0 fixed and 14 open, and 7 of the open ones are on the warning app's own path (pods, database, the login service and
-  its database, operator, backup plugin, scaling); 6 are on the shared path (among them cluster DNS, the ingress and admission)
-  and 1 is a supporting system. A row only moves to fixed when a machine is powered off and the app goes on. Storage is node-local.
+  network, the internet line and supporting systems may be. Read on 2026-11-26, the register of single points holds 30 rows: 15
+  accepted, 1 fixed and 14 open, and 7 of the open ones are on the warning app's own path (pods, database, the login service and
+  its database, operator, backup plugin, scaling); 4 are on the shared path (among them the ingress and admission)
+  and 3 are supporting systems. A row only moves to fixed when a machine is powered off and the app goes on; the one fixed row is
+  cluster DNS, by a power-off on 2026-11-25. Storage is node-local.
   The software failure drills (17 on 2026-11-16 and 17) timed each piece's failover; the power-off drills began on 2026-11-19:
-  the first passed, the second found the cluster DNS timing flaw and stopped the series, which starts again from the first drill
-  now that the fix is live (2026-11-20). From 2026-11-20 each scenario is rehearsed first in a simulated cluster shaped like
-  home, then run live; three rehearsals ran there on 2026-11-20, two passed. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
+  the first passed, the second found the cluster DNS timing flaw and stopped the series. After the fix (live 2026-11-20) the
+  series started again on 2026-11-25: the first drill passed and the second passed in part on two runs. From 2026-11-20 each
+  scenario is rehearsed first in a simulated cluster shaped like home, then run live; five rehearsals ran there by 2026-11-25,
+  three passed. See [High availability](https://schultzzznet.github.io/schultzzznet/reliability.html).
 - **Is not zero-loss.** Two database clusters (the warning app's and the login service's) have three instances each, a
   synchronous standby asked for in the specification, and a nightly backup to one machine. Restore drills passed on 2026-11-10
   and 2026-11-15 on databases of megabytes. No acknowledged write was lost in the failure drills, which is a result of those

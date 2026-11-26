@@ -1,12 +1,12 @@
 ---
 title: Progress
-description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-22.
-reread: 2026-11-22
+description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-26.
+reread: 2026-11-26
 summary:
-  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-22 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
-  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-22 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
-  - "**Counts on 2026-11-22:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 3 of 110 objective rules are built. 18 of 21 drills on the home site passed. 82 of 109 run records pass. 0 of 27 single points of failure are proven fixed."
-  - "**Next:** the power-off drills again from the first, each rehearsed on a simulated cluster before it runs live, then the upgrade phase."
+  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-26 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
+  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-26 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
+  - "**Counts on 2026-11-26:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 3 of 110 objective rules are built. 19 of 24 drills on the home site passed. 98 of 133 run records pass. 1 of 30 single points of failure is proven fixed: cluster DNS, by a power-off on 2026-11-25."
+  - "**Next:** the rest of the power-off drills, each rehearsed on a simulated cluster before it runs live. The second passed in part on 2026-11-25 and waits for the owner's word; the third waits for a known gap of its rehearsal. Then the upgrade phase."
 ---
 {% assign p = site.data.progress %}
 {% assign c = p.counts %}
@@ -27,7 +27,7 @@ pass into a fail.
 
 ## The picture
 
-<a href="assets/diagrams/progress.pdf"><img src="assets/diagrams/progress.png" alt="Progress on {{ p.as_of }}: five headline counts; the six phases under build, break and upgrade, with phase {% for x in p.phases %}{% if x.state == 'current' %}{{ x.number }}, {{ x.title | downcase }},{% endif %}{% endfor %} marked as now; the twelve steps of the build order coloured by state; every drill as one block, passed or failed; the rules per objective; and what comes next" width="1568" loading="lazy" style="max-width:100%;height:auto"></a>
+<a href="assets/diagrams/progress.pdf"><img src="assets/diagrams/progress.png" alt="Progress on {{ p.as_of }}: five headline counts; the six phases under build, break and upgrade, with phase {% for x in p.phases %}{% if x.state == 'current' %}{{ x.number }}, {{ x.title | downcase }},{% endif %}{% endfor %} marked as now; the twelve steps of the build order coloured by state; every drill as one block, passed or not; the rules per objective; and what comes next" width="1568" loading="lazy" style="max-width:100%;height:auto"></a>
 
 [The PDF](assets/diagrams/progress.pdf) zooms and prints. The drawing is
 [progress.tex](assets/diagrams/progress.tex), and its numbers come from the data file by
@@ -68,7 +68,7 @@ Each drill is one test, run once and written up as a record.
 A failure drill passes when the service came back within its written target and no acknowledged write was lost. The
 simulated cluster is shaped like home, with three servers and three agents. A rehearsal there does not count as proof for
 the home site: real network cards, the firewall and the old laptops' speed can change the timing. Its job is to find a
-fault before the live drill does. The results, drill by drill, are on [Reliability](reliability.html).
+fault before the live drill does. The results up to 2026-11-20, drill by drill, are on [Reliability](reliability.html).
 
 ## The build order
 

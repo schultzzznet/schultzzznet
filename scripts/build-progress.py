@@ -486,7 +486,9 @@ def check(root, today):
 
 def self_test():
     real = ROOT
-    today = dt.date.fromisoformat(load(real)["as_of"])
+    d = load(real)
+    c = d["counts"]
+    today = dt.date.fromisoformat(d["as_of"])
     base = check(real, today)
     if base:
         sys.exit("self-test: the real tree does not pass, so no planted fault can be judged:\n  " + "\n  ".join(base))
@@ -515,14 +517,19 @@ def self_test():
                 fh.write(t.replace(old, new, count))
         return edit
 
-    case("a step count that no longer adds up", sub(DATA, "steps_partly: 5", "steps_partly: 6"), "the parts add up")
-    case("a record count that no longer adds up", sub(DATA, "records_pass: 82", "records_pass: 83"), "records: the parts")
+    # Plants are built from the data's own values, so a fresh copy of the counts does not break the self-test.
+    case("a step count that no longer adds up",
+         sub(DATA, f"steps_partly: {c['steps_partly']}", f"steps_partly: {c['steps_partly'] + 1}"), "the parts add up")
+    case("a record count that no longer adds up",
+         sub(DATA, f"records_pass: {c['records_pass']}", f"records_pass: {c['records_pass'] + 1}"), "records: the parts")
     case("objective rules that disagree with the total", sub(DATA, "    built: 1\n    partly: 3", "    built: 2\n    partly: 3"),
          "objective rules built")
     case("two current phases", sub(DATA, 'state: "partly"\n    note: "17', 'state: "current"\n    note: "17'),
          "exactly one phase must be current")
     case("a phase of no group", sub(DATA, 'group: "upgrade"', 'group: "later"'), "is not one of build")
-    case("more drills passed than run", sub(DATA, "run: 2\n    passed: 1", "run: 2\n    passed: 3"), "passed of")
+    dr = d["drills"][0]
+    case("more drills passed than run", sub(DATA, f"run: {dr['run']}\n    passed: {dr['passed']}",
+                                            f"run: {dr['run']}\n    passed: {dr['run'] + 1}"), "passed of")
     case("a step state that is not known", sub(DATA, 'state: "gated"', 'state: "waiting"'), "is not one of done")
     case("an unquoted string", sub(DATA, 'as_of: "', "as_of: x"), "not a whole number or a double-quoted string")
     case("a stray key", sub(DATA, "counts:\n", "counts:\n  plan_items: 158\n"), "not a figure this script knows")
@@ -549,8 +556,10 @@ def self_test():
         with open(p, "wb") as fh:
             fh.write(b"%PDF-1.5\n<< /ProgressData (progress-data " + b"0" * 16 + b") >>\n")
     case("a stale PDF", stale_pdf, f"{PDF} was drawn from progress data 0000")
-    case("a typed count the data does not have", sub(PAGE, "2 of 12", "3 of 12"), "which is no count")
-    case("a page summary without the data's day", lambda tmp: (sub(PAGE, "2026-11-22", "2026-11-21", count=99)(tmp), None)[1],
+    case("a typed count the data does not have",
+         sub(PAGE, f"{c['steps_done']} of {c['steps_total']}", f"{c['steps_done'] + 1} of {c['steps_total']}"), "which is no count")
+    day_before = (today - dt.timedelta(days=1)).isoformat()
+    case("a page summary without the data's day", lambda tmp: (sub(PAGE, d["as_of"], day_before, count=99)(tmp), None)[1],
          "does not name the data's day")
     # the digest survives a compressed stream, as xdvipdfmx writes it
     blob = b"1 0 obj << /Filter /FlateDecode >> stream\n" + zlib.compress(b"/ProgressData (progress-data 0123456789abcdef)")
