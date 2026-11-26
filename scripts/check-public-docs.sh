@@ -5,7 +5,7 @@
 # written from scratch rather than copied out of the private repo, precisely so
 # there is nothing to scrub — this script asserts that stays true.
 #
-# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ examples/ README.md SECURITY.md Makefile scripts/build-progress.py)
+# Usage: scripts/check-public-docs.sh [path ...]   (default: docs/ examples/ README.md SECURITY.md Makefile scripts/build-progress.py scripts/build-now.py)
 #
 # GUARD_CONTENT_ONLY=1 runs the leak patterns alone and skips the structural checks
 # (nav, stats freshness, stats methods). scripts/gather-stats.py uses it to vet its own
@@ -23,7 +23,7 @@ TARGETS=("$@")
 # for one purpose does NOT enrol it in the others, and the gap is silent because
 # the check still passes — just over less than you think. When adding a directory
 # of publishable content, grep for every place the old list is named.
-[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs examples README.md SECURITY.md Makefile scripts/build-progress.py)
+[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(docs examples README.md SECURITY.md Makefile scripts/build-progress.py scripts/build-now.py)
 
 fail=0
 report_at() { # <label> <regex> <why> <path ...>
@@ -230,6 +230,11 @@ if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ]; then
   check_py "progress data adds up, is fresh, and its picture is in step" \
     "docs/_data/progress.yml is copied by hand from the private status page; fix it, then python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png." \
     build-progress.py --check
+  # The Now board is the fastest-moving thing on the site, kept by hand on every change of state, so it gets the shortest
+  # age limit (7 days), a headline that a newer Progress or Status count overrules, and a profile block written from it.
+  check_py "the Now board is fresh, well formed, and the README block is in step" \
+    "docs/_data/now.yml is kept by hand on every change of state; read the state again, fix the file and move as_of, then python3 scripts/build-now.py --write." \
+    build-now.py --check
 fi
 
 # A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one

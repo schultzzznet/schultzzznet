@@ -6,6 +6,7 @@
 #   make stats-dry  the same measuring, checking and leak guard, printing the result and writing nothing
 #   make site       build the site locally with GitHub's own gem, then assert on it
 #   make progress   after editing docs/_data/progress.yml: write the picture's data, redraw progress.png, then make check
+#   make now        after editing docs/_data/now.yml: write the README's now block from it, then make check
 #   make history    measure V1.0's frozen history into docs/_data/history.yml (needs V1_REPO and
 #                   V2_REPO, checkouts of the two private platform repositories, and gh logged in)
 #   make history-check  measure again and fail if docs/_data/history.yml no longer matches its sources
@@ -30,7 +31,7 @@ PLATFORM_REPO  ?=
 HARDWARE_REPOS ?= $(HOME)/VisualStudioProjects
 export PLATFORM_REPO HARDWARE_REPOS
 
-.PHONY: help check stats stats-dry site progress need-kubeconfig history history-check need-history-repos
+.PHONY: help check stats stats-dry site progress now need-kubeconfig history history-check need-history-repos
 
 help:
 	@sed -n 's/^#   //p' $(MAKEFILE_LIST)
@@ -57,6 +58,11 @@ site: check
 progress:
 	python3 scripts/build-progress.py
 	$(MAKE) -C docs/assets/diagrams progress.png
+	$(MAKE) check
+
+# The Now board is kept by hand on every change of state; the README's block is written from the same file.
+now:
+	python3 scripts/build-now.py --write
 	$(MAKE) check
 
 # V1.0 is dormant, so its history is frozen: make history writes it once, make history-check proves it unchanged.

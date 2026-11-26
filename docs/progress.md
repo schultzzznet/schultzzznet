@@ -22,7 +22,8 @@ are both drawn from that file, so they cannot disagree. A guard fails the build 
 the picture was drawn from other data, or when the file is more than three weeks old. The figures that [Status](status.html)
 also shows are measured there by a script, on their own date. Where the two dates differ, the numbers may differ too.
 
-This page shows where the work stands. It is not a promise of dates: the plan sets no dates for the phases or the cutover, and the next drill can turn a
+What is moving this week, what waits on the owner and what comes next are on [Now](now.html), a board updated on every
+change of state with its own time on it. This page shows where the work stands. It is not a promise of dates: the plan sets no dates for the phases or the cutover, and the next drill can turn a
 pass into a fail.
 
 ## The picture

@@ -550,6 +550,9 @@ if grep -q 'OLD TABLE' "$tmp/site/README.md" || ! grep -q '^| Nodes (Ready) |' "
    ! grep -q '^\*Measured 20' "$tmp/site/README.md"; then
   echo "FAIL: the README block was not spliced between the markers"; cat "$tmp/site/README.md"; exit 1
 fi
+# The README also carries the Now block, which the guard requires; the small README gets the real one, so only the stats
+# block is under test here.
+sed -n '/^<!-- now:start -->$/,/^<!-- now:end -->$/p' "$root/README.md" >> "$tmp/site/README.md"
 (cd "$tmp/site" && ./scripts/check-public-docs.sh >/dev/null) || { echo "FAIL: the guard refuses a README with a generated block"; exit 1; }
 echo "  pass  generator replaced the README block and left the rest alone"
 
@@ -662,3 +665,22 @@ scratch
 rm "$tmp/site/docs/assets/diagrams/progress.png"
 must_fail "the progress picture missing" "$progress_rule"
 (cd "$root" && python3 scripts/build-progress.py --self-test)
+
+# --- the Now board (docs/_data/now.yml): kept by hand on every change of state, and it writes a block into the README ---
+# A new generated file type: the guard must refuse a stale board, a README block out of step with it, a README without the
+# block, and a private detail typed into the board, each by the rule that owns it.
+now_rule="the Now board is fresh, well formed, and the README block is in step"
+scratch
+sed -i.bak 's/^as_of: ".*"$/as_of: "2020-01-01 00:00 UTC"/' "$tmp/site/docs/_data/now.yml"
+must_fail "a Now board older than its limit" "$now_rule"
+scratch
+sed -i.bak 's/^\*As of /*As at /' "$tmp/site/README.md"
+must_fail "a README now block edited by hand" "$now_rule"
+scratch
+sed -i.bak 's/<!-- now:start -->//' "$tmp/site/README.md"
+must_fail "a README without the now block" "$now_rule"
+scratch
+sed -i.bak 's/^  - text: "A key custody proof/  - text: "On delli7c1, a key custody proof/' "$tmp/site/docs/_data/now.yml"
+grep -q delli7c1 "$tmp/site/docs/_data/now.yml" || { echo "FAIL: the planted machine name did not land in now.yml"; exit 1; }
+must_fail "a machine name in a Now item" "fleet hostnames"
+(cd "$root" && python3 scripts/build-now.py --self-test)

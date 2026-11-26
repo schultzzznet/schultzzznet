@@ -3,6 +3,7 @@
 - section: Start
   pages:
     - { title: The estate, url: / }
+    - { title: Now, url: /now.html }
     - { title: Status, url: /status.html }
     - { title: Progress, url: /progress.html }
     - { title: V1.0 and V2.0, url: /versions.html }
