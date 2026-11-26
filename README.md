@@ -64,7 +64,7 @@ What is moving this week, from the same data file as [the Now page](https://schu
 <!-- now:start -->
 <!-- Written by scripts/build-now.py from docs/_data/now.yml; edit the data file and run it with --write. -->
 
-*As of 2026-11-26 09:10 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
+*As of 2026-11-26 09:42 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
 
 **2 of 12** build-order steps done; **3 of 110** objective rules built (20 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
 
@@ -87,7 +87,8 @@ What is moving this week, from the same data file as [the Now page](https://schu
 
 1. The second power-off drill again (a worker holding a database standby), once the cleanup change is applied.
 2. The failover fixes, one at a time on the simulated cluster against the control run, with numbers and a way back before anything goes live.
-3. The third power-off drill, after the failover fixes, then the rest of the series and the upgrade phase ([Progress](https://schultzzznet.github.io/schultzzznet/progress.html)).
+3. In parallel with the failover fixes: the second reference app starts moving to the new platform, phone first, reachable only from the owner's own devices at first.
+4. The third power-off drill, after the failover fixes, then the rest of the series and the upgrade phase ([Progress](https://schultzzznet.github.io/schultzzznet/progress.html)).
 
 <!-- now:end -->
 

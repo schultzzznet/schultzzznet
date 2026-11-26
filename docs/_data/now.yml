@@ -7,7 +7,7 @@
 # when a headline figure disagrees with a newer progress.yml or stats.yml, or when the README block is out of step.
 # Each item is one plain sentence; a link names a site page. Nothing here may name a machine, an address, an exact
 # software version, a place where a secret is kept, or how a weakness could be used.
-as_of: "2026-11-26 09:10 UTC"
+as_of: "2026-11-26 09:42 UTC"
 headline:
   - label: "Build-order steps done"
     figure: "steps_done"
@@ -31,7 +31,7 @@ done_recently:
   - date: "2026-11-26"
     text: "Leftovers from the old cluster's time, a local DNS helper and stale network-share entries, were removed from both laptop nodes, and the node check is green on all six machines."
   - date: "2026-11-26"
-    text: "An overnight control run on the simulated cluster measured what losing a node costs today, in 21 scenarios: about half of new requests fail for 45 to 50 seconds, and writes stop for 80 to 92 seconds when the database primary goes, with nothing lost."
+    text: "An overnight control run on the simulated cluster measured what losing a node costs today: about half of new requests fail until the node is declared down, 40 to 70 seconds, and writes stop for 80 to 92 seconds when the database primary goes, with nothing lost."
   - date: "2026-11-26"
     text: "A new lesson was published, [the same fault twice](lessons.html#17-the-same-fault-twice-three-months-apart): network power saving dropped packets on two laptop nodes, three months after it had dropped a link on the workstation."
   - date: "2026-11-25"
@@ -52,4 +52,5 @@ waiting_on_owner:
 next:
   - text: "The second power-off drill again (a worker holding a database standby), once the cleanup change is applied."
   - text: "The failover fixes, one at a time on the simulated cluster against the control run, with numbers and a way back before anything goes live."
+  - text: "In parallel with the failover fixes: the second reference app starts moving to the new platform, phone first, reachable only from the owner's own devices at first."
   - text: "The third power-off drill, after the failover fixes, then the rest of the series and the upgrade phase ([Progress](progress.html))."
