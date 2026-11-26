@@ -1,7 +1,7 @@
 ---
 title: The estate
 tldr_what: "A product production platform: one person, with a frontier AI model as a reviewed peer, runs the whole path from an idea to a running app, built from current open-source practice on six retired laptops and small desktops. DevSecOps is one layer of it: code in git, signed images, encrypted secrets, drilled databases, CI at home."
-tldr_why: "It is broken on purpose and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it holds up on this hardware, it holds up anywhere."
+tldr_why: "It is pushed to the edge, to prove it holds, and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it runs on this hardware, it runs anywhere."
 tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
 body_read: 2026-11-26
@@ -26,7 +26,7 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A product production platform on six retired machines, built with AI, broken on purpose
+# A product production platform on six retired machines, built with AI, pushed to the edge, to prove it holds
 
 {% include tldr.html %}
 
