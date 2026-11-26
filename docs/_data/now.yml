@@ -7,7 +7,7 @@
 # when a headline figure disagrees with a newer progress.yml or stats.yml, or when the README block is out of step.
 # Each item is one plain sentence; a link names a site page. Nothing here may name a machine, an address, an exact
 # software version, a place where a secret is kept, or how a weakness could be used.
-as_of: "2026-11-26 16:41 UTC"
+as_of: "2026-11-26 23:16 UTC"
 headline:
   - label: "Build-order steps done"
     figure: "steps_done"
@@ -29,6 +29,10 @@ headline:
     also: "14 open"
 done_recently:
   - date: "2026-11-26"
+    text: "The old cluster's remains were removed from all six machines by a guarded change, one machine at a time, with the two database primaries moved first; a check is green on every machine."
+  - date: "2026-11-26"
+    text: "A replicated block-storage layer was ruled out: the machines can never take another disk, so it would run on files on the system disk. Logs and traces will keep their data in the replicated object store instead."
+  - date: "2026-11-26"
     text: "This board went live on the site and the profile page, with a private twin on the home portal that is kept from the same file."
   - date: "2026-11-26"
     text: "A pipeline test that picked up leftovers of the test before it was fixed and passed on the home build hosts, and new tests for a network safety check were merged."
@@ -40,20 +44,14 @@ done_recently:
     text: "A new lesson was published, [the same fault twice](lessons.html#17-the-same-fault-twice-three-months-apart): network power saving dropped packets on two laptop nodes, three months after it had dropped a link on the workstation."
   - date: "2026-11-25"
     text: "Network power saving was switched off on both laptop nodes, it held across a reboot, and 0 of 15,000 pings were lost afterwards."
-  - date: "2026-11-25"
-    text: "The power-off drills started again after the cluster DNS fix: the first passed and the second passed in part ([Progress](progress.html))."
 running:
-  - text: "A cleanup change that removes the old cluster's remains from all six machines has passed review and waits for approval."
-  - text: "Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) were repaired, and the change waits for approval."
+  - text: "The failover fixes, one at a time on the simulated cluster against the measured baseline, now that its three weak scenarios are repaired."
 waiting_on_owner:
   - text: "A key custody proof, about ten minutes; the workstation is free for it now."
-  - text: "Approval of the cleanup change, and of moving two database primaries while it applies."
-  - text: "Approval of the repaired simulated-cluster scenarios."
-  - text: "The second power-off drill again, at the machines."
+  - text: "The second power-off drill again, at the machines, planned for the next morning."
   - text: "A decision on a trial that passed its first proof: take the next step, reject it, or try another option."
   - text: "A decision on whether dependency updates held for approval may flow on their own."
 next:
-  - text: "The second power-off drill again (a worker holding a database standby), once the cleanup change is applied."
-  - text: "The failover fixes, one at a time on the simulated cluster against the control run, with numbers and a way back before anything goes live."
+  - text: "The second power-off drill again (a worker holding a database standby)."
   - text: "In parallel with the failover fixes: the second reference app starts moving to the new platform, phone first, reachable only from the owner's own devices at first."
   - text: "The third power-off drill, after the failover fixes, then the rest of the series and the upgrade phase ([Progress](progress.html))."
