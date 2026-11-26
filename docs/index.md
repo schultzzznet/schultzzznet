@@ -4,7 +4,7 @@ tldr_what: "A product production platform: one person, with a frontier AI model 
 tldr_why: "It is broken on purpose and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it holds up on this hardware, it holds up anywhere."
 tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What it is:** a product production platform: the path from an idea to a running app, with DevSecOps as one layer, built from the current state of the art on retired hardware, to prove that is possible and to be ready for any app, the killer app included. Reliability is the aim, not yet a claim. A training system, on purpose."
   - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes), and one on 2026-11-24 was partial (an older backup stopped at a segment the store could not serve). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. The default-deny probe failed (a 1-3 s gap at pod start)."
@@ -116,16 +116,16 @@ reliability is the aim, not yet a claim. The drills are in the *In short* block 
 [Reliability](reliability.html). Two things it leaves out: one miss from the software drills
 is still open (with both backup-plugin pods down the failover started late), and two failed lookups in the first soak of the
 DNS fix are not explained. Single points proven fixed by a power-off: {{ ev.single_points_fixed }} of
-{{ ev.single_points_accepted | plus: ev.single_points_fixed | plus: ev.single_points_open }} rows in the register:
-[Progress](progress.html)).
+{{ ev.single_points_accepted | plus: ev.single_points_fixed | plus: ev.single_points_open }} rows in the register
+([Progress](progress.html)).
 
 **No paying customers, no users and no load.** The synthetic load generator went with V1.0, and there is no public name.
 Monitoring runs and has been read: merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the
 node exporter manifests, fixed the same day), two metrics replicas since 2026-11-19, and at the last reading
 {{ s.observability.scrape_targets }} scrape targets up, {{ s.observability.alert_rules }} alert rules and
 {{ s.observability.dashboards }} dashboards. Alerts reach a chat channel since 2026-11-16 (about six and a half minutes
-after the machine went dark in the first power-off drill); nothing pages a person. **Not measured yet (2026-11-20):** SBOM
-projects, alerts reaching a person, and electricity cost. A figure below that cannot be measured yet says *not measured
+after the machine went dark in the first power-off drill); nothing pages a person. **Not measured yet (2026-11-26):** SBOM
+projects in a tracker, alerts reaching a person, and electricity cost. A figure below that cannot be measured yet says *not measured
 yet*. What V1.0 measured and corrected is kept further down under dated headings and is not a claim about this cluster.
 
 {% include in-short.html %}
@@ -189,8 +189,8 @@ database clusters. The latest restore drill (recorded {{ ev.restore_drill_home_l
 | Alert rules loaded | {{ s.observability.alert_rules }} alerting rules and {{ s.observability.recording_rules }} recording rules; they reach a chat channel (built 2026-11-16), and alerts reaching a person are **not measured yet** |
 | Dashboards | {{ s.observability.dashboards }} (committed to git) |
 | Metric history held | about {{ s.observability.metric_history_days }} days (the shorter of the two metrics replicas; the second is new since 2026-11-19) |
-| Storage replication | none: node-local volumes only (open; a reviewed trade) |
-| Off-site backup copy | none (open) |
+| Storage replication | none: node-local volumes only (a reviewed trade; replicated block storage is planned again, decision record first, kept on 2026-11-22) |
+| Off-site backup copy | none (open). A second copy on the house NAS pulls from the store since 2026-11-24, and the newest backup restored from it that day |
 | First-party images that verify against the release key | admission checks this at creation; a count is **not measured yet** |
 
 **The three outside-referee badges are retired.** The scheduled-jobs heartbeat and the two public-endpoint
@@ -211,11 +211,14 @@ in the record, it is the record. Components are meant to be disposable, and
 several have been disposed of. What has persisted is the practice around the cluster, not the cluster.
 
 The chains here are meant to be wired end to end: commit, CI-built artifact, signed image, admission, and a reconciler
-that pulls the result in; backup, then restore drill. As of 2026-11-20 I have seen the first of these
+that pulls the result in; backup, then restore drill. As of 2026-11-26 I have seen the first of these
 run on the new cluster ({{ rc.kustomizations_ready }} of {{ rc.kustomizations }} Kustomizations Ready), nightly backups complete, two
-restore drills pass (2026-11-10 and 2026-11-15, with limits, described in [how we work](how-we-work.html)), and database failovers
-under a write probe in the failure drills of 2026-11-16 and 17. I have **not** seen an alert page a person, a device heartbeat, a second backup
-copy, a failover under real load, or a single point of failure proven fixed by a power-off on this cluster. The satellite application is not running. It is a home-built platform
+restore drills pass (2026-11-10 and 2026-11-15, with limits, described in [how we work](how-we-work.html)) and a third end partial
+(2026-11-24: the newest backup restored from the store and from the NAS copy, an older one stopped at a log segment the store
+could not serve), database failovers under a write probe in the failure drills of 2026-11-16 and 17, a second backup copy on
+the house NAS (since 2026-11-24), and one single point of failure, cluster DNS, proven fixed by a power-off (2026-11-25). Of five
+power-off drills, two passed, two were partial and one failed. I have **not** seen an alert page a person, a failover under
+real load, or an off-site backup copy. Device heartbeats were retired for now on 2026-11-22. The satellite application is not running. It is a home-built platform
 with {{ c.nodes }} bare-metal nodes from retired laptops and small desktops, run with production habits and with no production duties.
 
 **V1.0 (retired 2026-11-10).** V1.0 was torn down in stages after a base backup of every database; the
@@ -236,14 +239,14 @@ be getting stuck: settling into caution before there is a reason to, so that not
 
 ## The whole thing, on one screen
 
-Status as of 2026-11-11. Solid boxes exist and are running; the dotted line is planned.
+Status as of 2026-11-26. Solid boxes exist and are running.
 
 ```mermaid
 flowchart TB
   subgraph DEV["Development, off-cluster"]
     WS["workstation<br/>+ cloud model as reviewed peer"]
     GH["GitHub<br/>pull request, checks"]
-    CI["CI<br/>hosted runners for key-bearing jobs<br/>home VM per job for secret-free heavy jobs"]
+    CI["CI<br/>a fresh home VM per job<br/>hosted only where a secret forces it"]
     REG["image registry<br/>+ CI-built artifact"]
   end
 
@@ -255,24 +258,26 @@ flowchart TB
   end
 
   subgraph OFF["Outside the cluster"]
-    S3["S3-compatible store<br/>on a small always-on Mac<br/>one machine, one copy"]
+    S3["S3-compatible store<br/>on a small always-on Mac"]
+    NAS["second copy<br/>on the house NAS<br/>no off-site copy"]
   end
-
-  DEVICES["embedded devices<br/>signed A/B OTA"]
 
   WS --> GH --> CI --> REG
   REG --> FLUX
   FLUX --> ADM --> TEN
   TEN --> APP
   APP -->|"nightly backup + WAL"| S3
-  DEVICES -.->|"heartbeat: planned"| K3S
+  S3 -->|"pulled by the NAS"| NAS
 
   style OFF fill:#f5f5f5
 ```
 
-No public edge, no tracker, no fault injector, no outside referee and no operations agent
-appear above because none of them exists on the new cluster today. The monitoring stack does exist (merged 2026-11-11, read since) and is left out of the picture to keep it to the delivery and data chains. V1.0 had all of them; its picture is
-described in words in [V1.0 section](#v10-retired-2026-11-10) below.
+Left out to keep the picture to the delivery and data chains: the monitoring stack (merged 2026-11-11, read since), the
+public edge (configured from git since 2026-11-25, and it publishes nothing), the outside referees (a dead-man's switch on
+the alert heartbeat since 2026-11-16, and a probe board that runs the public attack cases from outside since 2026-11-25) and
+the operations agent (back since 2026-11-25, read-only). The embedded devices update themselves and no longer report to the
+cluster (heartbeats retired for now on 2026-11-22). No vulnerability tracker and no scheduled fault injector exist. V1.0's
+picture is described in words in [V1.0 section](#v10-retired-2026-11-10) below.
 
 ## What it costs
 
@@ -282,10 +287,11 @@ described in words in [V1.0 section](#v10-retired-2026-11-10) below.
 | **Software licences** | **Zero.** Every tool is open source, a community edition, or a free tier. That is a standing constraint, and a filter: a tool that cannot be self-hosted for nothing does not get evaluated on features. |
 | **Power** | One measurement exists. V1.0 (retired 2026-11-10), 2026-10: fixing the frequency governor on the two busiest nodes cut about 13.1 W continuously (about 115 kWh/year). It was measured with the CPUs' own energy counters, **not re-measured** on the new cluster, so no power figure is claimed for it. |
 | **Time** | Evenings and weekends, over months. The up-front cost is real: {{ rp.adrs }} decision records so far in the new repository, refusing shortcuts that would have worked in the short run. |
-| **Cloud spend** | Not zero any more. The included hosted CI minutes ran out on 2026-11-09 and a $20 budget is being spent, at about $0.15 per hosted gate. The Mac runners were retired on 2026-11-10. Heavy CI that holds no secrets now runs on a fresh virtual machine per job on a Linux host at home; jobs that carry keys stay hosted. Two builder hosts run one job VM at a time each. Both took jobs in parallel for the first time on 2026-11-11; those gates had started, not passed, when this was written. Status: built; the saving is not measured. |
+| **Cloud spend** | Not zero any more. The included hosted CI minutes ran out on 2026-11-09 and a $20 budget began to be spent, at about $0.15 per hosted gate. Since 2026-11-12 every job runs at home on a fresh virtual machine per job, and a hosted runner is used only where a secret forces it, such as publishing and signing. The Mac runners were retired on 2026-11-10. Status: built; the saving is not measured. |
 
 **One thing is not free.** The frontier AI used as a development peer is a paid
-subscription; it has no access to the running cluster. The largest cost of all
+subscription. It reaches the running cluster only through plays, upgrades and drills run on the owner's go, each with a run
+record. The largest cost of all
 was **re-deriving context**, which is why the working agreement, the decision records and the
 rolling state note exist.
 
@@ -293,8 +299,9 @@ rolling state note exist.
 
 The load the platform is meant to prove itself against is three of the repository's five Flutter clients: **Loc8** shares location
 inside invite-only groups, **Warn** maps road hazards people report, and **Talk** is a
-messenger with live events. **As of 2026-11-11 only Warn is deployed on the new cluster.** Loc8 and Talk are not, so this page quotes no
-version for them. The Warn pods restarted ten times each during the bring-up on 2026-11-10 (cause not verified) and had not restarted in the seven hours before the read on 2026-11-11. They are not a product: not in any app store, built to talk to a
+messenger with live events. **As of 2026-11-26 only Warn is deployed on the new cluster**, with the login service it signs in
+through. Loc8 and Talk are not, so this page quotes no version for them; Loc8's first slice is next, after the second
+power-off drill. The Warn pods restarted ten times each during the bring-up on 2026-11-10 (cause not verified) and had not restarted in the seven hours before the read on 2026-11-11. They are not a product: not in any app store, built to talk to a
 private homelab, with the unfinished parts listed. [The apps page](apps.html) has
 screenshots, how they sign in, and the bug that signed people out for the wrong reason (written when all three ran).
 
@@ -312,7 +319,7 @@ one the registry and signing exist and the tracker does not (planned).
 
 The satellite was the proof, on V1.0, that **an application does not have to live in the
 platform's repository to run on it.** It brought two files, a Dockerfile and a conformant
-manifest. **It is not running on the new cluster** (as of 2026-11-11: not redeployed, open), so "deploys from outside" is a statement about
+manifest. **It is not running on the new cluster** (as of 2026-11-26: not redeployed, and not in the new platform's inventory), so "deploys from outside" is a statement about
 the past until it is. *History:* V1.0's repository name was a fossil: it began on Docker Swarm and ran on k3s
 from some point on, and renaming would have broken every inbound link.
 
@@ -320,40 +327,41 @@ from some point on, and renaming would have broken every inbound link.
 
 ## What is actually running
 
-All of this was read from the cluster or its records on 2026-11-11 unless it says otherwise.
+All of this was read from the cluster or its records on 2026-11-11 and checked against the platform's records on 2026-11-26, unless it says otherwise.
 
 - **{{ c.nodes }} nodes**: three control-plane servers with embedded etcd, and three laptop agents. The servers carry **no
   taint**, so they also run workloads. The hardware spans old laptops to newer small desktops; the
   heterogeneity is deliberate. Placement labels (CPU class, disk class, disk health) existed on the previous
   platform; I have *not re-read* them on this one and claim nothing about them. (proven 2026-11-11: nodes, roles)
-- **Storage: node-local volumes are the only storage class.** Replicated storage is deferred (open). That is
+- **Storage: node-local volumes are the only storage class.** Replicated block storage is planned again (kept on 2026-11-22, a decision record first). That is
   a reviewed trade: replication is left to the database layer, which keeps three copies of its own data. The cost is that a
   volume dies with its machine. (proven 2026-11-11: one default class, read back)
 - **Databases: {{ db.clusters }} PostgreSQL clusters (the reference app's and the login service's), {{ db.instances }} instances, three per cluster on three nodes, PostgreSQL {{ db.postgres_major }}**, each with a
   connection pooler in front (the login service, though, connects to its database directly). Quorum-synchronous commit (the spec asks for one synchronous standby with required durability) was seen working once, for the reference app's database, in the power-off drill of 2026-11-19: with one standby's machine off, the primary kept committing through the other (the login database's not yet seen). V1.0 read its own back on 2026-10-09. Backups go through the barman-cloud plugin to an S3-compatible store
-  on a small always-on Mac outside the cluster: one machine, one copy, no off-site copy (open). Restore drills passed on 2026-11-10 (the app's database) and 2026-11-15 (the login service's), with limits (proven, with limits; see [how we work](how-we-work.html)). Killing a primary under a write probe lost no acknowledged write (2026-11-16 and 17); the first such kill missed its 30-second target at 48.6 s and found the pooler flaw, and after the fix it came back in 27.9 s (proven 2026-11-17, a thin margin).
-- **Identity: the login service runs two replicas in production mode on its own three-instance database** since 2026-11-15 (built; a pod kill passed on 2026-11-16). A sign-in started on one replica and finished on the other has not been shown.
-- **Tracing: one Tempo pod, running, restarted once (cause not verified).** Whether anything sends traces to it is **not verified**: I have not read its logs or run a trace query (built).
-- **A supply chain with teeth, and the qualification.** The admission engine, in refuse mode, rejects unsigned CI-built images and
-  vendor images that are not on a list or not pinned by digest. Unsigned CI-built images were refused on a local test cluster on 2026-11-07, and one
+  on a small always-on Mac outside the cluster, and since 2026-11-24 the house NAS pulls a second copy from it; there is no off-site copy (open). Restore drills passed on 2026-11-10 (the app's database) and 2026-11-15 (the login service's), with limits (proven, with limits; see [how we work](how-we-work.html)). A third, by hand on 2026-11-24, was partial: the newest backup restored from the store and from the NAS copy, and an older one stopped silently at a log segment the store listed and could not serve. The database operator was upgraded live on 2026-11-25: every database and pooler pod rolled in under two minutes with one switchover per database, and no probed request failed. Killing a primary under a write probe lost no acknowledged write (2026-11-16 and 17); the first such kill missed its 30-second target at 48.6 s and found the pooler flaw, and after the fix it came back in 27.9 s (proven 2026-11-17, a thin margin).
+- **Identity: the login service runs two replicas in production mode on its own three-instance database** since 2026-11-15 (a pod kill passed on 2026-11-16). Account deletion is live since 2026-11-16. The Warn app signed in through it once, on 2026-11-16, on the owner's word; a sign-in started on one replica and finished on the other has not been shown.
+- **Tracing: a collector and a Tempo instance with its own disk**, both scraped, with alerts on dropped spans. On a throwaway cluster in CI the gate finds the trace of its own request; on the home cluster no trace has been looked up yet (built).
+- **A supply chain with teeth, and the qualification.** The admission engine, in refuse mode and with three replicas since 2026-11-25, rejects unsigned CI-built images and
+  vendor images that are not on a list or not pinned by digest; since 2026-11-21 it also refuses pods that break the baseline pod rules. Unsigned CI-built images were refused on a local test cluster on 2026-11-07, and one
   off-list refusal on the real cluster is recorded in the history of 2026-11-10 (proven 2026-11-10, one case). On 2026-11-11 two policies read as Ready on the cluster: that is a state read, not a new refusal. **Vendor images are not
   signature-checked** (open): the list and the digest pin are the control, not a signature. **The Flux artifact is unsigned**
-  (open). **There is no SBOM or vulnerability tracker** on the new cluster (planned). The regulatory picture (CRA, GDPR,
+  (open, read 2026-11-26). CI scans each first-party image and attaches a bill of materials (SBOM) to it before signing (merged 2026-11-13). A weekly scan of every running image is merged (2026-11-24) and not yet running on the cluster, and **there is no vulnerability tracker** (planned). The dependency bot opens pull requests; its updates are held for the owner's approval. The regulatory picture (CRA, GDPR,
   app-store labels) is on [the compliance page](compliance.html).
-- **Not live on 2026-11-20:** any alert that pages a person (alerts reach a chat channel), any public name or HTTPS, replicated storage,
-  an off-site backup copy, a second Linux distribution in the host rehearsal, the host pull timer, any input to the
-  operations agent, scheduled fault injection, the simulated home-shaped failure suite (planned 2026-11-20), a vulnerability tracker, and two of the three reference apps.
-- **Retired from the present tense:** the chaos schedules, the operations agent, the reboot daemon and the 49-assertion audit were
-  features of V1.0. Their history is in the dated section below.
+- **Not live on 2026-11-26:** any alert that pages a person (alerts reach a chat channel), any public name or HTTPS (the edge
+  publishes nothing), replicated storage, an off-site backup copy, scheduled host patching, a second Linux distribution in the
+  host rehearsal, the host pull timer, any action by the operations agent (it reads only), scheduled fault injection, a
+  vulnerability tracker, and two of the three reference apps.
+- **Retired from the present tense:** the chaos schedules, the reboot daemon and the 49-assertion audit were features of V1.0.
+  Their history is in the dated section below. The operations agent is back since 2026-11-25, read-only (see below).
 
 **Failure domains and maturity:** the 7-of-13 self-grade of 2026-09-09 is V1.0 (retired 2026-11-10) material and is not a claim about
-this one. For the new platform, use the status register of 2026-11-10 quoted above (12 steps, 109 rules, 3 rules built).
+this one. For the new platform, use the status register: on 2026-11-26 it counts 12 steps and 110 rules (3 built, 20 partly built, 87 not built).
 
 **Security is structural, not a layer at the end,** and on the new repository some of it is now enforced. As of 2026-11-11 `main` is
 protected: a pull request and the checks run are required, history stays linear, force pushes are blocked, and the rules bind
-administrators (proven 2026-11-11, setting read back). Required checks on `main` are two: the main check and the objectives line. The aggregate gate is deliberately not required yet: a red result from a cancelled run beat a green re-run in a test, and the fix is open. **Review is not enforced.** Required approvals are 0. A proposal for an owner's approval on
-important changes and a reviewer agent's on the rest is written down (the decision record is still Proposed) and the reviewer identity does not
-exist yet. A single person authors and merges. 76 of the first 77 commits, over the first six days, came through a pull request. On the
+administrators (proven 2026-11-11, setting read back; read again on 2026-11-26, unchanged). Required checks on `main` are two: the main check and the objectives line. The aggregate gate is deliberately not required yet: a red result from a cancelled run beat a green re-run in a test, and the fix is open. **Review is not enforced.** Required approvals are 0. A scheme of an owner's approval on
+important changes and a reviewer agent's on the rest was accepted on 2026-11-23, and the reviewer account it needs was never
+created, so it is not in use. A single person authors and merges. 76 of the first 77 commits, over the first six days, came through a pull request. On the
 V1.0 the repository was private on the free plan and nothing could be enforced.
 Details are in [DevSecOps](devsecops.html) and [how we work](how-we-work.html).
 
@@ -364,19 +372,22 @@ the shape and the reasoning.
 
 ## AI, and where it stands
 
-AI on every side was the plan, held to the same bar as everything else: **assert the property, do not trust the report.** As of 2026-11-11,
-one of the three roles exists.
+AI on every side was the plan, held to the same bar as everything else: **assert the property, do not trust the report.** As of 2026-11-26,
+two of the three roles exist, the second only as a reader.
 
 **Development time: a cloud model, in the loop (present).** Every repository,
 including the words on this page, is built with a cloud LLM as an engineering peer, working
-from a written agreement and persistent memory of decisions made. Its changes go through the same pull requests and checks as any other.
-On the new repository that is enforced for the pull request and the checks, not for approval (see above), and I have not audited that every change was
-reviewed. [The fuller account is on its own page](ai-dev.html), including the time it confidently told a
+from a written agreement and persistent memory of decisions made. Its changes go through the same pull requests and checks as any other;
+all 320 commits to the new repository by 2026-11-26 carry its co-author line. That is enforced for the pull request and the
+checks, not for approval (see above), and I have not audited that every change was reviewed. It also runs plays, upgrades and
+drills against the live cluster, only on the owner's go and each with a run record. [The fuller account is on its own page](ai-dev.html), including the time it confidently told a
 reviewer two things about this platform that were not true.
 
-**Run time: nothing, today (V1.0 only).** The operations agent and its local model, and the cloud reader that graded the
-agent's posts, were off-cluster pieces of V1.0. The alert-to-agent chain has **no inputs** on the new cluster: monitoring
-runs and its alerts reach a chat channel, but no agent reads them. They are described, dated, under V1.0 below and in [the agent's page](aiops.html); none of it is a present claim.
+**Run time: a reader, since 2026-11-25.** The operations agent runs again on the small always-on Mac, deployed from a merged
+commit, and reads the cluster with a read-only token. Its remote shell was switched off at deploy time and refused one call,
+and it answered one question about the cluster correctly. That it cannot act is shown for that one path only, and no grading
+of its answers is built yet. Its V1.0 form, with a local model, a narrow write path and a cloud reader that graded its posts,
+is described, dated, under V1.0 below and in [the agent's page](aiops.html).
 
 ---
 
@@ -384,17 +395,17 @@ runs and its alerts reach a chat channel, but no agent reads them. They are desc
 
 Standard, open-source tooling, so each choice maps onto what you would reach for in a
 datacentre. Deliberately a table, not a badge wall: badges overclaim, and several that used
-to be here did. Status as of 2026-11-11.
+to be here did. Status as of 2026-11-26.
 
 | Layer | What runs | Qualification |
 |---|---|---|
-| Platform | K3s (containerd, embedded etcd, flannel with the WireGuard backend, CoreDNS, Traefik, kube-vip), Ansible for the hosts, local VMs for rehearsal | The "retired laptops" part is literal. Rehearsal covers one distribution; a second is not live |
-| Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin and PgBouncer, an S3-compatible store (Garage) on a small Mac outside the cluster, Keycloak (two replicas, own database, since 2026-11-15) | One copy of the backups; failovers drilled 2026-11-16 and 17, no power-off proof yet |
-| Change and secrets | Flux from a CI-built artifact, SOPS with age | The artifact is unsigned. Restoring secrets from the recovery key has not been tested (open) |
-| Supply chain | cosign, Kyverno admission (Deny), gitleaks, Renovate, pre-commit | Renovate is configured and not yet seen acting. Vendor images are not signature-checked. No tracker |
-| Observability | Prometheus (two replicas since 2026-11-19), Alertmanager, Grafana, Loki, Tempo | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day; alerts reach a chat channel, nothing pages a person |
+| Platform | K3s, the current minor (containerd, embedded etcd, flannel with the WireGuard backend, CoreDNS on every node, Traefik, kube-vip), Ansible for the hosts, local VMs for rehearsal | The "retired laptops" part is literal. Upgraded live by a play on 2026-11-18 (partial: a network policy gap showed after). Rehearsal covers one distribution; a second is not live |
+| Data and identity | Node-local storage (no Ceph), CloudNativePG with the barman-cloud plugin and PgBouncer, an S3-compatible store (Garage) on a small Mac outside the cluster with a second copy on the house NAS, Keycloak (two replicas, own database, since 2026-11-15) | No off-site copy; failovers drilled 2026-11-16 and 17; two power-offs of a machine holding a database standby on 2026-11-25 lost no row (both partial, for other reasons) |
+| Change and secrets | Flux from a CI-built artifact, SOPS with age | The artifact is unsigned. The recovery key went into a password manager on 2026-11-26; a decrypt with the workstation off has not been tried (open) |
+| Supply chain | cosign, Kyverno admission (Deny, three replicas), Syft and Grype in CI, gitleaks, Renovate, pre-commit | Renovate opens pull requests, held for approval. Vendor images are not signature-checked. The weekly scan of running images is not live. No tracker |
+| Observability | Prometheus (two replicas since 2026-11-19), Alertmanager, Grafana, Loki with a log agent, Tempo, an off-site dead-man's switch | Built: merged 2026-11-11, first live run failed on a manifest defect, fixed the same day; alerts reach a chat channel, nothing pages a person |
 | Applications | Java 25, Spring Boot 4 for the reference app | No load |
-| Embedded | Yocto, RAUC signed A/B OTA, Raspberry Pi | Unchanged; the heartbeat to the cluster is planned |
+| Embedded | Yocto, RAUC signed A/B OTA, Raspberry Pi | Unchanged; the heartbeat to the cluster was retired for now on 2026-11-22 |
 
 Workflow-status badges are deliberately absent: the project repositories are private, so
 their badges return 404 to anyone but me, and a badge nobody else can verify is decoration.
@@ -455,7 +466,8 @@ commit (any one of two standbys) was restored on the four three-instance applica
 identity clusters, and `sync_state=quorum` was read back on each primary. The two-instance
 clusters (the fleet service and the security tools' databases) were asynchronous by design. A
 guard failed when a successor cluster did not mirror its predecessor's settings.
-The lesson carries to the new cluster, where quorum-synchronous commit is built and **not yet read back**.
+The lesson carries to the new cluster, where quorum-synchronous commit is in the spec. *Update, 2026-11-26:* it was seen working
+once, for the reference app's database, in the power-off drill of 2026-11-19; the login database's has not been seen.
 
 The same day, a replica that had silently diverged at a failover on 2026-09-25 sat 14 days
 not streaming and crash-looped on its first restart. Alerts for that class (a replica not
@@ -515,7 +527,7 @@ are retracted here rather than quietly edited:
   air-gapped: it posted to chat and synced findings with a ticket tracker.
 - **A cloud and self-hosted runner split.** On 2026-10-09 it did not exist: all CI ran on the estate's own runners. *Update, 2026-11-11:* a split exists
   again, by role, since 2026-11-10: hosted runners for jobs that carry keys, a fresh virtual machine per job on a Linux host at home for
-  heavy secret-free jobs. See the cost table above.
+  heavy secret-free jobs. *Update, 2026-11-26:* since 2026-11-12 every job runs at home and a hosted runner is used only where a secret forces it. See the cost table above.
 - **Four of thirteen failure domains** was stale at the time (the self-grade of 2026-09-09 said seven of thirteen).
 - **A licence and a security policy.** The compliance page carried an MIT badge while this
   repository had no licence file, and the only security policy lived in a private repository.
@@ -729,19 +741,24 @@ laboratory.**
 
 
 
-On the new platform the answer to *can it* is lower than that, on purpose and in the open: the status register of 2026-11-10 counts 3 of 109 rules built, and
-the cutover decision is gated and not made.
+On the new platform the answer to *can it* is lower than that, on purpose and in the open: the status register of 2026-11-10 counted 3 of 109 rules built,
+and on 2026-11-26 it counts 3 of 110 built and 20 partly built. The cutover decision is gated and not made.
 
 ---
 
-## Open owner items (2026-11-11)
+## Open owner items (2026-11-26)
 
-- Restoring secrets from the recovery key has not been tested.
-- A fixed address reservation for the backup-store Mac.
-- The monitoring webhook and password.
-- A deploy key and age identity for the host pull timer.
-- A second backup copy, off the one machine.
+- A decrypt of the secrets with the workstation switched off, the last step of key custody (the recovery key went into a
+  password manager on 2026-11-26).
+- Approve the removal of the old cluster's remains from the six machines, and two database primary moves with it.
+- The second power-off drill again, at the machines, after that removal.
+- Next step, rejection or another option for the separate CI cluster trial.
+- Two-factor sign-in on the code host and the reviewer account the merge-approval scheme needs.
+- Whether held dependency updates flow on their own.
 - The cutover decision (gated).
+
+Closed since the list of 2026-11-11: the monitoring webhook (alerts reach a chat channel since 2026-11-16) and a second backup
+copy (on the house NAS since 2026-11-24).
 
 ---
 
