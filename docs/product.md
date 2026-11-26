@@ -7,7 +7,7 @@ reread: 2026-11-26
 summary:
   - "**What it is:** two rules adopted on 2026-11-17. Every app design page carries a four-risk box (value, usability, feasibility, viability: who judges, the cheapest test, the result). Every feature is built in thin slices, and the first one runs end to end on a real device before anything is built behind it."
   - "**What enforces it (built):** a check that fails a design page with an empty or placeholder risk cell, and from slice 2 on refuses \"not tested\" for value and usability. It checks the form, not that a result is true. The rule that a record of each slice's use comes before the next slice merges has no check yet (open)."
-  - "**Where it stands, 2026-11-26:** one design page uses it, live updates for the location app. It is at slice 0: nobody has used a live update yet. Feasibility passed on the server side, in throwaway clusters and on the home site's gate; the phone side, value and usability are not tested."
+  - "**Where it stands, 2026-11-26:** one design page uses it, live updates for the location app. It is at slice 0: nobody has used a live update yet. Feasibility passed on the server side in throwaway clusters (two runs on a home CI machine failed); the phone side, value and usability are not tested."
   - "**What it is not:** proof of product success. There are no users and no market; the reference apps test the method, not demand. A proposal to make this the front end of a gated software factory is written and not accepted."
 ---
 
@@ -91,7 +91,7 @@ at **slice 0**: nobody has used a live update yet.
 | --- | --- | --- | --- |
 | **Value** | the owner | a week of the app's chat between two real accounts, one on a phone carried for real, then a geofence alert | not tested; one person on two devices tests use, not value between two people, and the page says so |
 | **Usability** | the owner, on a phone | 30 minutes of a throwaway screen on cellular, with a Wi-Fi to mobile handover and a sign-in token rollover | not tested |
-| **Feasibility** | the AI model, with an outside referee | the server side on a throwaway cluster, then the phone slice | server side passed on throwaway clusters (2026-11-17) and on the home site's gate (2026-11-19); phone side not tested |
+| **Feasibility** | the AI model, with an outside referee | the server side on a throwaway cluster, then the phone slice | server side passed on throwaway clusters (2026-11-17 and 2026-11-19); two runs on a home CI machine failed on 2026-11-19, on timing under limited CPU (open); phone side not tested |
 | **Viability** | the owner | answer four written questions before any real location data is held | not tested; how long locations are kept and how deletion reaches the backups are decided, not built |
 
 The table is copied, simplified, from the private design page. It is published to show the method working on a real design,
