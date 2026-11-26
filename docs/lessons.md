@@ -7,7 +7,7 @@ summary:
   - "**The recurring ones:** believing status output, over and over; two sources of truth, every time; and two foundational calls (the orchestrator, nine nodes) that were wrong and are why the estate looks the way it does."
   - "**What I would keep, unchanged,** is in lesson 8. The decision records are the reason the argument does not have to be re-had."
   - "**Retired 2026-11-10:** the platform these lessons were written on was wiped and rebuilt as a new cluster. V1.0 figures stay under dated labels; the new cluster was about 14 hours old on 2026-11-11 and nothing here claims uptime; the platform's [history](history.html) goes back to 2025-12-21."
-  - "**New since the rebuild:** sequels to lessons 3, 5, 8 and 13; lesson 14 (2026-11-11); 15, DNS highly available on paper but not in a power cut (2026-11-19); 16, a step merged before its referee was read (2026-11-20); in lesson 8, why it works on old hardware, daring on sound principles, and a report naming only the first failing rule (2026-11-21). Reviewers are AI models of the builder's family."
+  - "**New since the rebuild:** sequels to lessons 3, 5, 8 and 13; lesson 14 (2026-11-11); 15, DNS highly available on paper but not in a power cut (2026-11-19); 16, a step merged before its referee was read (2026-11-20); 17, the same network fault twice (2026-11-26); three additions to lesson 8, among them why it works on old hardware (2026-11-21). Reviewers are AI models of the builder's family."
 ---
 
 # What I'd do differently
@@ -596,6 +596,37 @@ gate, however good the check is.
 
 > **The transferable version:** the order matters more than the instrument. Batching "look" and
 > "act" into one command to save a minute quietly turns a stop rule into a footnote.
+
+---
+
+## 17. The same fault twice, three months apart
+
+*Added 2026-11-26. Dated 2026-08-18 and 2026-11-25.*
+
+**The first time (2026-08-18).** The workstation's wired network was "horrible" for a whole day:
+pages half-loading, messages not sent. Four suspects were cleared first: an outage at the code
+host (real that week, and a fine red herring), the router, the ISP, and the cable and switch port.
+The cause was Energy-Efficient Ethernet (802.3az), the power saving that lets a quiet link sleep:
+the link went down about 180 times an hour, 1,614 times in 24 hours, with 70% of packets lost.
+Turning it off took the loss to zero. Two operating-system updates in three days had turned it
+back on, and the interface's own status showed nothing: only the system log saw the drops.
+
+**The second time (2026-11-25).** On the new cluster, two laptop nodes lost up to about 10% of
+pings sent 20 ms apart, and none sent 2 ms apart, so the loss came when the link was quiet. That is
+the same feature's signature, but the lesson had not been carried into the new platform's records,
+so it was the last suspect, not the first, and slow connections seen that evening were at first
+blamed on the power-off drill. With power saving off on both nodes, 0 of 72,000 pings were lost;
+after a reboot the setting was still off and 0 of 15,000 were lost. That it was the cause this
+time is not proven: the loss had also come and gone by itself before the change.
+
+**What I'd do differently:** carry a lesson as a check, not as a story. The first time ended with
+a sentence ("re-check after every update") in a diary; the rebuild carried the records it was
+told to carry and left the diary behind. The new nodes now have a check that fails when a link
+reads power saving on, and the post-update check for the workstations is still open.
+
+> **The transferable version:** packet loss that depends on how far apart the packets are is the
+> link going to sleep. Ping at two spacings before suspecting anything else, and make every fix an
+> operating-system update can undo into a check that runs after the update.
 
 ---
 
