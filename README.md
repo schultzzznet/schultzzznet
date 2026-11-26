@@ -57,6 +57,40 @@ for the scheduled jobs, and an off-site probe of the public entrance. They were 
 by reboots and fault injection, so they were not an availability promise. Everything else on this
 page is text, and I have stopped badging tool names: a badge that prints "Kubernetes" proves nothing.
 
+## Now
+
+What is moving this week, from the same data file as [the Now page](https://schultzzznet.github.io/schultzzznet/now.html).
+
+<!-- now:start -->
+<!-- Written by scripts/build-now.py from docs/_data/now.yml; edit the data file and run it with --write. -->
+
+*As of 2026-11-26 09:10 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
+
+**2 of 12** build-order steps done; **3 of 110** objective rules built (20 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
+
+**Running now:**
+
+- A cleanup change that removes the old cluster's remains from all six machines is in its second round of review fixes.
+- Corrections to an architecture decision record and new tests for a safety check, both approved, are having their review findings fixed before they merge.
+- A fix for a pipeline test that picked up leftovers of the test before it waits for its own run on the home build hosts as proof.
+- Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) are being repaired and run again, so they can judge a failover fix.
+
+**Waiting on the owner:**
+
+- A key custody proof, about ten minutes.
+- Approval of the cleanup change, and of moving two database primaries while it applies.
+- The second power-off drill again, at the machines.
+- A decision on a trial that passed its first proof: take the next step, reject it, or try another option.
+- A decision on whether dependency updates held for approval may flow on their own.
+
+**Next, in order:**
+
+1. The second power-off drill again (a worker holding a database standby), once the cleanup change is applied.
+2. The failover fixes, one at a time on the simulated cluster against the control run, with numbers and a way back before anything goes live.
+3. The third power-off drill, after the failover fixes, then the rest of the series and the upgrade phase ([Progress](https://schultzzznet.github.io/schultzzznet/progress.html)).
+
+<!-- now:end -->
+
 ## Objectives and key results, Q4 2026
 
 *Set before the platform change of 2026-11-10; the key results that name V1.0 (retired 2026-11-10) are scored as written and will say so in January. Figures in them were measured on V1.0.*

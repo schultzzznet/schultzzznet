@@ -87,7 +87,7 @@ metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run 
 | **Code** | [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples), four extracted, runnable, commented artifacts, one with a self-test that demonstrates its own bug |
 | **Tooling arguments** | [Why these tools, and what got rejected](choices.html) |
 | **Hiring** | [What I'd do differently](lessons.html) is probably the most informative page here |
-| **The rest** | [Quality and self-graded maturity](quality.html), [legal and regulatory posture](compliance.html), [the embedded side](yocto.html), [the mechanical side](printing.html), [live status](status.html), [where the work stands](progress.html). Pages that still describe V1.0 (retired 2026-11-10) say so at the top or carry its dates |
+| **The rest** | [Quality and self-graded maturity](quality.html), [legal and regulatory posture](compliance.html), [the embedded side](yocto.html), [the mechanical side](printing.html), [live status](status.html), [where the work stands](progress.html), [what is moving now](now.html). Pages that still describe V1.0 (retired 2026-11-10) say so at the top or carry its dates |
 
 ## Recently
 
