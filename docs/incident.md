@@ -4,7 +4,7 @@ tldr_what: "A full post-mortem from the platform's first version: on 20 August 2
 tldr_why: "Nothing detected it and nothing could have: a person felt the lights go out and asked. No data was lost and it recovered without help, which is exactly why it would have stayed invisible. The outage was the experiment the drills had not run."
 tldr_use: "A blameless post-mortem to use as a model, and a question to put to your own cluster: if your control plane lost quorum for nine minutes tonight, what would tell you?"
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What happened:** on 20 August 2026 mains power to the building dropped for under a minute. Two of the three control-plane machines hard-crashed, and for 9 minutes 12 seconds the survivor was the only reachable member of the cluster's state store, one vote short of a quorum. By this platform's own taxonomy that is a SEV1."
   - "**How it ended:** no data lost, no user impact, full recovery with no human action. **Nothing detected it, and nothing could have:** it was found because a person felt the lights go out and asked for a status check."
@@ -25,8 +25,8 @@ summary:
 ![open items](https://img.shields.io/badge/open%20items-{{ open_items }}%20as%20of%20{{ checked | replace: "-", "--" }}-orange)
 
 *Happened 20 August 2026, on V1.0. The status of every item below was last
-checked on 9 October 2026 unless it says 2026-11-11; the platform was wiped and rebuilt on
-2026-11-10, and the notes headed "V1.0" or dated 2026-11-11 say what that changed.*
+checked on 9 October 2026 unless it gives a later date; the platform was wiped and rebuilt on
+2026-11-10, and the notes headed "V1.0" or dated 2026-11-11 or 2026-11-26 say what that changed.*
 
 Every other page here summarises incidents. This one is a single real post-mortem, shortened
 but not softened, because a summary of an incident is the part that is easy to write and the
@@ -67,9 +67,9 @@ one.
 
 **Since then:** the control plane was rebuilt on a different set of three machines on 4
 September. On 2026-11-10 the whole cluster was wiped and a new one was built on the same
-three control-plane machines and three laptop agents. It is a new cluster, about 14 hours old at
-06:50 on 2026-11-11, not the one that lost quorum. Today it has 3 control-plane
-nodes and 3 agents (6 of 6 Ready, kubectl, 2026-11-11). Everything below about "the three" describes the
+three control-plane machines and three laptop agents. It is a new cluster, built on 2026-11-10
+and 2026-11-11, not the one that lost quorum. On 2026-11-26 it has 3 control-plane
+nodes and 3 agents (6 of 6 Ready, read 2026-11-26). Everything below about "the three" describes the
 three of 20 August.
 
 ---
@@ -95,8 +95,9 @@ because there was no inventory to write them down *in*.
 **Why didn't monitoring catch the quorum loss?** Because **there was no etcd monitoring. At
 all.** Not a threshold set too loosely: verified directly, zero scrape targets, zero alert
 rules, zero service monitors mentioning the state store. An entire tier of the platform, and
-the most important one, was invisible. (That was true on 20 August. It is not true now; see
-[Afterwards](#afterwards).)
+the most important one, was invisible. (That was true on 20 August. It was fixed on V1.0 on
+3 September. On the new cluster the state store is again not scraped and has no quorum alert,
+read 2026-11-26; see [Afterwards](#afterwards).)
 
 **Why did anyone find out?** A human experienced the power cut and asked. The same detection
 mechanism as an earlier public-edge outage: *someone happened to look.*
@@ -167,6 +168,10 @@ re-timed. I have no record of a UPS, and a single power feed was accepted as a r
 monitoring row above is closed only in the sense that it was done on a platform that no longer
 exists.
 
+*Update, 2026-11-26:* the single mains supply is still an accepted single point, and I have
+no record that the bridge time has been timed. The power-off drills on the new cluster have
+switched off worker machines only; none has cut power to a control-plane member.
+
 *Retraction, 9 October 2026:* this page used to say "every item has a link and an owner". The
 table had neither column, and in the private post-mortem the owner column was empty on all
 four rows. The owner is me, on all four, and is now written down. The last row still has no
@@ -185,11 +190,17 @@ difference between those two is the entire discipline.
 
 ## Afterwards
 
-**On 2026-11-11, plainly: nothing would fire on a quorum loss.** Monitoring on the new cluster
-is not live: its tenant was merged on 2026-11-11 but is not yet applied, and no monitoring runs on
-the cluster as of this check. The only check of state-store membership I know of is the host
-layer's own health play, and I found no schedule for it, so I treat it as run by a person. What follows
-is V1.0, measured 2026-10-09; those scrape targets and that alert group no
+**On 2026-11-11, plainly: nothing would fire on a quorum loss.** On that day monitoring on the
+new cluster was not live yet: its tenant was merged on 2026-11-11 and not yet applied. The only
+check of state-store membership I knew of was the host layer's own health play, and I found no
+schedule for it, so I treated it as run by a person.
+
+**On 2026-11-26, the state store is still not watched.** Monitoring runs since 2026-11-11, with
+two metrics replicas since 2026-11-19. Alerts reach a chat channel since 2026-11-16, and an
+outside dead-man's switch watches the alert heartbeat since the same day. Nothing pages a
+person. The state store is not scraped and there is no quorum alert: carrying that over from
+V1.0 is an open plan item. Whether anything else would fire on a quorum loss has not been
+tested. What follows is V1.0, measured 2026-10-09; those scrape targets and that alert group no
 longer exist.
 
 The first row above closed on 3 September. As of 9 October 2026 V1.0's state store had
@@ -224,10 +235,15 @@ Nodes have been powered off to measure a change, as [the estate page](index.md) 
 with its target. After this incident, drills also stopped the agent process on real workers
 and measured the outage.
 
-What is still true, stated plainly on 2026-11-11, is narrower. V1.0's
-**scheduled** injector only ever hit disposable pods, and it no longer exists. I have no record of a
-drill that cut power to a control-plane member on the new platform: of 16 power-off proofs on the old one, 0 carried over.
-And none has taken two members at once, on either.
+What is still true is narrower. V1.0's
+**scheduled** injector only ever hit disposable pods, and it no longer exists. On 2026-11-11 the
+new platform had no power-off drill at all: of 16 power-off proofs on the old one, 0 had carried over.
+By 2026-11-26 the new platform has run five power-offs: on 2026-11-19 one passed and one failed
+(cluster DNS stalled for about 51 seconds, fixed by DNS on every node), and on 2026-11-25 one
+passed and two passed in part. Since 2026-11-20 each is rehearsed first on a simulated cluster. 1 of the 16 old
+proofs is carried over. All five switched off worker machines. I have no record of a drill that
+cut power to a control-plane member on the new platform, and none has taken two members at
+once, on either.
 
 So the honest framing is this: **the outage was the experiment the drills had not run, run
 for real, unplanned, by the electricity company.** It passed, but "passed" means "survived a
@@ -245,18 +261,26 @@ the survivor is the one that drops?
 
 ## The reliability numbers, stated exactly
 
-### The new platform, 2026-11-11
+### The new platform, 2026-11-11, with updates of 2026-11-26
 
 - **Storage recovery point:** the claim of RPO 0 for storage has **no basis** now. Volumes are
   node-local, the only storage class is the single-node provisioner, and replication exists
   only in the database layer. A lost machine takes its volumes with it. This is a stated,
-  deferred gap: replicated block storage is the planned fix and is not built. It is recorded as
-  straining the recover objective.
-- **Database restore:** tested **once, by hand, on 2026-11-10**: 60 seconds for a few MB, restoring an on-demand backup into a scratch cluster. The scheduled backup was not restored, and the backup store is one machine. The
-  recovery point is bound by write-ahead-log archiving and is **not measured yet**. One small
-  restore is a first data point, not a drill.
-- **Service levels:** I have **no record of an enforced SLO** on the new platform as of 2026-11-11; the fault injector's
-  recovery budget was the only one and it is gone. I also have no record of user-facing SLOs, as before.
+  deferred gap: replicated block storage is the planned fix and is not built (still so on
+  2026-11-26). It is recorded as straining the recover objective.
+- **Database restore:** on 2026-11-11 it was tested **once, by hand, on 2026-11-10**: 60 seconds for a few MB, restoring an on-demand backup into a scratch cluster. The scheduled backup was not restored, and the backup store was one machine. The
+  recovery point is bound by write-ahead-log archiving and was **not measured** (read 2026-11-11). One small
+  restore is a first data point, not a drill. *Update, 2026-11-26:* the login database was
+  restored on 2026-11-15, one restore ran on a throwaway cluster on 2026-11-22, and one on
+  2026-11-24 passed only in part: an older backup stopped silently at a write-ahead-log segment
+  the object store listed but could not serve, and the segment was put back. A second copy of
+  the backups sits on the house NAS since about 2026-11-24; there is no off-site copy. In the
+  software failure drills of 2026-11-16/17, a database primary failover took 48.6 seconds, then
+  27.9 seconds after a fix to the connection pooler, and no acknowledged write was lost.
+- **Service levels:** I had **no record of an enforced SLO** on the new platform on 2026-11-11; the fault injector's
+  recovery budget was the only one and it is gone. *Update, 2026-11-26:* a sign-in SLO is live
+  since 2026-11-17. Its probe stayed green while the login database's primary was killed, so it
+  cannot see a login database outage (open).
 
 ### V1.0, 2026-10-09
 
@@ -294,8 +318,9 @@ And on service levels, V1.0's honest version (2026-10-09): **there was exactly o
 user-facing.** It is the fault injector's recovery budget: if an injected fault has not
 self-healed within 300 seconds, the system escalates loudly instead of quietly re-pausing.
 Availability and latency objectives with error-budget burn-rate alerting for the user-facing
-apps **did not exist**. The design was written down and the work was not done; that is still true
-on 2026-11-11, and the gap register it sat on was retired with V1.0.
+apps **did not exist**. The design was written down and the work was not done; that was still true
+on 2026-11-11, and the gap register it sat on was retired with V1.0. The sign-in SLO of
+2026-11-17, above, is the first on the new platform.
 
 ---
 

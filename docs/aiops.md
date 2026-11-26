@@ -4,13 +4,13 @@ tldr_what: "The first version's AI operations agent (retired 2026-11-10 with it)
 tldr_why: "A review of its first 96 summaries found critical in 79, with no critical alert firing in 69, and a model-supplied name passed into a command run as root. Both were fixed with argument validation, an approver list and an audit trail."
 tldr_use: "A design to borrow if you want an AI near production: proposals only, a narrow allowlisted write path, a person on every action, and a monthly graded sample with a guard that goes red when nobody grades."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**Mostly V1.0 (retired 2026-11-10):** the page describes the operations agent and alerting loop as measured up to 2026-10-30. **On the new platform (2026-11-26):** alerts reach a chat channel since 2026-11-16, and nothing pages a person. An operations agent is back since 2026-11-25, read-only: deployed from a merged commit on a machine outside the cluster, with a read-only token."
   - "**What V1.0's agent was:** alerts went straight to chat; a small local model answered questions, wrote a morning digest and *proposed* fixes; a cloud model graded its posts daily. Nothing either said was executed: an allowlisted guardrail layer disposed, and almost every action waited for a named person's click."
   - "**Where the people were:** a click on every action, a monthly graded sample of eight posts, and a guard that went red after 35 days without one. The cloud model's grades were drafts and could not satisfy that guard."
   - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments were then validated, only approvers counted, every executed action was audited, and a quality loop measured what it said."
-  - "**Open (2026-11-26):** the new agent can read and answer, and do nothing else; whether it may ever propose actions, and how its posts are graded, is not decided. No graded sample of its posts exists yet."
+  - "**Open (2026-11-26):** the new agent can read and answer, and do nothing else. Decided 2026-11-22: the approved actions are not carried over, and the grading of its posts is kept. The grading is not built, and no graded sample of its posts exists yet."
 ---
 
 # An AI ops agent with a narrow, audited write path
@@ -22,25 +22,32 @@ summary:
 > **V1.0 (retired 2026-11-10).** Everything on this page describes the operations agent
 > and its alerting loop **as built and measured on V1.0, up to 2026-10-30.** The
 > loop depended on that cluster's alert rules, metrics and chat routing. V1.0 was
-> retired on 2026-11-10 and none of those exist on the new one.
+> retired on 2026-11-10 and those went with it. The new cluster has its own, built since
+> 2026-11-11 (below, as of 2026-11-26).
 >
-> - **No alert reaches a person from the new cluster** (open, 2026-11-11). Its monitoring (rules,
+> - **Alerts from the new cluster reach a chat channel since 2026-11-16; nothing pages a person**
+>   (2026-11-26). Nothing rings through silent mode, waits for an acknowledgement or escalates. One
+>   outside dead-man's switch watches the alert heartbeat since 2026-11-16. Its monitoring (rules,
 >   configuration and 12 unit tests under the real rule tool) was merged into the platform
 >   repository on 2026-11-11 with its secrets encrypted. Its first live run failed on a missing
 >   namespace in the node exporter manifests; the fix landed the same day, and at 07:00 UTC its
->   pods were Running. It runs and was read on 2026-11-11 (18 of 18 scrape targets up, 12 alert rules); no alert is known to reach a person.
-> - **The agent process and its local model** ran on V1.0. They were retired with
->   it, or are unknown, as of 2026-11-11 (not checked). The new
->   platform gives them no inputs: the objective for AI in production (eight rules: approval
->   before change, a closed action list, facts written by code, blind sources reported as unknown,
->   a monthly graded sample, and so on) has 0 of 8 built as of 2026-11-11.
-> - **No alert is known to reach a person from anywhere today.** A liveness check for the home CI
->   runner was shown to raise and clear an alert on 2026-11-10 (about three minutes after the
->   controller was stopped), but it posted to V1.0's alert manager, which was torn
->   down that day. Its target on the new platform is not set (open), and delivery to a phone was
->   never seen.
-> - **Policy on the new platform:** no agent holds a standing cluster credential. The new
->   objectives plan this; the rules for it are not built (2026-11-11).
+>   pods were Running. It was read on 2026-11-11 with 18 of 18 scrape targets up and 12 alert rules.
+> - **An operations agent runs again since 2026-11-25, read-only.** It is deployed from a merged
+>   commit on a machine outside the cluster and reads the new cluster with a read-only token. It
+>   answers questions and executes nothing: its action switches are off. Logs and the identity
+>   provider are not wired to it (2026-11-26). The objective for AI in production (eight rules:
+>   approval before change, a closed action list, facts written by code, blind sources reported as
+>   unknown, a monthly graded sample, and so on) has 0 of 8 built as of 2026-11-26.
+> - **The home CI runner's liveness check.** It was shown to raise and clear an alert on 2026-11-10
+>   (about three minutes after the controller was stopped), but it posted to V1.0's alert manager,
+>   which was torn down that day. The script in git now posts to the new cluster's alert manager
+>   (built); the copy installed on the always-on machine has not been read, so whether it reaches
+>   anyone is open (2026-11-26).
+> - **Policy on the new platform:** the agent holds one standing cluster credential since
+>   2026-11-25, a read-only token that can read nodes and workloads but not secrets. Decided
+>   2026-11-22: the agent's approved actions are not carried over, because an agent acting through
+>   chat approvals conflicts with "git is the only way". The rules for AI in production are not
+>   built (2026-11-26).
 > - The numbers below are dated measurements (2026-10-26 to 2026-10-29) of V1.0.
 >   They stay true as such and say nothing about the new one.
 
@@ -107,9 +114,9 @@ flowchart LR
   $0.63 a day.
 - **The people** approve or reject every action (a named approver list; an empty list means
   nobody), thumb posts up or down, and about monthly grade eight random posts. A guard goes
-  red after 35 days without a graded sample. No sample had been graded as of 2026-10-30; the
-  first was due by 2026-11-26, and as of 2026-11-11 it cannot be produced, because there are no
-  alerts for the agent to post about.
+  red after 35 days without a graded sample. No sample had been graded as of 2026-10-30, and
+  none was graded before V1.0's agent was retired on 2026-11-10. The new agent posts again since
+  2026-11-25; no graded sample of its posts exists yet (2026-11-26).
 
 **What the second reader has shown so far.** Its first run, on 2026-10-28, graded twelve posts
 written before the layout change: it called eleven wrong and one noisy, and seven of the eleven carried
@@ -127,7 +134,8 @@ about 2) after a raw probe showed the packet loss was not everywhere. Measured o
 other four lose under 0.3, while direct queries to the DNS pods from the same two machines are almost
 clean. A kernel upgrade on one of them made no difference (7.9 against 7.3 percent), which retired my
 first theory. Its cause was still open when the platform was torn down. That was measured on the previous
-network and has **not been re-measured** on the new one, (not measured yet, 2026-11-11). A memory alert that fired on a figure including the kernel's file
+network and has **not been re-measured** on the new one (2026-11-26). The new cluster has a probe on
+every node that counts slow and failed lookups, but this figure has not been read from it. A memory alert that fired on a figure including the kernel's file
 cache now compares the process's own memory; that change was applied to the cluster the same day, and the
 daily drift check that had been failing because it was merged but not applied went green. An alert that cries wolf teaches people to ignore the next one, which is the cost
 the quality loop exists to put a number on.
@@ -164,7 +172,9 @@ manifests.
 
 ## What it read
 
-*V1.0, up to 2026-10-30. None of these inputs exist on the new cluster (2026-11-11).*
+*V1.0, up to 2026-10-30. The new agent (read-only since 2026-11-25) reads metrics, active alerts and
+node and workload state on the new cluster; logs, the identity provider and pull-request health are
+not wired to it (2026-11-26).*
 
 ```mermaid
 flowchart LR
@@ -330,7 +340,8 @@ action.
 
 ## The chaos safety controller, and fail-closed as a default
 
-*V1.0, as last read 2026-10-30. None of this runs on the new cluster (2026-11-11).*
+*V1.0, as last read 2026-10-30. No scheduled fault injection runs on the new cluster, and the new
+agent's chaos safety switch is off (2026-11-26).*
 
 Scheduled fault injection ran against a staging target on the platform: call it the
 resident **provocateur**. Its entire job is manufacturing exactly the kind of trouble
@@ -433,7 +444,7 @@ Three layers, deliberately:
 months" and that "additive remediations have executed and are logged". The first is true of
 the chat loop only. The second I cannot support: the unattended path has never been armed,
 and the agent's audit log lived in memory and did not survive a restart, so there was no
-trail to point to. (An audit file exists since 2026-10-26; it is one day old.) Its chaos state is served read-only over HTTP for a dashboard, but that
+trail to point to. (An audit file exists since 2026-10-26; it was one day old when this was written.) Its chaos state is served read-only over HTTP for a dashboard, but that
 server is off by default, so its liveness is observable only where it has been enabled.
 
 ---
@@ -495,13 +506,17 @@ that is explicitly not a grade of correctness.
 
 **What this does not show.** It shows the agent's *output* is now measured and its *input path* is
 safer. It does not show the model reasons well about incidents, which remains the claim this page
-has never made. The loop's first review was due by 2026-11-26; as of 2026-11-11 it cannot happen, because there are no alerts for the agent to read.
+has never made. The loop's first review was due by 2026-11-26; V1.0's agent was retired before it. The new agent reads
+alerts again since 2026-11-25, and the grading of its posts is kept by a decision of 2026-11-22 but not
+built (2026-11-26).
 
 ---
 
 ## Honest limits
 
-*Written for V1.0, as last read 2026-10-30; the first two apply only if the agent is brought back. The last bullet describes the setup as it was: the approval channel is not checked on 2026-11-11.*
+*Written for V1.0, as last read 2026-10-30. The agent is back since 2026-11-25, read-only; the first
+bullet holds for it too (one instance), and the second and last describe V1.0's approved actions, which
+were not carried over (decided 2026-11-22).*
 
 - **It is one instance.** Losing it degrades autonomy, not availability, which is why it is
   ranked below the storage and registry gaps rather than above them.
