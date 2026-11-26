@@ -34,7 +34,7 @@ is the youngest part. Until then it is a training system, on purpose. From the s
 > **Not measured yet (2026-11-20):** SBOM projects, alerts reaching a person (they reach a chat channel, which pages
 > nobody), and electricity cost.
 >
-> **In short, as of 2026-11-20.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
+> **In short, as of 2026-11-26.** V2.0, a new K3s cluster, built on 2026-11-10 and 11 on the same six machines, with no
 > paying customers, no users and no load. It continues V1.0, which ran from 2025-12-21 to 2026-11-10 with 2,051 commits and
 > 226 merged pull requests ([History](https://schultzzznet.github.io/schultzzznet/history.html)).
 > **Proven, with limits:** admission policies refused an off-list image (2026-11-10); restore drills of the warning app's
@@ -43,13 +43,14 @@ is the youngest part. Until then it is a training system, on purpose. From the s
 > standbys, the pooler, the ingress, cluster DNS, admission, node drains), 15 passed and none lost an acknowledged write. They
 > found one design flaw, the connection pooler holding on to a failed login after a database failover, fixed and passed on a
 > re-run with a thin margin; one miss, with both backup-plugin pods down, is still open.
-> **Power-off drills, 2026-11-19:** the first (a plain worker) passed; the second found a timing flaw: cluster DNS stalled
-> for about 51 seconds and two of the probe's test writes failed, so the series stopped and starts again from the first drill after the fix.
-> The fix, cluster DNS on every node, went live in all five steps on 2026-11-20; two failed lookups in its first soak are
-> still not explained. **New rule, 2026-11-20:** every failure scenario is rehearsed first in a
-> simulated cluster shaped like home, then run live (three rehearsals ran there on 2026-11-20, two passed). **Failed:** the default-deny network probe (2026-11-10), because a new
-> pod is open for one to three seconds. **Not live:** replicated storage, an off-site backup copy, a public name.
-> No single point of failure is proven fixed yet. Figures that cannot be measured yet say "not measured yet". V1.0 is
+> **Power-off drills:** on 2026-11-19 the first (a plain worker) passed and the second found a timing flaw: cluster DNS
+> stalled for about 51 seconds and two of the probe's test writes failed. The fix, cluster DNS on every node, went live on
+> 2026-11-20, and in the power-off of 2026-11-25 no lookup on another node failed: **cluster DNS is the first single point
+> of failure proven fixed** (1 of 30). **Rule since 2026-11-20:** every failure scenario is rehearsed first in a
+> simulated cluster shaped like home, then run live. **Failed:** the default-deny network probe (2026-11-10), because a new
+> pod is open for one to three seconds. **Not live:** replicated storage, an off-site backup copy (a second copy sits on the
+> house NAS), a public name.
+> Figures that cannot be measured yet say "not measured yet". V1.0 is
 > described in dated notes. Start with
 > [*V1.0 and V2.0: what changed*](https://schultzzznet.github.io/schultzzznet/versions.html) (the diff list),
 > [*How we work*](https://schultzzznet.github.io/schultzzznet/how-we-work.html), the

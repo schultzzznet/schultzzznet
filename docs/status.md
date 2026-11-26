@@ -4,12 +4,12 @@ tldr_what: "The page of figures that are regenerated, not remembered: nodes, pod
 tldr_why: "A guard fails the site's build when these numbers are more than three weeks old, and a figure no probe can read says not measured yet, never zero and never an old number. Few status pages say how each number was counted."
 tldr_use: "A model for a status page that cannot drift from the system: generated figures, the method beside each one, and evidence that says what it does not prove."
 description: Every figure measured by a command, with the command beside it. A dated snapshot of the new platform, not a feed.
-reread: 2026-11-20
+reread: 2026-11-26
 body_read: 2026-11-20
 summary:
   - "**What it is:** the one page where figures are regenerated, not remembered. Each is read off the running platform by a script, with the command and what was counted printed beside it. Regenerated 2026-11-26."
   - "**The cluster was built on 2026-11-10 and 2026-11-11,** so nothing here is an uptime claim (the platform's [history](history.html) goes back to 2025-12-21). It is a snapshot, not a feed: a guard fails the build when the numbers are more than three weeks old."
-  - "**Evidence, with what it does not prove:** restore drills passed on 2026-11-10 and 2026-11-15; the default-deny probe of 2026-11-10 failed (a new pod open for about 1 to 3 s). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. Power-off drills: on 2026-11-19 1 passed and 1 failed on cluster DNS; after the fix, on 2026-11-25, 1 passed and 2 passed in part."
+  - "**Evidence, with what it does not prove:** restore drills passed on 2026-11-10 and 2026-11-15, and one on 2026-11-24 was partial; the default-deny probe of 2026-11-10 failed (a new pod open for 1 to 3 s). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. Power-off drills: 2026-11-19, 1 passed and 1 failed on cluster DNS; 2026-11-25, after the fix, 1 passed and 2 in part."
   - "**Single points of failure, read 2026-11-26:** 30 rows, 15 accepted, 1 fixed and 14 open; the fixed one is cluster DNS, by a power-off on 2026-11-25. Nothing is proven fixed until a machine is powered off and the app goes on, and from 2026-11-20 each scenario is first rehearsed in a simulated cluster shaped like home (three rehearsals ran there on 2026-11-20)."
   - "**Monitoring is running and read; alerts reach a chat channel, nothing pages a person.** One outside referee watches the alert heartbeat since 2026-11-16. Figures that no probe can read yet say not measured yet, never zero and never an old number."
 ---

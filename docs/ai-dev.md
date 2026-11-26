@@ -3,11 +3,11 @@ title: AI in development — the other half of the story
 tldr_what: "How a frontier AI model is used as an engineering peer on every repository behind this site, including the words on it, and how that is kept honest. The AI-at-build-time half of the platform."
 tldr_why: "It gets no exemption from the rules: its changes walk through the same checks as anyone's, and it merges only when the owner asks. On the first version an AI review called required had in fact run on none of 41 pull requests, and the page says so."
 tldr_use: "Ground rules you can adopt for working with an AI coding agent: what it may and may never touch, why a second AI identity is not independent review, and where the effect on quality is still not measured."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What it is:** a cloud model used as an engineering peer on every repository, including the words on this site. It gets one exemption from the rules: none. Its changes walk through the same checks as anyone's."
-  - "**Who reviews, honestly (2026-11-11):** in the new platform repository all 101 commits on the main branch (counted 2026-11-11) carry the AI co-author trailer, and every commit is under one human login. The merge-approval scheme is a decision record still Proposed, the reviewer identity does not exist, and required approvals are 0 per the decision record."
+  - "**Who reviews, honestly (2026-11-26):** one human login authors and merges in the new platform repository, and the AI co-author trailer is on its commits. Required approvals are 0. A proposal routes review by risk, the owner on rules, secrets and anything live and a reviewer agent with its own identity on the rest; it is Proposed, and the reviewer identity does not exist."
   - "**What the rules say:** agents merge only when the owner asks, never with the admin override, and never change protection, rulesets, environments or secrets. A second AI identity would not be independent judgement."
   - "**How much is AI-assisted:** the effect on quality is still not measured. Old repository history (before 2026-11-10) is kept, dated, further down."
   - "**The point of the page:** AI accelerates the work and verification is still the job."

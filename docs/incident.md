@@ -3,14 +3,14 @@ title: One incident, in full
 tldr_what: "A full post-mortem from the platform's first version: on 20 August 2026 a mains drop of under a minute crashed two of three control-plane machines, and the cluster's state store ran one vote short of a quorum for 9 minutes 12 seconds."
 tldr_why: "Nothing detected it and nothing could have: a person felt the lights go out and asked. No data was lost and it recovered without help, which is exactly why it would have stayed invisible. The outage was the experiment the drills had not run."
 tldr_use: "A blameless post-mortem to use as a model, and a question to put to your own cluster: if your control plane lost quorum for nine minutes tonight, what would tell you?"
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What happened:** on 20 August 2026 mains power to the building dropped for under a minute. Two of the three control-plane machines hard-crashed, and for 9 minutes 12 seconds the survivor was the only reachable member of the cluster's state store, one vote short of a quorum. By this platform's own taxonomy that is a SEV1."
   - "**How it ended:** no data lost, no user impact, full recovery with no human action. **Nothing detected it, and nothing could have:** it was found because a person felt the lights go out and asked for a status check."
   - "**Why it is published:** a summary of an incident is the easy part to write and the part that teaches least. This is a condensed rewrite of the private post-mortem with the machine names removed and nothing softened. Its sharpest line: the outage was the experiment the drills had not run, run for real by the electricity company."
-  - "**Since then:** state-store monitoring was added on 3 September, but that was a capability of V1.0, retired on 2026-11-10. **On 2026-11-11 the monitoring tenant for the new cluster is merged but not yet applied, so no monitoring runs there and nothing would fire on a quorum loss.** I have no record of a drill that cut power to a control-plane member."
-  - "**Reliability numbers:** I have no record of an enforced SLO on the new platform, as of 2026-11-11, and its storage recovery point has no basis beyond the database layer. The old numbers are kept, labelled V1.0, 2026-10-09."
+  - "**Since then (2026-11-26):** the new cluster's monitoring runs since 2026-11-11 and its alerts reach a chat channel since 2026-11-16; nothing pages a person. The power-off drills so far have switched off worker machines only; no drill has cut power to a control-plane member."
+  - "**Reliability numbers:** a sign-in service level objective is live since 2026-11-17, and its probe cannot see a login database outage (open). Storage recovery has no basis beyond the database layer. The old numbers are kept, labelled V1.0, 2026-10-09."
 ---
 
 {% assign open_items = 2 %}

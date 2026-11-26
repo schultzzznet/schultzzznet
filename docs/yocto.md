@@ -3,13 +3,13 @@ title: Embedded — a custom Linux image with a real supply chain
 tldr_what: "The embedded side: a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots with RAUC, with a rollback proven on hardware, a reproducible remote build and a bill of materials."
 tldr_why: "The best story is making a vulnerability scanner tell the truth: the obvious setup reports zero findings on an image with known vulnerabilities. The page also retracts two false claims and records a real automatic fall-back to the other slot after power cuts."
 tldr_use: "A worked signed-OTA setup for a small board, the steps that turn a scanner's zero into a short list a person can act on, and the limits that remain without secure boot."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-10-09
 summary:
-  - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and producing a bill of materials. The tracker it fed was inside V1.0 and is gone since 2026-11-10; a new one is planned, not built."
+  - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and producing a bill of materials. The tracker it fed was inside V1.0 and is gone since 2026-11-10; a new one is not built (2026-11-26)."
   - "**The best story:** making a scanner tell the truth. The obvious implementation reports zero findings on an image that demonstrably has known vulnerabilities; getting from zero, to about a hundred raw matches, to a short list a person can act on is the engineering."
   - "**Two claims were false on 27 October** (nightly upload refused since at least 24 September; no device reporting since 1 September). The fix was never shown to have run, and the tracker is now gone (2026-11-10), which supersedes the device-reporting claim as well: see [below](#two-claims-on-this-page-were-false-on-27-october)."
-  - "**Still true, and used lately:** the A/B path now carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots."
+  - "**Still true, and used lately:** the A/B path carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots. The board does not report to the new cluster (planned)."
 ---
 
 # The embedded side: Yocto, OTA, and making a scanner tell the truth

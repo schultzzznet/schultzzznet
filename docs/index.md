@@ -3,13 +3,13 @@ title: The estate
 tldr_what: "A product production platform: one person, with a frontier AI model as a reviewed peer, runs the whole path from an idea to a running app, built from current open-source practice on six retired laptops and small desktops. DevSecOps is one layer of it: code in git, signed images, encrypted secrets, drilled databases, CI at home."
 tldr_why: "It is broken on purpose and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it holds up on this hardware, it holds up anywhere."
 tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
-reread: 2026-11-20
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What it is:** a product production platform: the path from an idea to a running app, with DevSecOps as one layer, built from the current state of the art on retired hardware, to prove that is possible and to be ready for any app, the killer app included. Reliability is the aim, not yet a claim. A training system, on purpose."
-  - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write, one design flaw (the pooler) found and fixed, one miss still open. The default-deny probe failed (a 1-3 s gap at pod start)."
-  - "**Power-off drills (2026-11-19):** the first passed; the second found cluster DNS stalling for about 51 s, and the fix, cluster DNS on every node, went live in all five steps on 2026-11-20, so the series starts again from the first drill. From 2026-11-20 every failure scenario is rehearsed in a simulated cluster shaped like home before it runs live. No single point is proven fixed yet ([Progress](progress.html))."
-  - "**Not live:** alerts that page a person (they reach a chat channel), replicated storage, an off-site backup copy, a public name, two of the three reference apps."
+  - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes), and one on 2026-11-24 was partial (an older backup stopped at a segment the store could not serve). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. The default-deny probe failed (a 1-3 s gap at pod start)."
+  - "**Power-off drills:** on 2026-11-19 the second found cluster DNS stalling for about 51 s; the fix, DNS on every node, went live on 2026-11-20, and in the power-off of 2026-11-25 no lookup on another node failed. Cluster DNS is the first single point proven fixed, 1 of 30 ([Progress](progress.html)). Every failure scenario is now rehearsed in a simulated cluster shaped like home before it runs live."
+  - "**Not live (2026-11-26):** alerts that page a person (they reach a chat channel), replicated storage, an off-site backup copy (a second copy sits on the house NAS), a public name, two of the three reference apps."
   - "**History:** the cluster is new; the platform is not. V1.0 ran from 2025-12-21 to 2026-11-10 (Docker Swarm first, k3s from 2026-04, Swarm retired 2026-06-09): 2,051 commits and 226 merged pull requests, written up here in public since 2026-04-18. V2.0 is its next step on the same six machines: [History](history.html)."
   - "**V1.0 against V2.0:** [a dated diff list](versions.html), including where V1.0 did better. V2.0 is declarative and pull in the cluster, scripted and push at the edges, so not fully GitOps yet ([two axes](how-we-work.html#two-axes-what-you-write-and-who-applies-it)). V1.0's own figures stay lower on this page under dated headings; none is a claim about the new cluster."
 ---
@@ -113,10 +113,9 @@ with a commit in every calendar month from December 2025 to November 2026 ([Hist
 receipts in this public repository). On 2026-11-10 it was torn down, and the same six machines were rebuilt as a new K3s
 cluster that day and the next: about {{ c.age_days }} days old by the count below, so no uptime is claimed, and
 reliability is the aim, not yet a claim. The drills are in the *In short* block below and on
-[Reliability](reliability.html). That block was read on 2026-11-20 and leaves out three things: one miss from the
-software drills is still open (with both backup-plugin pods down the failover started late); two failed lookups in the
-first soak of the DNS fix are not explained; and on 2026-11-25 the power-off series started again and cluster DNS became
-the first single point of failure proven fixed ({{ ev.single_points_fixed }} of
+[Reliability](reliability.html). Two things it leaves out: one miss from the software drills
+is still open (with both backup-plugin pods down the failover started late), and two failed lookups in the first soak of the
+DNS fix are not explained. Single points proven fixed by a power-off: {{ ev.single_points_fixed }} of
 {{ ev.single_points_accepted | plus: ev.single_points_fixed | plus: ev.single_points_open }} rows in the register:
 [Progress](progress.html)).
 
