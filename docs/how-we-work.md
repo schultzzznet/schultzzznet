@@ -1,5 +1,8 @@
 ---
 title: How we work
+tldr_what: "The working practice behind the platform: how changes are made, checked, approved, broken on purpose and recovered. Each practice carries a date and one of four words: proven, built, planned or open."
+tldr_why: "Practices are shown working, not just described: a hand patch reverted by Flux, restores from the backup store alone, 17 live failover drills. A simulation reproduced in minutes a DNS flaw that a review on paper had missed, so every scenario is now rehearsed before it runs live."
+tldr_use: "A checklist of habits to hold your own team to: git as the only way in, secrets encrypted in git, decision and run records, restore drills, and a failure-drill ladder from a CI gate to pulling the plug. Also a clear way to tell GitOps from merely declarative."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -12,6 +15,8 @@ summary:
 ---
 
 # How we work
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 {% assign hw_ob = site.data.stats.observability %}

@@ -23,6 +23,7 @@
     - { title: "3: Flux and GitOps", url: /academy-flux.html }
 - section: Apps
   pages:
+    - { title: Product practice, url: /product.html }
     - { title: Applications of the platform, url: /applications.html }
     - { title: The reference apps, url: /apps.html }
 - section: AI

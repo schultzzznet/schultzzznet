@@ -1,5 +1,8 @@
 ---
 title: What I'd do differently
+tldr_what: "The list of things that went wrong while building the platform, each with what it cost. Several are still visible in the system today. Regret without a number attached does not count as an entry."
+tldr_why: "The recurring ones are the useful ones: believing status output, over and over; two sources of truth, every time; DNS that was highly available on paper and stalled for 51 seconds in a power cut; the same network fault, twice."
+tldr_use: "Mistakes you can avoid without paying for them yourself, and, for anyone hiring, probably the most informative page on the site. What the owner would keep unchanged is in lesson 8."
 reread: 2026-11-21
 body_read: 2026-11-21
 summary:
@@ -11,6 +14,8 @@ summary:
 ---
 
 # What I'd do differently
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

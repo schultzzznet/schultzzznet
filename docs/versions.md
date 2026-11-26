@@ -1,5 +1,8 @@
 ---
 title: "V1.0 and V2.0: what changed"
+tldr_what: "A row-by-row diff of the platform's first version (V1.0, retired 2026-11-10) against its rebuild (V2.0, built the same week on the same six machines): 70 rows in 16 areas, each dated and given a status word."
+tldr_why: "Rebuilds are usually written up as progress. This one lists 30 rows where the old version was better, among them replicated storage, a public entrance, rehearsed upgrades and read alerts, and 17 things not rebuilt yet."
+tldr_use: "A template for planning or reviewing your own platform rebuild: which capabilities to carry over, change, drop or defer, and an honest way to report the step backwards that every rebuild takes."
 description: A dated diff list between the retired cluster (V1.0) and the K3s home site (V2.0), area by area, with a status word on every V2.0 row.
 reread: 2026-11-20
 body_read: 2026-11-11
@@ -13,6 +16,8 @@ summary:
 ---
 
 # V1.0 and V2.0: what changed
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

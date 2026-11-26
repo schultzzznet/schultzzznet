@@ -1,5 +1,8 @@
 ---
 title: "Academy: CI at home"
+tldr_what: "Module 1 of the Academy: how every pull request job runs on two old desktop machines at home, one fresh virtual machine per job that takes exactly one job and is then deleted."
+tldr_why: "It exists because the hosted minutes and a $20 limit ran out and every hosted job failed within a second. Each job VM holds no secret and has no route out except an allow-list proxy and DNS. 470 jobs in five days, median wait 1.2 minutes."
+tldr_use: "A design for cheap, isolated self-hosted CI you can copy, the race it failed once and how that was guarded, and an exercise that builds an allow-list CI job with k3d on a laptop in about ten minutes."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -11,6 +14,8 @@ summary:
 ---
 
 # Academy 1: CI at home
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

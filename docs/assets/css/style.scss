@@ -67,8 +67,68 @@
   .in-short-foot { margin: 0.3rem 0 0; font-size: 0.78rem; opacity: 0.75; }
 }
 
+// The three-answer lead above it (docs/_includes/tldr.html): what this is, why it is interesting, what you can use it
+// for. A full frame with a teal top edge, so it reads as the page's opening and not as a second status block; the
+// labels sit beside the answers on a wide screen and above them on a phone.
+.tldr {
+  margin: 1.2rem 0 1.4rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #c9dfdb;
+  border-top: 4px solid #157878;
+  border-radius: 6px;
+  background: #f8fbfb;
+  font-size: 1.05rem;
+  line-height: 1.5;
+
+  dl { margin: 0; padding: 0; }
+
+  .tldr-row {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    gap: 0.1rem 1.2rem;
+    align-items: baseline;
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(127, 127, 127, 0.2);
+
+    &:first-child { border-top: 0; }
+  }
+
+  // The theme styles `.main-content dl dt` and `dl dd` (a top margin, a size, a bottom margin); `dl dt` here matches
+  // that weight and comes later, so the lead's own values win.
+  dl dt {
+    margin: 0;
+    padding: 0;
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #157878;
+  }
+
+  dl dd { margin: 0; padding: 0; font-size: inherit; min-width: 0; overflow-wrap: anywhere; }
+
+  @media (max-width: 42em) {
+    padding: 0.3rem 0.9rem;
+    font-size: 1rem;
+
+    .tldr-row { grid-template-columns: 1fr; padding: 0.55rem 0; }
+  }
+}
+
+// The theme has no dark page, so the dark lead is a self-contained card: it sets its own text and link colours.
 @media (prefers-color-scheme: dark) {
   .in-short { background: #1d2b27; border-left-color: #2ea66a; }
+  .tldr {
+    background: #1a2629;
+    border-color: #2f4a4a;
+    border-top-color: #2ea6a6;
+    color: #dfe9e6;
+
+    dl dt { color: #6fcfcf; }
+    dl dd a { color: #8fd3ff; }
+    dl dd code { background-color: rgba(255, 255, 255, 0.1); color: inherit; }
+  }
 }
 
 // The History page (docs/history.md): a timeline of bars and a month table with bars, plain HTML and CSS, no library.

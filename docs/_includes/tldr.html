@@ -1,0 +1,33 @@
+{%- comment -%}
+  The stranger's block: the first thing on every page, above the dated "In short" status block. Three answers, rendered
+  from the page's own front matter, so every page opens the same way:
+    tldr_what: what this page (or the thing it describes) is, in one or two plain sentences (required)
+    tldr_why:  why it is interesting: a number, a failure, a finding, a reusable artifact, not an adjective (required)
+    tldr_use:  what a reader can use it for (required)
+  Each is one double-quoted scalar on one line (or a folded `>-` block), 60 to 340 characters, markdown allowed, no
+  Liquid (front matter is not rendered). Nothing is rendered when tldr_what is empty.
+  scripts/check-summaries.py fails the build when a page lacks a key, a key is too short or too long, or this include
+  does not come before in-short.html.
+{%- endcomment -%}
+{%- if page.tldr_what and page.tldr_what != "" %}
+<aside class="tldr" aria-label="What this is, why it is interesting, what you can use it for">
+  <dl>
+    <div class="tldr-row">
+      <dt>What this is</dt>
+      <dd>{{ page.tldr_what | markdownify | replace: "<p>", "" | replace: "</p>", "" | strip }}</dd>
+    </div>
+    {%- if page.tldr_why and page.tldr_why != "" %}
+    <div class="tldr-row">
+      <dt>Why it is interesting</dt>
+      <dd>{{ page.tldr_why | markdownify | replace: "<p>", "" | replace: "</p>", "" | strip }}</dd>
+    </div>
+    {%- endif %}
+    {%- if page.tldr_use and page.tldr_use != "" %}
+    <div class="tldr-row">
+      <dt>What you can use it for</dt>
+      <dd>{{ page.tldr_use | markdownify | replace: "<p>", "" | replace: "</p>", "" | strip }}</dd>
+    </div>
+    {%- endif %}
+  </dl>
+</aside>
+{%- endif -%}

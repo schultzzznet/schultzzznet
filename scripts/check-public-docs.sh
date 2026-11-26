@@ -239,13 +239,15 @@ fi
 
 # A fast reader gets an "In short" block on every page, and the block must not be allowed to go stale: it is the one
 # thing a reader trusts without reading the rest. (Also the landing page's dated "what changed" list.)
+# The same check holds the three-answer lead above it (tldr_what, tldr_why, tldr_use): what this is, why it is
+# interesting, what you can use it for.
 if [ -z "${GUARD_CONTENT_ONLY:-}" ] && [ -f docs/_data/nav.yml ] && [ -f "$here/check-summaries.py" ]; then
   if out=$(python3 "$here/check-summaries.py" --docs docs 2>&1); then
     printf 'ok:   %s\n' "every page has a fresh In short block"
   else
     fail=1
     echo "FAIL: every page has a fresh In short block"
-    echo "      Add reread:/summary: to the page's front matter and the include under its first heading, or re-read the page and move the date."
+    echo "      Add tldr_what:/tldr_why:/tldr_use: and reread:/summary: to the page's front matter and both includes (tldr.html, then in-short.html) under its first heading, or re-read the page and move the date."
     printf '      %s\n' "${out//$'\n'/$'\n      '}"
     echo
   fi

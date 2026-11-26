@@ -1,5 +1,8 @@
 ---
 title: How the platform builds and ships things
+tldr_what: "How a change gets from a pull request into the running cluster: required checks, an artifact built from main, Flux pulling it every two minutes, admission checking every image, and where CI runs. The delivery layer of the product production platform."
+tldr_why: "The cluster pulls; nothing pushes into it. The pipeline holds no cluster credential and there is no inbound path, yet a merge is live within minutes. The page also names the gaps: an unsigned delivery artifact, and a new pod open for 1 to 3 seconds before default-deny applies."
+tldr_use: "A worked pull-based delivery chain you can compare with your own, a contract an app must meet to be deployed, and a split between hosted runners for jobs that hold keys and a throwaway machine per job at home for the rest."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -10,6 +13,8 @@ summary:
 ---
 
 # The delivery chain
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

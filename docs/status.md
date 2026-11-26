@@ -1,5 +1,8 @@
 ---
 title: Status
+tldr_what: "The page of figures that are regenerated, not remembered: nodes, pods, databases, backups, policies, drills and single points, each read off the running platform by a script, with the command and what it counts printed beside it."
+tldr_why: "A guard fails the site's build when these numbers are more than three weeks old, and a figure no probe can read says not measured yet, never zero and never an old number. Few status pages say how each number was counted."
+tldr_use: "A model for a status page that cannot drift from the system: generated figures, the method beside each one, and evidence that says what it does not prove."
 description: Every figure measured by a command, with the command beside it. A dated snapshot of the new platform, not a feed.
 reread: 2026-11-20
 body_read: 2026-11-20
@@ -12,6 +15,8 @@ summary:
 ---
 
 # Live status
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

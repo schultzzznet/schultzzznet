@@ -1,5 +1,8 @@
 ---
 title: Printing — parts as code, previewed on the workstation
+tldr_what: "The mechanical side of the platform: every printed part is source code (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters, and the mesh, G-code and previews are build output."
+tldr_why: "Buy the interfaces and print everything between them: motors, boards and batteries come off a shelf, and brackets, decks and docks are a parameter change and a few hours away. Each part is published here by one command through the same leak guard as every page."
+tldr_use: "Parametric parts and a parts-as-code workflow you can adapt for your own robots and mounts, from a parameter to a spinning preview."
 reread: 2026-11-11
 body_read: 2026-10-09
 summary:
@@ -10,6 +13,8 @@ summary:
 ---
 
 # Parts as code: from a parameter to a spinning preview
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

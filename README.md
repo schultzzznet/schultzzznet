@@ -2,26 +2,34 @@
 
 **Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
 
-## What this is for
+**What this is.** A product production platform: the whole path from an idea to a running app, built from current
+open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
+DevSecOps is one layer of it: everything in git and pulled in by Flux on K3s, signed images and admission control,
+encrypted secrets, PostgreSQL with restore drills, monitoring, CI on home machines. The platform is private; the write-up
+at **<https://schultzzznet.github.io/schultzzznet/>** is public.
 
-**A training system, on purpose.** I train principles, technologies and everything around them, as deep and as hands-on
-as possible, on a **running system**: since 2026-11-10 a new cluster with one deployed reference app, and no public entrance, no users and
-**no paying customers, yet**. Before it, V1.0 ran from 2025-12-21 to 2026-11-10 (2,051 commits, 226 merged pull requests;
-[History](https://schultzzznet.github.io/schultzzznet/history.html)): it had real identity flows, real incidents and a public entrance.
+**Why it is interesting.** It is broken on purpose and the misses are published with dates. If it holds up on this
+hardware, it holds up anywhere.
 
-- **The latest stack on the weakest hardware I could put to use.** The handicap is chosen: retired laptops and small
-  desktops, to make it as hard as possible. If it runs here, it runs on any hardware; anything else is an upgrade.
-- **AI all over.** On-prem and cloud, small local models and frontier models, simple setups and elaborate ones, at
-  development time and at run time, each measured rather than trusted.
-- **Two purposes at once.** Learn the maximum until the day a killer app appears, and be ready to grab that opportunity when
-  it does. Until then everything here is learning and nothing is protected for uptime's sake; on that day the direction
-  changes on purpose, and production becomes the main line.
+- **Two replicas is a count, not a property.** Two cluster DNS replicas passed a pod-kill drill, then a power-off stalled
+  lookups for 51 seconds. DNS on every node fixed it, proven by a power-off on 2026-11-25.
+  [Lesson 15](https://schultzzznet.github.io/schultzzznet/lessons.html#15-highly-available-on-paper-is-not-highly-available)
+- **An upgrade that kept the uptime and lost the guarantee.** A PostgreSQL major-version cutover silently dropped
+  synchronous commit; for 23 days the site promised no lost writes and it was not true. An audit found it, not an alert.
+  [Reliability](https://schultzzznet.github.io/schultzzznet/reliability.html#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)
+- **Seven controls, deployed, green and doing nothing.** One reboot daemon reported "nothing to do" hourly for weeks while
+  16,002 patched-but-not-running findings piled up. [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
+- **Failover timings, fails included.** A database primary kill took 48.6 s against a 30 s target, because the pooler cached
+  a failed login. After the fix: 27.9 s. [The table](https://schultzzznet.github.io/schultzzznet/reliability.html#the-scenarios-and-how-each-piece-fared)
+- **What the AI got wrong, counted.** An AI review the site called required had run on none of 41 pull requests.
+  [AI in development](https://schultzzznet.github.io/schultzzznet/ai-dev.html#who-reviews-honestly)
 
-- I run a Kubernetes platform at home: since 2026-11-10 a new K3s cluster on six retired machines (three control-plane servers that also run workloads, three laptop agents; the ones audited date from 2011 to 2020). The cluster was built on 2026-11-10 and 11, so no uptime is claimed; the platform it continues dates from 2025-12-21 (V1.0). Monitoring is running and read (on 2026-11-20: 57 scrape targets up, 51 alert rules, 7 dashboards, about 1.3 days of history); alerts reach a chat channel since 2026-11-16, which pages nobody. Replicated storage and a public name are not there yet. V1.0 ended on 2026-11-10 and its facts sit in dated notes on the site.
-- A frontier model helps me build it, with a person approving what is merged. The small local operations agent belonged to V1.0 and is not part of this one (see the AI paragraph below).
-- The in-cluster software is open source or community edition. Claude, which I work with, is a paid service.
-- It is a **private** platform with a **public** write-up. The write-up is the deliverable; the repositories behind it are not open.
-- The rule of the whole thing: assert the property, do not trust the report.
+**What it can be used for.** The platform is kept ready to take any app from idea to production, the killer app
+included, so that on that day the app is the only thing that needs attention; the product layer (deciding what to build)
+is the youngest part. Until then it is a training system, on purpose. From the site you can take:
+[four runnable examples](examples/), failover checks to run against your own cluster, a
+[drill method](https://schultzzznet.github.io/schultzzznet/how-we-work.html#10-failure-scenarios-simulate-then-pull-the-plug), laptop exercises in the
+[Academy](https://schultzzznet.github.io/schultzzznet/academy.html), and a way of reporting where every claim has a date and *not measured yet* replaces a zero.
 
 > **Not measured yet (2026-11-20):** SBOM projects, alerts reaching a person (they reach a chat channel, which pages
 > nobody), and electricity cost.

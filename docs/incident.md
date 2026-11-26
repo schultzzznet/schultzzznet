@@ -1,5 +1,8 @@
 ---
 title: One incident, in full
+tldr_what: "A full post-mortem from the platform's first version: on 20 August 2026 a mains drop of under a minute crashed two of three control-plane machines, and the cluster's state store ran one vote short of a quorum for 9 minutes 12 seconds."
+tldr_why: "Nothing detected it and nothing could have: a person felt the lights go out and asked. No data was lost and it recovered without help, which is exactly why it would have stayed invisible. The outage was the experiment the drills had not run."
+tldr_use: "A blameless post-mortem to use as a model, and a question to put to your own cluster: if your control plane lost quorum for nine minutes tonight, what would tell you?"
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -14,6 +17,8 @@ summary:
 {% assign checked = "2026-10-09" %}
 
 # A nine-minute quorum loss that nothing detected
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 
