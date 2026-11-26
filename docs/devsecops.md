@@ -1,5 +1,8 @@
 ---
 title: DevSecOps — the whole chain, and what it actually proves
+tldr_what: "The security chain from commit to running pod, control by control, with what each control actually proves rather than what it is marketed to prove. The security layer of the product production platform."
+tldr_why: "Seven controls on the first version were configured, green and doing nothing, found by checking, not by alerts. One reboot daemon reported nothing to do, hourly for weeks, while 16,002 patched-but-not-running findings piled up."
+tldr_use: "The measurement traps as a checklist for your own controls, gates that each plant their own failure to prove they can fail, and an honest list of what admission, default-deny and signing do and do not cover."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -9,6 +12,8 @@ summary:
   - "**Not proven:** the default-deny probe failed on 2026-11-10 (a one to three second gap at pod start), encryption at rest is configured but not read back, the Flux artifact is unsigned, and vendor images are trusted by pinned digest, not by vendor signature."
   - "**Not there yet:** no host scan, no SBOM job, no alert that reaches a person, no dashboards (monitoring runs; 18 of 18 scrape targets were up on 2026-11-11), Renovate configured but not yet seen acting, and a tested restore from the secrets' recovery key."
 ---
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

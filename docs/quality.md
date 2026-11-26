@@ -1,5 +1,8 @@
 ---
 title: Testing, quality gates, and grading our own maturity
+tldr_what: "What actually stops a change from merging on the platform, read from the code host's own settings, and how the platform scores its maturity: against written objectives, with a generated count of rules built, partly built and not built."
+tldr_why: "The protection on main was tested on a throwaway branch, not on main itself, and the page says so. The old self-grades (a 3.47 radar, a 2.72 portfolio) are kept, dated, and explicitly not counted as current."
+tldr_use: "A way to measure platform maturity that a script can recount, and a reminder to read your merge rules back from the API rather than trusting the settings screen."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -12,6 +15,8 @@ summary:
 {% assign s = site.data.stats -%}
 
 # What actually gates a merge, and how the platform scores itself
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

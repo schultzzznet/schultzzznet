@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Fail when a page has no fast-reader summary, or when its prose has not been re-read lately.
+"""Fail when a page has no three-answer lead or no fast-reader summary, or when its prose has not been re-read lately.
 
 The site is long and honest and, for a fast reader, buried. Every page therefore carries an "In short" block rendered from its own
 front matter (docs/_includes/in-short.html). A block that is allowed to go stale is worse than none: it is the one thing a reader
-trusts without reading the rest. So this check, run by the leak guard and CI:
+trusts without reading the rest. Above it sits the stranger's lead (docs/_includes/tldr.html): what this is, why it is interesting,
+what you can use it for. So this check, run by the leak guard and CI:
 
+  * every docs/*.md has non-empty `tldr_what`, `tldr_why` and `tldr_use`, each TLDR_MIN_CHARS to TLDR_MAX_CHARS characters, with
+    no Liquid (front matter is not rendered) and written as valid YAML (a value holding ": " or " #" must be quoted), and
+    includes tldr.html in its body BEFORE in-short.html, so the lead is the first thing on the page;
   * every docs/*.md has `reread: YYYY-MM-DD` and a `summary:` list of 3 to 6 items, each short, and includes the block;
   * `reread` (the summary was checked against the system) is not in the future and not older than MAX_AGE_DAYS; the optional
     `body_read` (the whole body was read in full) is not later than `reread`, not in the future, and not older than
@@ -12,7 +16,7 @@ trusts without reading the rest. So this check, run by the leak guard and CI:
   * docs/_data/recently.yml (the landing page's dated "what changed" list) has well-formed, newest-first entries and its newest
     entry is not older than RECENT_MAX_AGE_DAYS, so the list cannot quietly stop being a list of recent things.
 
-Standard library only (a small YAML subset reader: scalars and one list of scalars or one-level maps), because the guard must run
+Standard library only (a small YAML subset reader: plain, quoted and folded scalars, and one list of scalars or one-level maps), because the guard must run
 anywhere with python3 and nothing installed.
 Usage: scripts/check-summaries.py [--docs DIR] [--today YYYY-MM-DD]
 """
@@ -27,6 +31,9 @@ MAX_AGE_DAYS = 45          # a summary older than this has not been re-checked; 
 MAX_BODY_AGE_DAYS = 60     # the body is longer than the summary, so it is allowed to go longer between full reads
 RECENT_MAX_AGE_DAYS = 45
 MIN_ITEMS, MAX_ITEMS, MAX_ITEM_CHARS = 3, 6, 420
+TLDR_KEYS = ("tldr_what", "tldr_why", "tldr_use")
+TLDR_MIN_CHARS, TLDR_MAX_CHARS = 60, 340   # long enough to say something, short enough to be read on the first screen
+_BLOCK = (">-", ">", "|", "|-")
 _DATE_SHAPE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -52,10 +59,30 @@ def front_matter(text):
     return (m.group(1), text[m.end():]) if m else ("", text)
 
 
+def unquote(val):
+    """A scalar as YAML reads it, as far as the pages need: matching outer quotes removed (never a quote that belongs to the
+    text, as a blind strip would), a backslash-escaped quote or backslash unescaped in double quotes, a doubled apostrophe
+    in single quotes. Anything else is returned as is."""
+    if len(val) >= 2 and val[0] == val[-1] == '"':
+        return re.sub(r'\\(["\\/])', r"\1", val[1:-1])
+    if len(val) >= 2 and val[0] == val[-1] == "'":
+        return val[1:-1].replace("''", "'")
+    return val
+
+
 def parse_front(fm):
-    """The subset the pages use: `key: scalar` and `key:` followed by `  - item` lines (items may be quoted or folded with >-)."""
-    out, key, items, folding = {}, None, None, None
+    """The subset the pages use: `key: scalar` (plain, quoted, or folded with >- over indented lines) and `key:` followed by
+    `  - item` lines (items may be quoted or folded with >-). A `key: value` splits at the FIRST colon, so a quoted value may
+    hold colons and markdown links. The raw text of each scalar is kept in out["__raw__"] so a caller can judge its quoting."""
+    out, key, items, folding, scalar = {"__raw__": {}}, None, None, None, None
+    raw_of = out["__raw__"]
     for raw in fm.split("\n"):
+        if scalar is not None and (raw.startswith(" ") or not raw.strip()):
+            scalar.append(raw.strip())
+            continue
+        if scalar is not None:
+            out[key] = " ".join(x for x in scalar if x)
+            scalar = None
         if folding is not None and (raw.startswith("    ") or not raw.strip()):
             folding.append(raw.strip())
             continue
@@ -67,21 +94,61 @@ def parse_front(fm):
             key, val = m.group(1), m.group(2).strip()
             if val == "":
                 out[key] = items = []
+            elif val in _BLOCK:
+                out[key], scalar, items = "", [], None
             else:
-                out[key] = val.strip("\"'")
+                out[key] = unquote(val)
+                raw_of[key] = val
                 items = None
             continue
         m = re.match(r"^\s+-\s*(.*)$", raw)
         if m and items is not None:
             val = m.group(1).strip()
-            if val in (">-", ">", "|", "|-"):
+            if val in _BLOCK:
                 items.append("")
                 folding = []
             else:
                 items.append(val.strip("\"'") if (val[:1] in "\"'" and val[-1:] == val[:1]) else val)
+    if scalar is not None:
+        out[key] = " ".join(x for x in scalar if x)
     if folding is not None:
         items[-1] = " ".join(x for x in folding if x)
     return out
+
+
+def check_tldr(name, meta, body, problems):
+    """The stranger's lead: three answers in the front matter, and the include that renders them above the In short block."""
+    for k in TLDR_KEYS:
+        v = meta.get(k)
+        if not isinstance(v, str) or not v.strip():
+            problems.append(f"{name}: front matter has no `{k}:` (the lead needs all of {', '.join(TLDR_KEYS)})")
+            continue
+        raw = meta["__raw__"].get(k)
+        if raw is not None and raw[:1] in "\"'" and unquote(raw) == raw:
+            problems.append(f"{name}: `{k}` opens with a quote that is not closed at the end of the line: Jekyll will not read it")
+            continue
+        if raw is not None and raw[:1] not in "\"'" and (
+                ": " in raw or " #" in raw or raw.endswith(":") or raw[:1] in "[]{}&*!|>%@`#,?-"):
+            problems.append(f"{name}: `{k}` is unquoted but holds YAML syntax (a colon and space, ' #', or a leading "
+                            f"special character): wrap the value in double quotes or Jekyll drops the page's front matter")
+            continue
+        if raw is not None and raw[:1] == '"' and re.search(r'(?<!\\)(?:\\\\)*"', raw[1:-1]):
+            problems.append(f"{name}: `{k}` has a bare double quote inside a double-quoted value: write it as \\\" or use single quotes inside")
+            continue
+        if raw is not None and raw[:1] == "'" and "'" in raw[1:-1].replace("''", ""):
+            problems.append(f"{name}: `{k}` has a bare apostrophe inside a single-quoted value: wrap the value in double quotes instead")
+            continue
+        if "{{" in v or "{%" in v:
+            problems.append(f"{name}: `{k}` contains Liquid; front matter is not rendered, type the fact")
+        elif len(v) < TLDR_MIN_CHARS:
+            problems.append(f"{name}: `{k}` is {len(v)} characters (minimum {TLDR_MIN_CHARS}): say what a stranger needs")
+        elif len(v) > TLDR_MAX_CHARS:
+            problems.append(f"{name}: `{k}` is {len(v)} characters (limit {TLDR_MAX_CHARS}): the lead is read on the first screen")
+    lead, short = body.find("include tldr.html"), body.find("include in-short.html")
+    if lead < 0:
+        problems.append(f"{name}: does not include the lead ({{% include tldr.html %}}) under its first heading, above the In short block")
+    elif 0 <= short < lead:
+        problems.append(f"{name}: includes tldr.html after in-short.html: the lead comes first, the dated status block below it")
 
 
 def check_pages(docs, today, problems):
@@ -90,6 +157,7 @@ def check_pages(docs, today, problems):
         text = open(path, encoding="utf-8").read()
         fm, body = front_matter(text)
         meta = parse_front(fm)
+        check_tldr(name, meta, body, problems)
         if "include in-short.html" not in body:
             problems.append(f"{name}: does not include the block ({{% include in-short.html %}}) right under its first heading")
         d = meta.get("reread", "")

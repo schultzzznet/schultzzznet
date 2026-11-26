@@ -1,5 +1,8 @@
 ---
 title: Embedded — a custom Linux image with a real supply chain
+tldr_what: "The embedded side: a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots with RAUC, with a rollback proven on hardware, a reproducible remote build and a bill of materials."
+tldr_why: "The best story is making a vulnerability scanner tell the truth: the obvious setup reports zero findings on an image with known vulnerabilities. The page also retracts two false claims and records a real automatic fall-back to the other slot after power cuts."
+tldr_use: "A worked signed-OTA setup for a small board, the steps that turn a scanner's zero into a short list a person can act on, and the limits that remain without secure boot."
 reread: 2026-11-11
 body_read: 2026-10-09
 summary:
@@ -10,6 +13,8 @@ summary:
 ---
 
 # The embedded side: Yocto, OTA, and making a scanner tell the truth
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

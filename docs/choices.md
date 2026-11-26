@@ -1,5 +1,8 @@
 ---
 title: Why these tools, and what got rejected
+tldr_what: "Why each tool on the platform was chosen over the obvious alternative, in three lists: deferred, rejected on principle and rejected on right-sizing, including the choices that turned out wrong and the ones that are debts."
+tldr_why: "Every rejection names the condition that would reopen it, and two such triggers have already fired and been acted on: GitOps with Flux and policy admission. Replicated storage was traded away openly, not quietly."
+tldr_use: "A worked set of tool decisions for a small Kubernetes platform where nothing may cost a licence, and a habit worth copying: write down what would change your mind before you reject something."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -15,6 +18,8 @@ summary:
 
 ![k3s nodes](https://img.shields.io/badge/k3s%20nodes-6-1A5276)
 ![right-sizing rejections with a reopen trigger](https://img.shields.io/badge/right--sizing%20rejections%20with%20a%20reopen%20trigger-all%20four%2C%20one%20reopened%2024%20Oct%202026%20and%20decided%2010%20Nov-2EA44F)
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

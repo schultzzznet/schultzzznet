@@ -1,5 +1,8 @@
 ---
 title: Applications of the platform
+tldr_what: "The products the platform is meant to carry, one section each: embedded Linux on two boards, a robot mower, a rover, 3D-printed parts, three reference apps and the killer app still to come. Each row is dated and marked proven, built, planned or open."
+tldr_why: "It is honest about the gap between a production platform and products in production: one workload is proven on the new platform so far, and the killer app does not exist yet. What does exist is what is held ready for it: an app standard, a template and launch gates."
+tldr_use: "A view of what one product production platform can carry, from a cloud app to firmware on a board to a printed bracket, and a checklist of what must be true before an app is trusted to it."
 description: Which real workloads the platform serves or is meant to serve - embedded Linux, a mower, a rover, 3D printing, the reference apps and the killer app - each with a dated status word and what the platform still lacks for it.
 reread: 2026-11-12
 body_read: 2026-11-12
@@ -11,6 +14,8 @@ summary:
 ---
 
 # Applications of the platform
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

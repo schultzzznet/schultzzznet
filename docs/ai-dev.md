@@ -1,5 +1,8 @@
 ---
 title: AI in development — the other half of the story
+tldr_what: "How a frontier AI model is used as an engineering peer on every repository behind this site, including the words on it, and how that is kept honest. The AI-at-build-time half of the platform."
+tldr_why: "It gets no exemption from the rules: its changes walk through the same checks as anyone's, and it merges only when the owner asks. On the first version an AI review called required had in fact run on none of 41 pull requests, and the page says so."
+tldr_use: "Ground rules you can adopt for working with an AI coding agent: what it may and may never touch, why a second AI identity is not independent review, and where the effect on quality is still not measured."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -12,6 +15,8 @@ summary:
 
 {% assign s = site.data.stats %}
 # AI in development, held to the same bar as AI in production
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

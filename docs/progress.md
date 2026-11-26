@@ -1,5 +1,8 @@
 ---
 title: Progress
+tldr_what: "Where the work on the platform stands, in one picture drawn from data and a few tables: the build order, the drills, the run records and the single points of failure, copied from the platform's own generated status."
+tldr_why: "The order is fixed: build, then break, then upgrade. A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a machine. Of 30 single points, one is proven fixed so far, by a power-off."
+tldr_use: "A way to show progress on a platform without a feature list: counts that a script regenerates, a phase order that stops you upgrading what has never been broken, and a register that only a real failure can move."
 description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-26.
 reread: 2026-11-26
 summary:
@@ -12,6 +15,8 @@ summary:
 {% assign c = p.counts %}
 
 # Progress
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

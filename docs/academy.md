@@ -1,5 +1,8 @@
 ---
 title: Academy
+tldr_what: "A course in the platform's major components, one module each: the problem it solves, how it works inside, how it is set up here, how it is run, what is proven, and an exercise for a laptop. Three of thirteen modules are written."
+tldr_why: "It teaches from a real running platform, failures included, rather than a tidy tutorial setup, and every module is built the same seven parts so you always know where to look. It names roles, not machines, so it carries over to any small cluster."
+tldr_use: "A structured way to learn modern platform engineering hands-on: read the big picture first, then follow the modules in order, and run each exercise on your own laptop with free tools."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -10,6 +13,8 @@ summary:
 ---
 
 # Academy
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

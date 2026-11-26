@@ -1,9 +1,12 @@
 ---
 title: The estate
+tldr_what: "A product production platform: one person, with a frontier AI model as a reviewed peer, runs the whole path from an idea to a running app, built from current open-source practice on six retired laptops and small desktops. DevSecOps is one layer of it: code in git, signed images, encrypted secrets, drilled databases, CI at home."
+tldr_why: "It is broken on purpose and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it holds up on this hardware, it holds up anywhere."
+tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-20
 body_read: 2026-11-11
 summary:
-  - "**What it is:** a DevSecOps environment for building apps from the current state of the art, on retired hardware, to prove that is possible, and to be a platform for rapidly developing, deploying and maintaining any app, the killer app included. Reliability is the aim, not yet a claim: the cluster was built on 2026-11-10, with no uptime, users or public name. A training system, on purpose."
+  - "**What it is:** a product production platform: the path from an idea to a running app, with DevSecOps as one layer, built from the current state of the art on retired hardware, to prove that is possible and to be ready for any app, the killer app included. Reliability is the aim, not yet a claim. A training system, on purpose."
   - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write, one design flaw (the pooler) found and fixed, one miss still open. The default-deny probe failed (a 1-3 s gap at pod start)."
   - "**Power-off drills (2026-11-19):** the first passed; the second found cluster DNS stalling for about 51 s, and the fix, cluster DNS on every node, went live in all five steps on 2026-11-20, so the series starts again from the first drill. From 2026-11-20 every failure scenario is rehearsed in a simulated cluster shaped like home before it runs live. No single point is proven fixed yet ([Progress](progress.html))."
   - "**Not live:** alerts that page a person (they reach a chat channel), replicated storage, an off-site backup copy, a public name, two of the three reference apps."
@@ -23,52 +26,108 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A training system, on purpose: the latest platform technology on the weakest hardware I could put to use, AI on every side, to learn as much as possible before the day a killer app needs it.
+# A product production platform on six retired machines, built with AI, broken on purpose
 
-## TL;DR: what this is, why it exists, what it is for
+{% include tldr.html %}
 
-| | |
-|---|---|
-| **What is here** | A DevSecOps environment for building apps, put together from the current state of the art and run on retired hardware: everything is code in git and applied by a reconciler (GitOps), images are signed and admission refuses unsigned or unlisted ones, secrets are encrypted in git, databases have backups and a restore drill, and monitoring and alerts run on the same cluster. Details and dates: [Platform](platform.html), [DevSecOps](devsecops.html), [Reliability](reliability.html). |
-| **Why it was made** | To prove it is possible: that one person, with AI doing much of the building and a person approving every merge, can run this whole stack well on the weakest hardware available. If it works here it works anywhere, and any other hardware is an upgrade. The proof is dated and public, including what has failed: [History](history.html), [V1.0 against V2.0](versions.html), [Lessons](lessons.html). |
-| **What it is for** | A platform for rapidly developing, deploying and maintaining any app, the reference apps today and the killer app when it arrives, and to be reliable enough that the app is the only thing that needs attention. **That reliability is the aim, not yet a claim:** the cluster is days old and has no uptime to quote. As of 2026-11-20, 17 software failure drills and the first two power-off drills have run, and no single point of failure is proven fixed yet: [Reliability](reliability.html) has the scenarios and results, and [Status](status.html) says what is proven, built, planned and open. Which real workloads it serves, or is meant to, is on [Applications of the platform](applications.html). |
+## Why it is worth your time
 
+Seven findings, each with a number and a link to the full account.
 
-**Not measured yet (2026-11-20):** SBOM projects, alerts reaching a person (they reach a chat channel, which pages nobody), and electricity cost.
+- **Two replicas is a count, not a property.** Two cluster DNS replicas on two machines passed a pod-kill drill, then
+  failed a real power-off: lookups on the other nodes stalled for 51.1 s. A throwaway cluster reproduced it in six runs of
+  six. The fix, DNS on every node, was proven by a power-off on 2026-11-25.
+  [Lesson 15](lessons.html#15-highly-available-on-paper-is-not-highly-available)
+- **Failover timings, fails included.** A database primary kill under a write probe took 48.6 s against a 30 s target,
+  because the connection pooler cached a failed login for 15 s. After the fix: 27.9 s. No acknowledged write was lost in
+  the software drills. [The table, piece by piece](reliability.html#the-scenarios-and-how-each-piece-fared)
+- **An upgrade that kept the uptime and lost the guarantee.** On V1.0 a PostgreSQL major-version cutover with no
+  maintenance window silently dropped synchronous commit. For 23 days the databases were asynchronous while this site said
+  no committed write could be lost. An audit found it, not an alert.
+  [The account](reliability.html#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)
+- **Seven controls that were deployed, green and doing nothing.** One of them: a reboot daemon checked a path inside its
+  own container and reported hourly, for weeks, that no reboot was needed, while 16,002 patched-but-not-running findings
+  piled up. [Lesson 5](lessons.html#5-believing-status-output-repeatedly) and
+  [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking)
+- **A quorum loss that nothing detected.** A mains drop of under a minute crashed two of three control-plane machines. For
+  9 minutes 12 seconds the survivor was one vote short of a quorum, and nothing monitored the state store. A person felt
+  the lights go out. [The post-mortem, in full](incident.html)
+- **CI on old desktops, one throwaway virtual machine per job.** Every pull request job runs at home since the hosted
+  minutes and the $20 limit ran out. A job's machine takes one job, holds no secret and has no route out except an
+  allow-list proxy and DNS. 470 jobs in five days; a job that waits on no other started after a median of 1.2 minutes.
+  [Academy: CI at home](academy-ci.html)
+- **What the AI got wrong, counted.** On V1.0 a request for an AI review was rejected by the code host while the job
+  stayed green: none of 41 pull requests had the review this site said was required. An operations agent wrote "critical"
+  in 79 of 96 summaries, with no critical alert firing in 69.
+  [AI in development](ai-dev.html#who-reviews-honestly), [the agent](aiops.html#the-agent-since-2026-10-26)
 
-**What it is for.** Training: principles, technologies and everything around them, learned as
-deeply and as hands-on as possible, on a system that is actually running. **The hardware is
-the handicap, chosen on purpose:** retired laptops and small desktops (the ones audited date from 2011
-to 2020), running the current stack. If it runs here, it runs anywhere, and any other hardware is an upgrade. **AI is
-involved on purpose:** a frontier cloud model helps build it, with a person approving what is merged. The
-small local model that helped run V1.0 is not part of this one.
+## What you can use it for
 
-**Why: two things at once.** Learn as much as possible until the day a killer app appears, and be
-ready to take that opportunity when it does. Until then everything here is learning, and nothing
-is protected for uptime's sake. On that day the direction changes on purpose: production becomes
-the main line and the experiments move to a branch.
+**The platform itself** is a product production platform: the whole path from an idea to an app that runs and stays up,
+deciding what to build, building it, shipping it safely and running it. DevSecOps is the delivery and run layer of it, and
+the most proven one; the product layer (testing an idea before building it, cutting it into small slices) is the youngest.
+It is kept ready for any app, so that on the day an app matters, the app is the only thing that needs attention. Until
+then it is a training system, on purpose. Today it carries one of three reference app backends (the
+hazard-warning one: Spring Boot, with a Flutter client) and its login service. The embedded Linux image, a rover and
+printed parts are the other workloads ([Applications of the platform](applications.html)). It is not a service anyone
+else can use, and its repository is private.
 
-**It is running, and it is new.** On 2026-11-10 V1.0 was torn down, and the same
-six machines were rebuilt as a new K3s cluster that day and the next. It is about
-{{ c.age_days }} days old by the count below, so no uptime is claimed. One of the three reference apps (the hazard-warning
-one) is deployed on it, with its login service. Admission control and default-deny between tenant namespaces are live. Restore
-drills passed on 2026-11-10 and 2026-11-15, with limits. **It has been broken on purpose.** On 2026-11-16 and 17, 17 software
-failure drills killed pods, database primaries and standbys, the connection pooler, the ingress, cluster DNS and admission,
-and drained nodes, each under a write probe: 15 passed and no acknowledged write was lost. They found one design flaw (the
-pooler held on to a failed login after a database failover; fixed, and the re-run passed with a thin margin) and one miss that
-is still open (with both backup-plugin pods down the failover started late). On 2026-11-19 the first power-off drills ran:
-the first passed, the second found that cluster DNS stalls for about 51 seconds when a node stops without warning. The
-series stopped there and starts again from the first drill once the fix, cluster DNS on every node, is in; on 2026-11-20 two
-of its five steps were live and the rest were held while two unexplained failed lookups are looked into. From 2026-11-20 a
-scenario is rehearsed first in a simulated cluster shaped like home, then run live. No single point of failure is proven
-fixed yet ([Reliability](reliability.html)). Everything V1.0 measured, and every
-correction it made, is kept further down under a dated heading and is not a claim about this cluster. The cluster is new;
-the platform is not: V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }}, with a commit in every calendar month from December 2025 to November 2026,
-and its [history](history.html) is measured month by month, with receipts in this public repository.
+**What you can take away:**
 
-**There are no paying customers, no users and no load at all.** The synthetic load generator went
-with V1.0. There is no public entrance and no public name. **Monitoring is running and has been read**: the
-metrics, alert and dashboard stack was merged on 2026-11-11. Its first live run failed on a missing-namespace defect in the node exporter manifests; the fix landed the same day. The metrics store runs two replicas since 2026-11-19, and at the last reading it had {{ s.observability.scrape_targets }} scrape targets up, {{ s.observability.alert_rules }} alert rules and {{ s.observability.dashboards }} dashboards. Alerts reach a chat channel since 2026-11-16 (in the first power-off drill the node-loss alerts arrived about six and a half minutes after the machine went dark); nothing pages a person. Where a figure below cannot be measured yet, it says *not measured yet*.
+- **Code.** Four commented, MIT-licensed files in [`examples/`](https://github.com/schultzzznet/schultzzznet/tree/main/examples):
+  an alert rule for a signal that sawtooths across its threshold, reboot-daemon arguments, a systemd timer trap, and a host
+  CVE scan script with a self-test that shows its own bug. Also the
+  [guard scripts](https://github.com/schultzzznet/schultzzznet/tree/main/scripts) that fail this site's build on a leaked
+  hostname or a stale number.
+- **Checks for your own cluster.** Does cluster DNS survive a machine that stops without warning, not only a pod kill?
+  Does the pooler cache a failed login after a failover? Is every replica streaming? The mechanisms are on
+  [Reliability](reliability.html) and [Lessons](lessons.html).
+- **A drill method.** A probe as referee, a time target where a miss is a fail, an abort rule, a rehearsal on a simulated
+  cluster first, and a single point counted as fixed only after a machine was powered off:
+  [How we work](how-we-work.html#10-failure-scenarios-simulate-then-pull-the-plug), [Progress](progress.html).
+- **Exercises for a laptop.** The same pull-based GitOps loop with kind and the flux command line in about 20 minutes, and
+  an allow-list CI job with k3d in about ten: [Academy](academy.html).
+- **A way of working with an AI model.** No exemption from the checks, a person approves what is merged, and review
+  findings go to a second pass told to refute them: [AI in development](ai-dev.html),
+  [lesson 13](lessons.html#13-what-outside-reviews-found).
+- **A way of reporting.** Four status words (proven, built, planned, open), a date on every claim, *not measured yet* in
+  place of a zero, retractions kept, and [a diff of V1.0 against V2.0](versions.html) that lists where the old one was
+  better.
+
+## The short account
+
+**What else is here.** Beside the cluster: an embedded Linux image with signed A/B updates ([Embedded](yocto.html)), the
+reference apps ([The apps](apps.html)), and printed parts built from source ([Printing](printing.html)). The platform
+itself, with details and dates: [Platform](platform.html), [DevSecOps](devsecops.html), [Reliability](reliability.html),
+and [Status](status.html) for what is proven, built, planned and open.
+
+**Why it is built this way.** To prove it is possible: that one person, with AI doing much of the building and a person
+approving what is merged, can run this whole stack well on the weakest hardware available. **The hardware is the handicap,
+chosen on purpose:** retired laptops and small desktops (the ones audited date from 2011 to 2020). If it runs here it runs
+anywhere, and any other hardware is an upgrade. And to learn as much as possible, hands-on, before the day a killer app
+appears. Until then nothing is protected for uptime's sake; on that day production becomes the main line and the
+experiments move to a branch.
+
+**Where it stands.** The cluster is new; the platform is not. V1.0 ran for {{ hv.days }} days from {{ hv.first_commit }},
+with a commit in every calendar month from December 2025 to November 2026 ([History](history.html), month by month, with
+receipts in this public repository). On 2026-11-10 it was torn down, and the same six machines were rebuilt as a new K3s
+cluster that day and the next: about {{ c.age_days }} days old by the count below, so no uptime is claimed, and
+reliability is the aim, not yet a claim. The drills are in the *In short* block below and on
+[Reliability](reliability.html). That block was read on 2026-11-20 and leaves out three things: one miss from the
+software drills is still open (with both backup-plugin pods down the failover started late); two failed lookups in the
+first soak of the DNS fix are not explained; and on 2026-11-25 the power-off series started again and cluster DNS became
+the first single point of failure proven fixed ({{ ev.single_points_fixed }} of
+{{ ev.single_points_accepted | plus: ev.single_points_fixed | plus: ev.single_points_open }} rows in the register:
+[Progress](progress.html)).
+
+**No paying customers, no users and no load.** The synthetic load generator went with V1.0, and there is no public name.
+Monitoring runs and has been read: merged on 2026-11-11 (its first live run failed on a missing-namespace defect in the
+node exporter manifests, fixed the same day), two metrics replicas since 2026-11-19, and at the last reading
+{{ s.observability.scrape_targets }} scrape targets up, {{ s.observability.alert_rules }} alert rules and
+{{ s.observability.dashboards }} dashboards. Alerts reach a chat channel since 2026-11-16 (about six and a half minutes
+after the machine went dark in the first power-off drill); nothing pages a person. **Not measured yet (2026-11-20):** SBOM
+projects, alerts reaching a person, and electricity cost. A figure below that cannot be measured yet says *not measured
+yet*. What V1.0 measured and corrected is kept further down under dated headings and is not a claim about this cluster.
 
 {% include in-short.html %}
 

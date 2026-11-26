@@ -174,7 +174,30 @@ summary_fault "a Recently list of thirteen entries" _data/recently.yml \
   "expected 3 to 12 entries"
 summary_fault "a Recently entry with a malformed date" _data/recently.yml \
   't = re.sub(r"^- date: \S+$", "- date: 2026-13-45", t, count=1, flags=re.M)' "bad date"
-echo "  pass  the In short check refused every planted fault"
+# --- the three-answer lead (tldr_what, tldr_why, tldr_use; docs/_includes/tldr.html): on every page, above the In short block ---
+# The same checker and the same guard rule, so the same helper. Each case edits the keys the page really carries; a page
+# that has lost them stops the suite at "changed nothing" instead of passing vacuously.
+summary_fault "a page with no tldr_why" lessons.md \
+  't = re.sub(r"^tldr_why:.*\n(?:[ \t]+.*\n)*", "", t, count=1, flags=re.M)' "front matter has no \`tldr_why:\`"
+summary_fault "a page with an empty tldr_use" lessons.md \
+  't = re.sub(r"^tldr_use:.*\n(?:[ \t]+.*\n)*", "tldr_use: \"\"\n", t, count=1, flags=re.M)' "front matter has no \`tldr_use:\`"
+summary_fault "a page that does not include the lead" lessons.md \
+  't = t.replace("{% include tldr.html %}", "")' "does not include the lead"
+summary_fault "a lead placed below the In short block" lessons.md \
+  't = t.replace("{% include tldr.html %}", "", 1).replace("{% include in-short.html %}", "{% include in-short.html %}\n\n{% include tldr.html %}", 1)' \
+  "includes tldr.html after in-short.html"
+summary_fault "a tldr_what too short to say anything" lessons.md \
+  't = re.sub(r"^tldr_what:.*\n(?:[ \t]+.*\n)*", "tldr_what: \"A list of lessons.\"\n", t, count=1, flags=re.M)' "characters (minimum"
+summary_fault "a tldr_why that is a wall of text" lessons.md \
+  't = re.sub(r"^tldr_why:.*\n(?:[ \t]+.*\n)*", "tldr_why: \"" + "word " * 80 + "\"\n", t, count=1, flags=re.M)' "read on the first screen"
+summary_fault "Liquid in a tldr_what" lessons.md \
+  't = re.sub(r"^tldr_what:.*\n(?:[ \t]+.*\n)*", "tldr_what: \"{{ site.data.stats.cluster.nodes }} machines at home run the platform these lessons were written on.\"\n", t, count=1, flags=re.M)' \
+  "contains Liquid"
+# An unquoted value with a colon is not the string it looks like: Jekyll reads it as a map or drops the front matter.
+summary_fault "an unquoted tldr_use holding a colon" lessons.md \
+  't = re.sub(r"^tldr_use:.*\n(?:[ \t]+.*\n)*", "tldr_use: Use it as a checklist: every entry names what it cost, so you can weigh it against your own setup.\n", t, count=1, flags=re.M)' \
+  "is unquoted but holds YAML syntax"
+echo "  pass  the In short check refused every planted fault, the lead's included"
 
 # --- the machine-generated stats page: freshness, completeness, and the newer leak shapes ---
 

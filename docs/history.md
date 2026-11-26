@@ -1,5 +1,8 @@
 ---
 title: "History: V1.0, then V2.0"
+tldr_what: "The history behind a young cluster: the platform's first version ran for 324 days from 2025-12-21, on Docker Swarm and then K3s, before the same six machines were rebuilt as V2.0 on 2026-11-10. Month by month, with numbers."
+tldr_why: "2,051 commits, 226 merged pull requests and 12,937 CI runs, with a commit in every calendar month. The receipts are checkable: this public repository has described the platform since April 2026 with push times recorded by GitHub."
+tldr_use: "Context for every other page, and an example of rebuilding a platform from what the old one measured or got wrong: each main change in V2.0 is traced back to a dated V1.0 lesson."
 description: V1.0 ran from 2025-12-21 to 2026-11-10, and V2.0 was built on the same machines from what it taught. Month by month, dated milestones, and receipts anyone can check.
 reread: 2026-11-11
 body_read: 2026-11-11
@@ -18,6 +21,8 @@ summary:
 {% assign window = 0 %}{% for m in h.months %}{% assign window = window | plus: m.days %}{% endfor %}
 
 # History: V1.0 ran for {{ v1.days }} days, and V2.0 was built from it
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

@@ -1,5 +1,8 @@
 ---
 title: High availability — what has it, what does not, and how we know
+tldr_what: "The platform's failure tolerance, measured: which pieces survive losing a machine, which do not, and what happened when they were tested by killing pods and powering machines off. Part one is the current platform, part two the first version."
+tldr_why: "Highly available on paper failed in practice: two DNS replicas stalled lookups for 51 s under a real power-off. A connection pooler that cached a failed login slowed a database failover to 48.6 s, then 27.9 s after the fix. The first version lost synchronous commit for 23 days unnoticed."
+tldr_use: "Failure scenarios and timings to hold against your own cluster, a single-points register where only a power-off can mark a row fixed, and a set of stories about controls that looked correct and were not."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -11,6 +14,8 @@ summary:
 ---
 
 # Single-fault tolerance, measured rather than assumed
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

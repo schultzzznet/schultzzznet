@@ -1,5 +1,8 @@
 ---
 title: Legal, licensing, and the regulatory posture nobody publishes for a home project
+tldr_what: "The less flattering questions asked of a home-built platform: the EU Cyber Resilience Act, GDPR, app-store rules and licences, graded against a stated target in public, including where it falls short."
+tldr_why: "Most platform write-ups skip this part. This one says plainly that the clause-by-clause CRA mapping is not written, that there is no automatic OS patching yet, and what a licence actually obligates you to do."
+tldr_use: "A starting list of the regulatory questions any product platform will meet before it ships, and an example of grading yourself against them in public before anyone else asks."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -11,6 +14,8 @@ summary:
 ---
 
 # CRA, GDPR, app-store rules, and what a licence actually obligates
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

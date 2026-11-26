@@ -1,5 +1,8 @@
 ---
 title: Alerting and monitoring — two models, one human
+tldr_what: "The first version's AI operations agent (retired 2026-11-10 with it): a small local model that answered questions and proposed fixes, a cloud model that graded its posts daily, and a person who approved every action."
+tldr_why: "A review of its first 96 summaries found critical in 79, with no critical alert firing in 69, and a model-supplied name passed into a command run as root. Both were fixed with argument validation, an approver list and an audit trail."
+tldr_use: "A design to borrow if you want an AI near production: proposals only, a narrow allowlisted write path, a person on every action, and a monthly graded sample with a guard that goes red when nobody grades."
 reread: 2026-11-11
 body_read: 2026-11-11
 summary:
@@ -12,6 +15,8 @@ summary:
 ---
 
 # An AI ops agent with a narrow, audited write path
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

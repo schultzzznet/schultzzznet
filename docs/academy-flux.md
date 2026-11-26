@@ -1,5 +1,8 @@
 ---
 title: "Academy: Flux and GitOps"
+tldr_what: "Module 3 of the Academy: how a merged commit becomes the state of the cluster. A workflow packs the configuration into an OCI artifact and Flux in the cluster pulls it and applies about two dozen Kustomizations in order."
+tldr_why: "Seen working, not just configured: a hand patch put back by Flux within minutes, and a DNS change live 34 seconds after its merge. It also lists every path Flux does not own, from the hosts to five objects made by hand."
+tldr_use: "A working GitOps layout to compare with yours, a list of push paths that quietly survive a GitOps move, and a laptop exercise for the same loop."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -10,6 +13,8 @@ summary:
 ---
 
 # Academy 3: Flux and GitOps
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

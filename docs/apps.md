@@ -1,5 +1,8 @@
 ---
 title: The apps
+tldr_what: "The three reference apps: Flutter clients for location sharing in invite-only groups, road-hazard warnings and messaging, with Spring Boot backends. They are the realistic load the platform proves itself against, not a product."
+tldr_why: "They exercise every layer, sign-in included, and their bugs are published: a failed token refresh was treated as a rejected token and signed people out for the wrong reason. Only the hazard-warning backend runs on the new platform so far."
+tldr_use: "A realistic small app set to test a platform with, a sign-in pattern (Authorization Code with PKCE, so the app never sees the password), and a list of the gaps a reference app is allowed to keep."
 reread: 2026-11-11
 body_read: 2026-11-11
 description: Three Flutter apps - location sharing, hazard warnings, messaging - what they do, how they sign in, what the screenshots show, and what is not finished.
@@ -13,6 +16,8 @@ summary:
 {% assign s = site.data.stats %}
 
 # The apps: the load the platform proves itself against
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 

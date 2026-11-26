@@ -1,5 +1,8 @@
 ---
 title: "Academy: the big picture"
+tldr_what: "Module 0 of the Academy: the whole road of one change, from a pull request to an object running in the cluster, through CI at home, an artifact built from main, Flux pulling it, admission checking it and a drift guard."
+tldr_why: "Six blank machines became a running site in one supervised session, and a merge reaches the cluster in about 3 to 10 minutes with no inbound path and no cluster credential in the pipeline. It also says where it is not fully GitOps yet."
+tldr_use: "The map to read before any other module, and an exercise that builds the same pull-based loop on your laptop with kind and the flux command line in about 20 minutes."
 reread: 2026-11-20
 body_read: 2026-11-20
 summary:
@@ -11,6 +14,8 @@ summary:
 ---
 
 # Academy 0: the big picture
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 
