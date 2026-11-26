@@ -4,12 +4,12 @@ tldr_what: "The embedded side: a custom Yocto Linux image for a Raspberry Pi, up
 tldr_why: "The best story is making a vulnerability scanner tell the truth: the obvious setup reports zero findings on an image with known vulnerabilities. The page also retracts two false claims and records a real automatic fall-back to the other slot after power cuts."
 tldr_use: "A worked signed-OTA setup for a small board, the steps that turn a scanner's zero into a short list a person can act on, and the limits that remain without secure boot."
 reread: 2026-11-26
-body_read: 2026-10-09
+body_read: 2026-11-26
 summary:
   - "**What it is:** a custom Yocto Linux image for a Raspberry Pi, updated over the air in signed A/B slots (RAUC), with a rollback proven on hardware, built remotely and reproducibly, and producing a bill of materials. The tracker it fed was inside V1.0 and is gone since 2026-11-10; a new one is not built (2026-11-26)."
   - "**The best story:** making a scanner tell the truth. The obvious implementation reports zero findings on an image that demonstrably has known vulnerabilities; getting from zero, to about a hundred raw matches, to a short list a person can act on is the engineering."
   - "**Two claims were false on 27 October** (nightly upload refused since at least 24 September; no device reporting since 1 September). The fix was never shown to have run, and the tracker is now gone (2026-11-10), which supersedes the device-reporting claim as well: see [below](#two-claims-on-this-page-were-false-on-27-october)."
-  - "**Still true, and used lately:** the A/B path carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots. The board does not report to the new cluster (planned)."
+  - "**Still true, and used lately:** the A/B path carries an image for a small wheeled test rig, where power cuts during boot caused an unplanned, automatic fall-back to the other slot. Limits as before: no secure boot, and the bootloader and kernel are shared between slots. The board does not report to the new cluster: the owner retired the fleet heartbeats for now on 2026-11-22."
 ---
 
 # The embedded side: Yocto, OTA, and making a scanner tell the truth
@@ -28,7 +28,8 @@ summary:
 A custom Yocto layer that boots on a Raspberry Pi 3 B+, takes **signed A/B updates over the
 air** with a live rollback proven on hardware, and produces a bill of materials for
 vulnerability tracking. The tracker it was fed to ran inside V1.0 and was removed
-with it on 2026-11-10; a tracker on the new platform is planned, not built (2026-11-11). The board launched at $35, about a takeaway
+with it on 2026-11-10. On 2026-11-22 the owner retired the bill-of-materials upload and the device heartbeats for now, so no
+tracker is built on the new platform (2026-11-26). The board launched at $35, about a takeaway
 dinner; the supply-chain discipline around it does not know that. Getting the last part to
 work is where the interesting engineering is, because the obvious implementation produces a
 beautiful dashboard that reports nothing.
@@ -86,6 +87,13 @@ cluster and stands as written. The delivery side did, and it is gone.*
 - **What is unaffected:** the bill of materials and the VEX document are still produced by the build
   itself (not re-checked on 2026-11-11), and the A/B and rollback evidence is hardware evidence
   from 2026-08-30 to 2026-10.
+- **Update, 2026-11-26.** On 2026-11-22 the owner decided, per piece, what the new platform takes over.
+  The store for the signed update bundles is kept, as a versioned bucket in the platform's object store:
+  planned, not built. The old store was inside V1.0, and whether a copy of its releases exists has not
+  been checked yet, which is a data-loss question still open. The bill-of-materials upload and the
+  device heartbeats are retired for now, so the tracker and the fleet service above are no longer
+  planned; they come back when the fleet grows. The scheduled 03:30 run and the nightly preflight
+  were not looked at again for this revision.
 
 ---
 
@@ -107,7 +115,7 @@ flowchart LR
   VEX -.-> DT
 ```
 
-Dotted arrows are paths that existed on V1.0 and have no target today.
+Dotted arrows are paths that existed on V1.0 and have no target today (2026-11-26); both are retired for now.
 
 Two partitions, one active. An update is written to the inactive slot, the bootloader
 switches, and a failed boot falls back. That was demonstrated with a real update *and* a
@@ -144,7 +152,7 @@ control. (The traps section has what happens when the check looks at the wrong t
 
 ### Shared build cache
 
-*V1.0: the artefact repository and dependency mirror described here ran in V1.0 and were removed on 2026-11-10; what serves the build host now is not measured yet.* The downloaded **sources** were mirrored to the same artefact repository the cluster used;
+*V1.0: the artefact repository and dependency mirror described here ran in V1.0 and were removed on 2026-11-10; what serves the build host now is not measured (2026-11-26).* The downloaded **sources** were mirrored to the same artefact repository the cluster used;
 they genuinely disappear upstream, so that copy is a reproducibility guarantee. The
 intermediate **task outputs** are not copied anywhere: the build host serves its own cache
 read-only, in place. They used to be mirrored too, until the copy filled the repository, and a
@@ -163,7 +171,7 @@ nobody thinks to look.
 
 ### A daily job keeps the bill of materials alive
 
-*(The upload step of this job failed every night from at least 2026-09-24 until it was fixed by hand on 2026-10-27, and the scheduled path was never shown to work. Since 2026-11-10 its target is gone: see [above](#two-claims-on-this-page-were-false-on-27-october) and the open items.)*
+*(The upload step of this job failed every night from at least 2026-09-24 until it was fixed by hand on 2026-10-27, and the scheduled path was never shown to work. Since 2026-11-10 its target is gone, and on 2026-11-22 the owner retired the upload for now: see [above](#two-claims-on-this-page-were-false-on-27-october) and the open items.)*
 
 Once a day the build host pulls the long-term-support layer branches, rebuilds, refreshes the
 CVE database, regenerates the SBOM and VEX, and re-publishes. The layer pull matters: an LTS
@@ -286,7 +294,7 @@ Measured effect on the first build (2026-07-05): **100 raw matches became 46 lef
 triage**, and 54 were dismissed by the build system's own evidence rather than by a human's
 patience. The 46 split as 38 genuinely unpatched, 6 the upstream will not fix, and 2 too new
 for the build-time database. That split is the better number than the bare 46: none of the
-leftovers is noise. The cluster side applies the same discipline, and
+leftovers is noise. On V1.0 the cluster side applied the same discipline, and
 [the DevSecOps page](devsecops.md) covers the supply chain it belongs to. The misuse to watch
 for: a "not reachable" justification is true for a Java service whose TLS comes from the
 runtime and false for a web server or a database, and copying it from one to the other
@@ -384,7 +392,7 @@ scanner: configured, plausible, inert.
 
 ## The device reports back
 
-*(V1.0. As of 2026-10-27 this section described a capability that was not deployed, and since 2026-11-10 the fleet service it reported to is gone: see [above](#two-claims-on-this-page-were-false-on-27-october). A fleet service is planned on the new platform, not built.)*
+*(V1.0. As of 2026-10-27 this section described a capability that was not deployed, and since 2026-11-10 the fleet service it reported to is gone: see [above](#two-claims-on-this-page-were-false-on-27-october). On 2026-11-22 the owner retired the device heartbeats for now; nothing is built on the new platform (2026-11-26).)*
 
 A fielded device that cannot be seen is a device you are guessing about. Each one runs a small
 agent (a couple of hundred lines, **standard library only, no dependencies**, which is itself

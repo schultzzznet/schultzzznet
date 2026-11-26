@@ -4,11 +4,11 @@ tldr_what: "The three reference apps: Flutter clients for location sharing in in
 tldr_why: "They exercise every layer, sign-in included, and their bugs are published: a failed token refresh was treated as a rejected token and signed people out for the wrong reason. Only the hazard-warning backend runs on the new platform so far."
 tldr_use: "A realistic small app set to test a platform with, a sign-in pattern (Authorization Code with PKCE, so the app never sees the password), and a list of the gaps a reference app is allowed to keep."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 description: Three Flutter apps - location sharing, hazard warnings, messaging - what they do, how they sign in, what the screenshots show, and what is not finished.
 summary:
   - "**What they are:** three Flutter clients (Loc8 for location in invite-only groups, Warn for road hazards, Talk for messaging) and three Spring Boot services. They are the realistic load the platform proves itself against; the platform is the point."
-  - "**On the new platform (2026-11-26):** only the Warn backend is deployed, with its login service on two replicas since 2026-11-15. Loc8 is next, phone first and reachable only from the owner's devices at first; Talk follows. A sign-in by an app through the new identity provider was not shown as of 2026-11-11."
+  - "**On the new platform (2026-11-26):** only the Warn backend is deployed, with its login service on two replicas since 2026-11-15. Loc8 is next, phone first and reachable only from the owner's devices at first; Talk follows. The Warn app signed in through the new identity provider once, on 2026-11-16, on the owner's word only."
   - "**What they are not:** a product. None is in an app store, the Android builds are debug-signed, registration is closed, and the people in the screenshots are demo accounts."
   - "**How they sign in:** the identity provider's own page with Authorization Code and PKCE, so the app never sees the password. One real bug here is worth reading: a failed token refresh was treated as a rejected token and signed people out for the wrong reason."
   - "**Known gaps:** Loc8's geofence alerts are detected on the server and never shown; Warn's vote counting is naive; several settings rows do nothing; nothing tests the maps or real-time behaviour."
@@ -23,7 +23,7 @@ summary:
 
 ![Flutter](https://img.shields.io/badge/client-Flutter-02569B?logo=flutter&logoColor=white)
 ![Loc8](https://img.shields.io/badge/Loc8-not%20on%20the%20cluster-1A5276)
-![Warn](https://img.shields.io/badge/Warn-backend%20running%2C%20checked%202026--11--11-B9770E)
+![Warn](https://img.shields.io/badge/Warn-backend%20running%2C%20checked%202026--11--25-B9770E)
 ![Talk](https://img.shields.io/badge/Talk-not%20on%20the%20cluster-1F618D)
 
 Three mobile apps, each a Flutter client for Android and iOS and a Spring Boot service on
@@ -36,30 +36,36 @@ estate: identity, ingress, database, metrics, a signed image, a mobile release.
 and the Android release builds are signed with a debug key. The clients are built to talk to
 a private homelab, so a visitor cannot install one and use it. "Create account" leads to the
 identity provider's registration page, which the platform's state notes say has been
-switched off since 2026-09-29 (not re-checked today), so only I can make an account. The
+switched off since 2026-09-29 on V1.0. The new realm's file in git has it off too (read 2026-11-26; the live setting was not read), so only I can make an account. The
 people in the screenshots are three demo accounts. The apps exist to exercise the platform,
 and one of the bugs they exposed is [lesson 12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The repository holds five Flutter clients; these three are the ones this site describes.
 
-App versions: not measured yet. The earlier version figures came from V1.0's
+App versions: not measured yet (2026-11-26). The earlier version figures came from V1.0's
 generator ([the stats generator](status.html)) and are gone with it; a declared version is
 what a repository says, not a store release. Two of the apps' About dialogs carry a
 hard-coded version string that has fallen behind (see the end of this page).
 
-## What runs on the new platform, 2026-11-11
+## What runs on the new platform, 2026-11-26
 
-The cluster was wiped on 2026-11-10 and rebuilt; the new cluster is about a day old, the platform's [history](history.html) is not. The apps
+The cluster was wiped on 2026-11-10 and rebuilt on 2026-11-10 and 11; the platform's [history](history.html) is older. The apps
 are still true as software, but this is what is deployed:
 
-- **Only the Warn backend runs**, checked on 2026-11-11: 2 replicas, an autoscaler from 2 to 4, behind
-  the ingress controller on plain HTTP on the home network. It is Spring Boot 4 on Java 25, and it was
+- **Only the Warn backend runs.** It answered every request during the power-off drill of 2026-11-25.
+  Its autoscaler is set in git to 2 to 4 replicas (read 2026-11-26), behind the ingress controller on
+  plain HTTP on the home network. It is Spring Boot 4 on Java 25, and it was
   fuzzed against its own OpenAPI contract in CI (a recorded result, not a live check).
-- **Loc8 and Talk are not on the cluster.** Their backends and the Flutter clients of all three are
-  still source in the previous repository.
-- **Login through the new identity provider by an app on the home site has not been shown.** The new
-  identity provider runs in development mode with in-memory storage, so it holds nothing durable.
-- **Not recorded for the new realm:** whether registration is open, and the token lifespans. The
-  figures further down (an hour, 30 days, registration off since 2026-09-29) are V1.0's.
+- **The Warn client moved into the new repository on 2026-11-12**, pointed at the home cluster.
+- **Loc8 and Talk are not on the cluster** (2026-11-26). Their backends and Flutter clients are still
+  source in the previous repository. Loc8 is next, phone first and reachable only from the owner's
+  devices at first; Talk follows.
+- **Login through the new identity provider:** the owner's first sign-in from the Warn app worked on
+  2026-11-16 (the owner's word only; no backend call was read), and deleting an account from the app was
+  shown live the same day. The identity provider is durable since 2026-11-15: two replicas on its own
+  three-instance database.
+- **The new realm (read from git 2026-11-26):** registration is off and the app's client requires PKCE.
+  The token lifespans are not set there, so they are not recorded. The figures further down (an hour,
+  30 days, registration off since 2026-09-29) are V1.0's.
 
 ## What they look like
 
@@ -147,8 +153,8 @@ server positively rejects the refresh token (an exact `invalid_grant`), and a co
 no network keeps you in. The mechanism, and what I got wrong on the way, is in [lesson
 12](lessons.html#12-the-bug-that-signed-people-out-and-the-wrong-diagnosis-that-explained-it).
 The realm settings that went with it (token lifespans, event logging, the demo accounts) were
-code in V1.0's provisioning playbook as of 2026-10-09; the new realm's
-settings are not recorded yet (2026-11-11).
+code in V1.0's provisioning playbook as of 2026-10-09. The new realm is a file in git; its token
+lifespans are not recorded (2026-11-26).
 
 ## What they are not (yet)
 
@@ -166,7 +172,7 @@ Stated plainly, because the screenshots above flatter them.
 - **Settings rows that do nothing.** The Notifications and Privacy rows on the Loc8 and
   Talk profile pages are stubs. The About dialogs of Loc8 and Talk show a hard-coded version
   that no longer matches their `pubspec.yaml`.
-- **Tests are counted, not weighed.** The Dart test count is not measured yet (the earlier
+- **Tests are counted, not weighed.** The Dart test count is not measured yet (2026-11-26; the earlier
   count came from V1.0's generator). On 2026-10-09 the Flutter clients had Dart test
   definitions, counted not run; [how](status.md). Close to half
   of the ones for these three exercise the sign-in and refresh logic, which is where the bug
@@ -189,5 +195,5 @@ The apps are the workload, and [the platform](platform.md) is the point. They ar
 database failover mattered, why [the incident](incident.md) had somewhere to land, and why
 a synthetic traffic generator (V1.0; [the estate page](index.md#none-of-this-is-a-demo) describes it)
 had real endpoints to hit. That
-generator is gone and no load runs now (2026-11-11). Warn's backend now lives in the new private
-repository; the clients and the other backends are in the old one.
+generator is gone, and no standing load runs on the new cluster (2026-11-26). Warn's backend and
+client now live in the new private repository; the other clients and backends are in the old one.

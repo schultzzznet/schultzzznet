@@ -4,7 +4,7 @@ tldr_what: "How a change gets from a pull request into the running cluster: requ
 tldr_why: "The cluster pulls; nothing pushes into it. The pipeline holds no cluster credential and there is no inbound path, yet a merge is live within minutes. The page also names the gaps: an unsigned delivery artifact, and a new pod open for 1 to 3 seconds before default-deny applies."
 tldr_use: "A worked pull-based delivery chain you can compare with your own, a contract an app must meet to be deployed, and a split between hosted runners for jobs that hold keys and a throwaway machine per job at home for the rest."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**How a change arrives (proven 2026-11-10/11):** pull request, required checks, squash merge, a publish step builds an artifact from main, and Flux on the cluster pulls it every 2 minutes. There is no inbound path and the pipeline holds no cluster credential."
   - "**Where CI runs:** every pull request job runs at home since 2026-11-12, on a fresh virtual machine per job that holds no secret, after the included hosted minutes and a $20 spending limit ran out. How it works: [Academy: CI at home](academy-ci.html)."
@@ -19,11 +19,11 @@ summary:
 {% include in-short.html %}
 
 An application does not have to live in the platform's repository to run on it. It meets a
-contract, and the platform checks that contract instead of trusting it. This page describes the
-platform as it stands on 2026-11-11: a new cluster, brought up on 2026-11-10 and 2026-11-11 after
-the previous one was torn down, so it is about 13 hours old as this is written. Every new claim
-carries a date and a status: **proven** (a record or a live check shows it), **built-not-proven**,
-**planned** or **open**. Material about V1.0 is kept, dated, in sections marked
+contract, and the platform checks that contract instead of trusting it. This page was first written
+on 2026-11-11, about 13 hours after a new cluster was brought up on 2026-11-10 and 2026-11-11 to
+replace the one torn down. It was read in full again on 2026-11-26, when the cluster was 16 days old;
+each section says which date it describes. Every claim carries a date and a status: **proven** (a
+record or a live check shows it), **built** (in place, not proven), **planned** or **open**. Material about V1.0 is kept, dated, in sections marked
 *V1.0*. Measured counts for the new cluster are on the [generated stats](status.md)
 page as that page's measurement catches up; anything not measured there is "not measured yet" here too.
 
@@ -49,7 +49,8 @@ The colours count copies:
 
 Green is not the same as proven by a drill. In a simulation of the third power-off drill, losing a node that carries the
 ingress or a database pooler failed about half of the requests for about 45 seconds and a few more up to about 90 seconds;
-that fix is open, and the live drill has not run yet. Only the app's own images are signed; every other image must be pinned
+that fix is open, and the live drill has not run yet. Both were still true on 2026-11-26: so far only worker
+machines have been powered off. Only the app's own images are signed; every other image must be pinned
 by digest to a listed vendor. It was first drawn in pencil and redrawn in TikZ.
 
 <a href="assets/diagrams/stack.pdf"><img src="assets/diagrams/stack.png" alt="The home site as one stack: clients, entry, apps, platform services, the Kubernetes core, six nodes, host OS and hardware on the left; GitHub, CI on home runners and how each layer changes (pull, push, by hand) on the right" width="1760" loading="lazy" style="max-width:100%;height:auto"></a>
@@ -89,7 +90,7 @@ the house and holds no cluster credential. Proven in use 2026-11-10/11.
 
 ## How a change reaches the cluster
 
-*New platform, state on 2026-11-11. V1.0's staged plan is further down, under [its four stages](#v10s-four-stages-to-2026-11-10).*
+*New platform, state on 2026-11-11; the CI box in the picture is that day's (since 2026-11-12 every pull request job runs at home, see [Where CI runs](#where-ci-runs)). V1.0's staged plan is further down, under [its four stages](#v10s-four-stages-to-2026-11-10).*
 
 ```mermaid
 flowchart LR
@@ -135,17 +136,16 @@ controller instead of a daily diff.
 a single secrets unit that had to exist before the thing that decrypts it (built, applied 2026-11-10; the
 deadlock itself was recorded on the day).
 
-**Open, stated plainly (2026-11-11):**
+**Open, stated plainly (2026-11-11, re-read 2026-11-26):**
 
 - **Further delivery hardening is a known gap being worked on.** How a change is trusted on its way to the
   cluster gets more steps; the detail stays private until they are built.
 - **Helm-chart software is not reconciled.** Operators, ingress, the admission engine, certificate
-  management and the database operator are installed by the bootstrap script (read 2026-11-11: it runs the chart installs itself), because the site runs no
+  management and the database operator are installed by the bootstrap script (read 2026-11-11 and again 2026-11-26: it runs the chart installs itself), because the site runs no
   Helm controller. They are in git but not held there by a controller. Open.
-- **Default-deny has a gap at pod start (probed live 2026-11-10, recorded as a failed probe).** For about 1 to 3 seconds after a pod starts, its egress and ingress are open; after that the rules hold. Not tested: egress from the first packet under another engine, ingress from outside the cluster, DNS limits. Open.
-- **Keycloak runs in its dev profile on an in-memory database** (seen by the same probe, 2026-11-10), so it loses state on a restart. Open.
-- **Monitoring is running and read on the new cluster (2026-11-11).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 18 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. Read afterwards on the same day: 18 of 18 scrape targets up, 12 alert rules, 0 recording rules, 0 dashboards, about an hour of history. No alert is known to reach a person, so that figure and the
-  SBOM figure stay not measured yet.
+- **Default-deny has a gap at pod start (probed live 2026-11-10, recorded as a failed probe).** For about 1 to 3 seconds after a pod starts, its egress and ingress are open; after that the rules hold. Not tested: egress from the first packet under another engine, ingress from outside the cluster, DNS limits. The probe had not been run again by 2026-11-26. Open.
+- **Keycloak ran in its dev profile on an in-memory database** (seen by the same probe, 2026-11-10), so it lost state on a restart. *Update 2026-11-26:* no longer true. Since 2026-11-15 the login service runs two replicas on its own three-instance database, and account deletion in it is live since 2026-11-16.
+- **Monitoring is running and read on the new cluster (2026-11-11).** The monitoring tenant was merged into the private repository on 2026-11-11; its first live run failed on a missing namespace in the node exporter manifests, and a one-line fix for a missing namespace in the node exporter manifests landed the same day. At 07:00 UTC on 2026-11-11 all 18 Kustomizations were Ready, the metrics, alert, dashboard and state-metrics pods had been Running for under ten minutes, and the node exporter ran on all six machines. Read afterwards on the same day: 18 of 18 scrape targets up, 12 alert rules, 0 recording rules, 0 dashboards, about an hour of history. No alert was known to reach a person that day. *Update 2026-11-26:* alerts reach a chat channel since 2026-11-16, an outside dead-man's switch watches the alert heartbeat since the same day, and the metrics store runs two replicas since 2026-11-19. Nothing pages a person yet (open). The SBOM figure stays not measured yet.
 
 ---
 
@@ -164,13 +164,15 @@ What the tenant pack enforces:
 | Default-deny network policy | Nothing in or out except three allows: DNS, same-namespace traffic, and one combined outbound 443 plus tracing-port allow. Anything else is written per app. | steady state proven on the live site 2026-11-10; **fails for about 1 to 3 s after a pod starts** (recorded as a failed probe); ingress from outside and DNS limits not tested |
 | ResourceQuota and LimitRange | Each tenant has a ceiling and per-container defaults. | built, applied; the quota was patched by hand once and reverted by Flux |
 | Resource limits, probes, budgets | The manifest checker fails a manifest without them. | built, checked in CI |
-| Image signature | A first-party image must carry the CI signature. | covers one named first-party image. Policy Ready with action Deny, and first-party pods running in an enforcing namespace (live check 2026-11-11); no record shows the signature check itself. Proven on a throwaway local cluster 2026-11-07 |
+| Image signature | A first-party image must carry the CI signature. | covers one named first-party image. Policy Ready with action Deny, and first-party pods running in an enforcing namespace (live check 2026-11-11). Proven on a throwaway local cluster 2026-11-07. *Update 2026-11-26:* proven on the real site on 2026-11-20, when a probe around a live admission upgrade saw an unsigned image of ours refused and the signed one admitted (dry runs; no pod was started) |
 | Vendor images | A closed list, each pinned by digest. | a separate digest-pin policy, Ready; refused an off-list image on the real site 2026-11-10 (in the day's history, not a gate record) |
 
 **"Nothing enforces them" is no longer true.** V1.0 shipped limits, probes and a
 budget in a template and checked none of them; here the namespace and admission refuse what breaks the
 rules, and the checker catches the rest before merge. That the checker and admission agree on every
-case is not proven; the tenant-rights faults found on 2026-11-09 were fixed one by one.
+case is not proven; the tenant-rights faults found on 2026-11-09 were fixed one by one. *Update 2026-11-26:* a
+baseline pod policy is enforced by admission (Deny) since 2026-11-21, and the admission engine runs three replicas
+since 2026-11-25.
 
 **Vendor images are an open gap against our own rule.** The rule says images are admitted by signature.
 Vendor images are not signed by this platform; they pass because a reviewer put their digest on a list.
@@ -195,7 +197,7 @@ not built, exists.
 - **A kind gate on pull requests that touch the reference app:** the app is deployed onto a throwaway
   local cluster running the same tenant pack and admission, and exercised there.
 - **Contract fuzzing** against the app's OpenAPI description, in the same gate.
-- **An aggregate check, `ci-gate`, left out of the required checks until the watchdog recovers by itself.** Proof B, run on a throwaway branch pattern, 2026-11-10: after a
+- **An aggregate check, `ci-gate`, left out of the required checks until the watchdog recovers by itself** (still left out, read 2026-11-26). Proof B, run on a throwaway branch pattern, 2026-11-10: after a
   watchdog fallback, a red aggregate result won over a green run, and the pull request stayed blocked 28 minutes
   after a green run existed. On main the same block is expected but not shown; main's required checks are two others. Keeping `ci-gate` out is the intended way to avoid a stale aggregate holding a merge, not a proven result.
 
@@ -203,18 +205,19 @@ not built, exists.
 
 ## Where CI runs
 
-*New platform, 2026-11-11.*
+*New platform, 2026-11-11, with updates dated 2026-11-26.*
 
+- **Since 2026-11-12 every pull request job runs at home** (read 2026-11-26), one throwaway VM per job with no secret in it, after the included hosted minutes and the $20 limit ran out. How it works: [Academy: CI at home](academy-ci.html). The points below are the record of 2026-11-10 and 11.
 - **Mac runners were retired on 2026-11-10.** Two Ubuntu home CI builder hosts replace them, each an old (2013) desktop-class machine with about 15 GB of RAM. Each host runs one job VM at a time, fresh per job, behind an allow-list proxy, with no secret inside it. Both took jobs in parallel for the first time on 2026-11-11; those gates were started when I wrote this and have not finished, so parallel running is not yet proven.
-- **Jobs that hold a key stay on hosted runners.**
+- **Jobs that hold a key stay on hosted runners** (still so in the workflow files, read 2026-11-26: the publish and signing jobs run hosted).
 - **Proof C, a throwaway pull request, 2026-11-10:** the full kind gate passed at home on
   attempt 3, after two red runs that were flakes of the gate itself, in 32 minutes 20 seconds. Once.
 - **First real pull request, 2026-11-10:** the kind gate passed at home in one run, 33 minutes 12 seconds, with the old runners still active beside it; about 25 hosted minutes saved. Once; neither result shows it holds every time.
 - **The case is saved Actions minutes, not speed:** about 33 minutes at home against 24 to 27 hosted.
 - **Why now:** by day nine of November the included hosted minutes (3,000) were about 90 percent used: 89.5 percent by my own tally, 92 by the budget tool, a different figure (measured 2026-11-09). A $20
-  budget was set on 2026-11-09; whether it stops spend at $20 is not verified. A hosted gate costs roughly $0.15 (an estimate: about 25 minutes at $0.006, not measured). Spend guards are merged.
+  budget was set on 2026-11-09; whether it stops spend at $20 was not verified then. Both the included minutes and the $20 later ran out (read 2026-11-26). A hosted gate costs roughly $0.15 (an estimate: about 25 minutes at $0.006, not measured). Spend guards are merged.
 - **Not proven:** a per-host heartbeat is merged but was not applied to both hosts on 2026-11-10, so I do
-  not claim the two hosts share load or that failover between them works.
+  not claim the two hosts share load or that failover between them works (still not claimed, 2026-11-26).
 
 ---
 
@@ -224,9 +227,9 @@ not built, exists.
 
 - **Own images** are signed in CI with a key that only main can use. The signature is checked at admission:
   **proven on a throwaway local cluster on 2026-11-07**; the real site has the same policy Ready since
-  2026-11-10, a live check on 2026-11-11 shows it Ready with action Deny, the warn namespace set to enforce, and first-party pods running, which points to admission by signature having happened, but no record verifies it. It covers one named first-party image.
+  2026-11-10, a live check on 2026-11-11 shows it Ready with action Deny, the warn namespace set to enforce, and first-party pods running, which points to admission by signature having happened, but no record verified it that day. *Update 2026-11-26:* a probe on the real site on 2026-11-20 saw an unsigned image of ours refused and the signed one admitted (dry runs; proven). It covers one named first-party image.
 - **Vendor images** are admitted by a closed list plus a digest pin, checked by a separate policy (Ready), not by signature. Open, see above.
-- **No vulnerability tracker or SBOM store runs now.** Planned. V1.0's counts are not carried over.
+- **No vulnerability tracker or SBOM store runs (read 2026-11-26).** A weekly scan of running images is built on a branch, not live. Dependency updates are held for my approval. V1.0's counts are not carried over.
 - **Delivery hardening:** a known gap being worked on (above).
 
 One lesson holds regardless of the cluster: **a vulnerability scanner only matches what it can
@@ -432,9 +435,9 @@ was committed.
 
 ## Read next
 
-- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *V1.0 until rewritten.*
-- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *Rewritten for V2.0 on 2026-11-11; no machine has been switched off yet.*
-- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *V1.0 until rewritten.*
+- **[DevSecOps, end to end](devsecops.md)**: every gate from commit to running pod, and what each proves. *Rewritten for V2.0, with V1.0 kept under a labelled heading.*
+- **[High availability, audited](reliability.md)**: which failure domains survive losing a machine. *Rewritten for V2.0 on 2026-11-11. On 2026-11-26: worker machines have been powered off in five drills since 2026-11-19, two passed, one failed and two passed in part; no server has been powered off yet.*
+- **[The operations agent](aiops.md)**: what a local model may change on a cluster without asking. *Mostly V1.0. On the new platform a read-only agent runs since 2026-11-25, outside the cluster: it answers questions and executes nothing.*
 - **[The embedded side](yocto.md)**: from zero findings to a hundred raw matches on one image.
 
 ---

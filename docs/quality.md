@@ -4,7 +4,7 @@ tldr_what: "What actually stops a change from merging on the platform, read from
 tldr_why: "The protection on main was tested on a throwaway branch, not on main itself, and the page says so. The old self-grades (a 3.47 radar, a 2.72 portfolio) are kept, dated, and explicitly not counted as current."
 tldr_use: "A way to measure platform maturity that a script can recount, and a reminder to read your merge rules back from the API rather than trusting the settings screen."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What stops a merge (read from the hosting API, 2026-11-08):** the main branch is protected: a pull request, two named checks, linear history, administrators bound. Proven on 2026-11-08 on a throwaway branch; main's own was not tested. Only those two checks are required; the aggregate gate, the local-cluster gate and app tests are advisory."
   - "**Maturity is scored against objectives, not a ladder:** the generated status of 2026-11-26 counts 12 build-order steps (2 done, 2 done on a local cluster, 5 partly, 2 not started, 1 gated) and 110 rules (3 built, 20 partly, 87 not built). See [Progress](progress.html)."
@@ -22,14 +22,14 @@ summary:
 
 ![gates](https://img.shields.io/badge/main-protected%20%C2%B7%20PR%20%2B%202%20required%20checks-2088FF?logo=githubactions&logoColor=white)
 ![contract](https://img.shields.io/badge/API%20contract%20fuzzing-8%20real%20faults%20found%20and%20fixed%20when%20added-8A2BE2)
-![register](https://img.shields.io/badge/rules%20built-3%20of%20109%20as%20of%202026%E2%80%9111%E2%80%9110-orange)
+![register](https://img.shields.io/badge/rules%20built-3%20of%20110%20as%20of%202026%E2%80%9111%E2%80%9126-orange)
 
 A gate nobody can fail is decoration. This page is the other side of
 [the security gate table](devsecops.md): what stops a merge for a *quality* reason, what only
 advises, and, because a platform that measures everything else and exempts itself would be
 worth less than one that doesn't, how it scores its own maturity, weaknesses included.
 
-**Which platform this page describes.** On 2026-11-10 V1.0 was torn down and a new one was brought up in a new repository (about a day before this page was re-read, 2026-11-11). Statements about the new one carry a date and a status word: *proven*, *built*, *planned* or *open* (defined once on [how we work](how-we-work.html)). Everything from before is under a heading that says **V1.0**, with its own date, and is never presented as current. The generated counts of the new repository's decision records, run records, workflow files and test methods are **not measured yet** (the stats are being regenerated against the new platform; [how figures are measured](status.md)). The register in the maturity section below is the only count used here.
+**Which platform this page describes.** On 2026-11-10 V1.0 was torn down and a new one was brought up in a new repository on 2026-11-10 and 2026-11-11. This page was read in full against it on 2026-11-26. Statements about the new one carry a date and a status word: *proven*, *built*, *planned* or *open* (defined once on [how we work](how-we-work.html)). Everything from before is under a heading that says **V1.0**, with its own date, and is never presented as current. When this paragraph was written on 2026-11-11, the generated counts of the new repository's decision records, run records, workflow files and test methods were **not measured yet** ([how figures are measured](status.md)). The register in the maturity section below is the only count used here.
 
 ---
 
@@ -42,7 +42,7 @@ Unlike V1.0, **the server now refuses**. Read from the hosting API on 2026-11-08
 - **history is linear**, and squash is the only merge method;
 - there is **no merge queue**.
 
-**Only two checks are required: the main check job and the objectives-line check.** An aggregate gate job exists. It runs always and fails if any check it needs failed, was cancelled or did not run. It is **not a required check**. A test on 2026-11-10 ("proof B") found why it cannot simply be switched on: after a runner fallback one commit carries two results, a red one from the cancelled run and a green one from the re-dispatched run, and the **red result wins**, so the pull request stays blocked until the original run is re-run in full. The watchdog has to change first. The aggregate gate is deliberately not required yet; the fix is **open** (2026-11-11).
+**Only two checks are required: the main check job and the objectives-line check.** An aggregate gate job exists. It runs always and fails if any check it needs failed, was cancelled or did not run. It is **not a required check**. A test on 2026-11-10 ("proof B") found why it cannot simply be switched on: after a runner fallback one commit carries two results, a red one from the cancelled run and a green one from the re-dispatched run, and the **red result wins**, so the pull request stays blocked until the original run is re-run in full. The watchdog has to change first. The aggregate gate is deliberately not required yet; the fix is **open** (2026-11-11, and still listed as not required in the platform's decision register on 2026-11-26). Since 2026-11-12 every pull request job runs at home, one throwaway VM per job. Zero approvals are still required on 2026-11-26: one human login authors and merges, and a proposal for review routed by risk (the owner plus a reviewer agent with its own identity) is proposed, not built.
 
 **The consequence, stated plainly.** The local-cluster gate (which carries the contract fuzzing), the app build and test, and the aggregate gate are **advisory**. A red test in the reference app, or a broken manifest the required checks do not cover, can still be merged on green required checks. The aggregate gate is deliberately not required yet, with the fix open; the local-cluster gate and the app checks are advisory, and I have not yet decided whether to require them.
 
@@ -71,7 +71,7 @@ flowchart LR
 
 The split exists because the thorough version of some checks is too slow to run on
 every commit without destroying the feedback loop that makes small, frequent changes safe.
-The idea survives the move: a fast lane on every push, a heavier gate on a throwaway local cluster, and a slow lane for what is too expensive for either. **The slow lane does not exist yet.** Status, 2026-11-11: **mutation testing and the nightly dependency sweep are not on the new repository (planned)**.
+The idea survives the move: a fast lane on every push, a heavier gate on a throwaway local cluster, and a slow lane for what is too expensive for either. **The slow lane does not exist yet.** Status, 2026-11-26: **no job runs mutation testing** on the new repository (the reference app's build file carries the plugin; no workflow calls it), so it is **planned**. Dependency updates are configured (Renovate) but held for the owner's approval, so there is no running sweep either (open).
 
 **V1.0 (until 2026-11-10), kept as history.** Mutation testing ran nightly against per-app floors of 25, 35 and 35%, never blocked a pull request, and the job was red on six of the last eight scheduled nights as of 2026-10-09 (the recorded scores were 28, 37 and 39%, dated 2026-08-26). Coverage on a read of the old dashboard on 2026-08-10 had one service at 44.7% and clearing its gate and the one at 67.6% failing, on new-code rules: the gate working as designed. None of those figures describe the new platform, and **the new reference application's own test suite has not been counted in them**. Its coverage is **not measured yet**.
 
@@ -83,7 +83,7 @@ Every backend publishes an OpenAPI specification, and a property-based tester th
 generated, spec-legal inputs at the *running* service and checks the response matches what
 the spec promises, not just that the endpoint returns something.
 
-**On the new platform (2026-11-10 move review):** contract fuzzing against the reference app's OpenAPI document is part of the local-cluster gate, which is advisory (see above). When the fuzz was added (about 2026-11-07 to 2026-11-08) it **found eight real faults** in the reference app's contract, and they were fixed. One further fault, a repeated query parameter that the contract forbids but the app accepts, was found in a later CI run on 2026-11-08 and is **open** with no owner. Status: **proven** (2026-11-08) to find faults; whether eight is most of them is unknown. That is the value of the exercise: a hand-written specification describes intent, and a service under generated input shows what it does.
+**On the new platform (2026-11-10 move review):** contract fuzzing against the reference app's OpenAPI document is part of the local-cluster gate, which is advisory (see above). When the fuzz was added (about 2026-11-07 to 2026-11-08) it **found eight real faults** in the reference app's contract, and they were fixed. One further fault, a repeated query parameter that the contract forbids but the app accepts, was found in a later CI run on 2026-11-08 and was **open** with no owner when last read (2026-11-11). Status: **proven** (2026-11-08) to find faults; whether eight is most of them is unknown. That is the value of the exercise: a hand-written specification describes intent, and a service under generated input shows what it does.
 
 **V1.0 (2026-09 to 2026-10), the instructive part.** The first real run there had 132 documented operations and 496 conformance findings, 8 of them server errors. Precisely zero operations carried an explicit response-code annotation, so every response type was auto-derived from a method signature, which only describes the success path. Most findings were the tool correctly saying *"you never told me this endpoint could return this,"* not defects. That is a trap with a wrong exit and a right one:
 
@@ -96,11 +96,11 @@ The lesson was carried to the new gate: read what a finding says before counting
 
 ## Load, autoscaling, and the difference between reacting and deciding
 
-**Status, 2026-11-11: there is no load generator on the new platform** (V1.0's in-cluster generator went with it), so no load figure exists and none is claimed. Autoscaling is horizontal pod autoscaling on CPU: 2 autoscalers exist (cluster DNS and the reference app, read from the API 2026-11-11), reacting to CPU only. Nobody has loaded them to see that they scale, so the status is **built**.
+**Status, 2026-11-26: there is no load generator on the live platform** (V1.0's in-cluster generator went with it), so no live load figure exists and none is claimed. A scored load test exists on a throwaway local cluster: its one record (2026-11-11) is **partial**, because its baseline was taken on a busy machine. A small standing load against the reference app was decided on 2026-11-22 and is **planned**. Autoscaling is horizontal pod autoscaling on CPU: 2 autoscalers existed when read from the API on 2026-11-11 (cluster DNS and the reference app), reacting to CPU only; cluster DNS runs on every node since 2026-11-20, and the autoscaler count has not been re-read since. Nobody has loaded them to see that they scale, so the status is **built**.
 
-**Progressive delivery is the other side of the same honesty.** Deployments are a plain rolling update. **Rollback now means a git revert**: the in-cluster reconciler (Flux, installed since 2026-11-10) puts back whatever git says, so a hand-run rollout undo would be reverted by the reconciler. That is a cleaner rule than V1.0's, where a manual rollback did not touch git and the next deploy would reinstate the bad version; it is also less drilled: a revert through git was shown on a local cluster before the real one, and **not yet exercised on a live failure**. **Blue/green and canary rollout with automatic analysis are not built.**
+**Progressive delivery is the other side of the same honesty.** Deployments are a plain rolling update. **Rollback now means a git revert**: the in-cluster reconciler (Flux, installed since 2026-11-10) puts back whatever git says, so a hand-run rollout undo would be reverted by the reconciler. That is a cleaner rule than V1.0's, where a manual rollback did not touch git and the next deploy would reinstate the bad version; it is also less drilled: a revert through git was shown on a local cluster before the real one, and **not yet exercised on a live failure** (2026-11-11, not re-checked since). **Blue/green and canary rollout with automatic analysis are not built.**
 
-**Chaos (2026-11-11):** failure injection was tried in a **spike on a local cluster only**. There is **no scheduled injection** on the real platform. Status: **planned**.
+**Chaos (2026-11-26):** there is **no scheduled failure injection** on the real platform; it is **planned**. Failures are injected by hand, as drills: 17 software failure drills on 2026-11-16 and 17 (15 passed, none lost an acknowledged write), and power-off drills of worker machines on 2026-11-19 and 2026-11-25. Each scenario is rehearsed on a simulated home-shaped cluster before it runs live (rule since 2026-11-20). The drills are on [high availability, audited](reliability.md).
 
 ---
 
@@ -123,7 +123,7 @@ diagram.
 
 **V1.0 (until 2026-11-10):** a single command lived in the old repository that re-derived claims from the live system (inventory against the node list, pinned versions against what was running, the public-edge allowlist, four scheduled jobs). Its last recorded count on 2026-10-09 was 49 assertions with 48 holding. That command did not move.
 
-**On the new platform (2026-11-11):** documentation is asserted against the inventory by **check scripts** run in the pull-request checks, and a **generated status page** states what the checks found. Status: **built**; the checks are days old and have not yet caught a lie that a person did not find first, so they are not yet seen to be good at it.
+**On the new platform (2026-11-11):** documentation is asserted against the inventory by **check scripts** run in the pull-request checks, and a **generated status page** states what the checks found. Status: **built**. On 2026-11-11 the checks were days old and had not yet caught a lie that a person did not find first, so they were not yet seen to be good at it; that has not been re-counted since.
 
 One check on V1.0 is worth describing, because building it taught more than running it. The
 delivery pipeline signed every image and verified the signature before deploying, but nothing checked whether the images **actually running right now** were signed. Four lessons fell out, and they apply to the new checks too:
@@ -140,15 +140,15 @@ delivery pipeline signed every image and verified the signature before deploying
 
 ## Grading our own maturity: the new platform
 
-The new platform is **not scored on the old ladder**. It is scored against its own objectives and key results, and **that page is still a draft with no start date**, so there is no headline index to publish and none is invented. What exists is a generated register, the 2026-11-10 status file (written the evening before the 2026-11-11 merges, so it can lag them), that counts what has actually been done:
+The new platform is **not scored on the old ladder**. It is scored against its own objectives and key results, and **that page is still a draft with no start date**, so there is no headline index to publish and none is invented. The objectives page was still a draft on 2026-11-26. What exists is a generated register, the status file of 2026-11-26, that counts what has actually been done:
 
 | Register | Count | Breakdown |
 |---|---|---|
 | Plan steps | 12 | 2 done, 2 done on a local cluster only, 5 partly, 2 not started, 1 gated |
-| Rules (the written-down requirements) | 109 | 3 built, 19 partly, 87 not built |
-| Run records | 35 | 26 pass |
+| Rules (the written-down requirements) | 110 | 3 built, 20 partly, 87 not built |
+| Run records | 136 | 100 pass |
 
-Read honestly: **the platform is early.** Three of 109 rules are fully built, and most of what the earlier pages call "built" is a first version, a day or a week old. Of the 35 run records, 26 pass; the other nine did not pass, and are counted rather than hidden. The December 2026 re-grade was the previous repository's plan and does not apply: **no dated re-grade of the new platform is scheduled until the objectives page has a start date** (open).
+Read honestly: **the platform is early.** On 2026-11-26 three of 110 rules are fully built, and most of what the earlier pages call "built" is a first version, days or a few weeks old. Of the 136 run records, 100 pass; 23 record a fail and 2 are notes, and the rest did not pass either. They are counted rather than hidden. The December 2026 re-grade was the previous repository's plan and does not apply: **no dated re-grade of the new platform is scheduled until the objectives page has a start date** (open).
 
 ---
 
@@ -182,7 +182,7 @@ The infrastructure and operations half crossed the baseline; the product-facing 
 > **A second opinion on the security row, 2026-10-18 (V1.0).** An outside review of the whole estate
 > graded security and supply chain **3 of 5** on its own scale (not this ladder): the supply chain
 > was elite for a homelab, but the application-security and in-cluster layers were baseline, with a report-only habit that had not been broken and no admission layer or network policies. Both numbers were self-generated
-> (the reviewer is an AI model); the evidence behind each, not the digit, is the part to weigh. **Two of those findings, the missing admission layer and the missing network policies, are closed on the new platform (2026-11-10 and 2026-11-11, built, about a day old); the report-only habit is not re-measured.**
+> (the reviewer is an AI model); the evidence behind each, not the digit, is the part to weigh. **Two of those findings, the missing admission layer and the missing network policies, are closed on the new platform (built 2026-11-10 and 2026-11-11; the baseline pod policy refuses since 2026-11-21); the report-only habit is not re-measured (2026-11-26).**
 
 ### The radar, assessment dated 2026-08-06
 
@@ -215,18 +215,18 @@ The scoring was deliberately conservative, crediting only what was deployed and 
 
 ## Honest gaps
 
-Status as of 2026-11-11, on the new platform unless stated.
+Status as of 2026-11-26, on the new platform unless stated.
 
-- **Mutation testing and the dependency sweep do not exist** on the new repository (planned). V1.0 had them as advisory jobs.
-- **The aggregate gate job is deliberately not a required check yet**, and neither are the local-cluster gate or the app build and test (advisory). Proof B (2026-11-10) found that a red result from a cancelled run wins over a green re-run; the fix is open. Branch protection itself is proven only for the rules as read.
-- **Rollback is a git revert**, shown on a local cluster, not yet used on a live failure. Blue/green and canary are not built.
-- **No load generator**, so no capacity figure; autoscaling is built.
-- **Tracing is built.** A trace backend runs; no trace has been read, and the collector is not deployed. The monitoring tenant that would show metrics, alerts and dashboards was merged on 2026-11-11. Its first live run (2026-11-11) failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. Nothing from it has been read, so the alert-rule and dashboard counts are not measured yet; no alert rules or dashboards exist to count.
-- **Admission is enforced, not yet fully tested.** The earlier gap, "signing is verified in the pipeline, not at admission", is **no longer true**: admission rules run in Deny mode since 2026-11-10. What is not shown is a negative test for every rule.
-- **The rebuild was by playbook, in order, with a person watching.** It was not a hands-off rebuild, and has been done once on real hardware. The local rehearsal on a throwaway cluster covers **one distribution only**, so a result from it says little about the differences between the real machines.
-- **Backups are one copy** on one small machine; a restore drill passed once on 2026-11-10.
+- **No job runs mutation testing, and dependency updates are held** for the owner's approval (2026-11-26; planned and open). V1.0 had both as advisory jobs.
+- **The aggregate gate job is deliberately not a required check yet**, and neither are the local-cluster gate or the app build and test (advisory). Proof B (2026-11-10) found that a red result from a cancelled run wins over a green re-run; the fix was open on 2026-11-11 and the gate is still not required on 2026-11-26. Branch protection itself is proven only for the rules as read.
+- **Rollback is a git revert**, shown on a local cluster, not used on a live failure as of 2026-11-11 (not re-checked). Blue/green and canary are not built.
+- **No load generator on the live platform** (2026-11-26), so no capacity figure; a scored test on a local cluster is partial, and autoscaling is built.
+- **Tracing is built.** A trace backend runs, and a trace collector in front of it is merged and applied with it (read from git 2026-11-26). There is no record that a trace has been read, and the trace-to-log link and a restart test are not recorded. The monitoring tenant was merged on 2026-11-11. Its first live run (2026-11-11) failed on a missing-namespace defect in the node exporter manifests, the fix landed the same day, and at 07:00 UTC its pods were Running. Metrics run on two replicas since 2026-11-19, and alerts reach a chat channel since 2026-11-16, watched by one outside dead-man's switch; nothing pages a person (2026-11-26). The alert-rule and dashboard counts are not on this page.
+- **Admission is enforced, not yet fully tested.** The earlier gap, "signing is verified in the pipeline, not at admission", is **no longer true**: admission rules run in Deny mode since 2026-11-10, the baseline pod policy since 2026-11-21, on three admission replicas since 2026-11-25. What is not shown on the home site is a negative test for every rule, or a refused unsigned image of our own (2026-11-26). The artifact the reconciler pulls is unsigned.
+- **The rebuild was by playbook, in order, with a person watching.** It was not a hands-off rebuild, and has been done once on real hardware (2026-11-10). K3s moved to a newer minor release on 2026-11-18, node by node, by playbook. The local rehearsal on a throwaway cluster covers **one distribution only**, so a result from it says little about the differences between the real machines.
+- **Backups have no off-site copy** (2026-11-26). They go to an object store on one small always-on machine, with a second copy on the house NAS since about 2026-11-24. Restore drills passed on 2026-11-10 (app database) and 2026-11-15 (login database), and on a throwaway cluster on 2026-11-22; one on 2026-11-24 passed in part, when an older backup stopped silently at a log segment the store listed but could not serve (the segment was put back).
 - **No client-side crash reporting**, unchanged.
-- **Identity runs in a development mode** (2026-11-11): good enough for a reference app, not a production claim.
+- **Identity:** the login service runs on two replicas on its own three-instance database since 2026-11-15, and account deletion through it is live since 2026-11-16. It is reachable only inside the house, and nothing is public (2026-11-26), so it is not a production claim.
 
 ---
 

@@ -5,7 +5,7 @@ tldr_why: "2,051 commits, 226 merged pull requests and 12,937 CI runs, with a co
 tldr_use: "Context for every other page, and an example of rebuilding a platform from what the old one measured or got wrong: each main change in V2.0 is traced back to a dated V1.0 lesson."
 description: V1.0 ran from 2025-12-21 to 2026-11-10, and V2.0 was built on the same machines from what it taught. Month by month, dated milestones, and receipts anyone can check.
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What it is:** the history behind the new cluster. V1.0, the platform in the old private repository, ran for 324 days, from 2025-12-21 to 2026-11-10: Docker Swarm first, k3s beside it from 2026-04-04, Swarm retired on 2026-06-09. V2.0 was built on the same six machines on 2026-11-10 and 11."
   - "**V1.0 in numbers (frozen):** 2,051 commits on 198 days, with a commit in every calendar month from December 2025 to November 2026; 226 merged pull requests (the first gated merge was on 2026-08-06); 12,937 CI runs; 42 decision records."
@@ -146,6 +146,13 @@ links to the public text, with the time GitHub recorded its push; a commit can b
 - **{{ m.date }}.** {{ m.text }} {% if m.commit %}*Public:* [`{{ m.commit | slice: 0, 7 }}`]({{ repo_url }}/commit/{{ m.commit }}), pushed {{ m.on_github | slice: 0, 10 }} {{ m.on_github | slice: 11, 5 }} UTC.{% else %}*Private record.*{% endif %}
 {%- endif %}{% endfor %}
 
+The list above stops on 2026-11-11. Later V2.0 steps, read from its records on 2026-11-26: every pull request job
+running at home from 2026-11-12; the login service on its own three-instance database from 2026-11-15; alerts reaching
+a chat channel from 2026-11-16; 17 software failure drills on 2026-11-16 and 17 (15 pass); K3s moved to a newer minor
+release on 2026-11-18, node by node, by playbook; the first power-off drills from 2026-11-19, on worker machines only; a
+read-only AI operations agent from 2026-11-25. The [status page](status.html) and
+[High availability](reliability.html) carry the detail.
+
 The V2.0 repository had {{ rp.commits }} commits on {{ gen_date }} ([status](status.html)). Its own run records stay
 private; [How we work](how-we-work.html) describes them.
 
@@ -156,18 +163,18 @@ two independent axes (what you write, and who applies it), is explained in
 [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it). The status word is the one used on the
 [diff list](versions.html): proven means seen working once, on that date.
 
-| V1.0 taught | So V2.0 | Status, 2026-11-11 |
+| V1.0 taught | So V2.0 | Status, 2026-11-11, re-read 2026-11-26 |
 |---|---|---|
 | On 2026-10-21 a second push from an out-of-date checkout rolled the cluster back to an old image, where it stayed for two days. The person running a command held the only copy of what should be there. | The cluster pulls its state from git and puts a hand edit back; no CI job holds a cluster credential. | **proven** 2026-11-10 |
 | Of the hand-run steps I classified on 2026-10-27, only 19 were declarative applies a controller could own; most were checks, host automation and orchestration. | Only the cluster layer moved to declarative and pull. Checks and orchestration stay scripts, hosts stay playbooks: not fully GitOps yet. | **built**, by design |
-| Image signatures were checked by scripts, not by the cluster: 6 of 7 first-party images verified on 2026-10-27, and nothing refused the seventh. | Admission refuses vendor images that are not on a pinned list, and own images without the CI signature. | **proven** once: one real refusal, 2026-11-10 |
+| Image signatures were checked by scripts, not by the cluster: 6 of 7 first-party images verified on 2026-10-27, and nothing refused the seventh. | Admission refuses vendor images that are not on a pinned list, and own images without the CI signature. | **proven** once: one real refusal, 2026-11-10; an unsigned own image refused in a live probe, 2026-11-20 |
 | A rebuild from blank machines was never run before the teardown. | One supervised bring-up from blank machines: about 4.5 hours from the first merge to a converged site. | **proven** once, 2026-11-10 |
-| Synchronous commit was silently dropped for 23 days while the documentation said RPO 0 (2026-09-16 to 2026-10-09). | No recovery-point number is published until one is measured; a setting in a spec is not a reading. | **open** |
+| Synchronous commit was silently dropped for 23 days while the documentation said RPO 0 (2026-09-16 to 2026-10-09). | No recovery-point number is published until one is measured; a setting in a spec is not a reading. | **open** (still, 2026-11-26) |
 | Learnings lived in session notes, and the 113 incidents were collected into one register only at the end (2026-11-05). | A run record goes in the same pull request as the change, failures kept: {{ rp.records }} records on {{ gen_date }}, {{ rp.records_fail }} of them fail. | **built** |
 | Self-hosted runners held the admin credentials and the signing key, and hard resets and a full disk took them out. | Jobs that hold a key run on hosted runners, the signing key is limited to the main branch, and home builders get a fresh VM per job and no secrets. | **built** |
-| The daily drift guard ran red from 2026-11-02 to 2026-11-09 and nobody read it. | Monitoring with alert rules from 2026-11-11; an alert that reaches a person is the next requirement. | monitoring **proven** 2026-11-11; alerts to a person **open** |
+| The daily drift guard ran red from 2026-11-02 to 2026-11-09 and nobody read it. | Monitoring with alert rules from 2026-11-11; alerts reach a chat channel from 2026-11-16, with an outside dead-man's switch on the alert heartbeat. | monitoring **proven** 2026-11-11; alerts to a chat channel **proven** 2026-11-16; paging a person **open** (2026-11-26) |
 
-It is not all forward. In 30 rows of the diff list V1.0 was better, mostly in watching, scanning and surviving a lost
+It is not all forward. In 30 rows of the diff list V1.0 was better (read 2026-11-26), mostly in watching, scanning and surviving a lost
 machine, and most of that is not rebuilt yet: [what V1.0 did better](versions.html#what-v10-did-better).
 
 ## How these numbers are made

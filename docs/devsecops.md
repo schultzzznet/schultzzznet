@@ -4,7 +4,7 @@ tldr_what: "The security chain from commit to running pod, control by control, w
 tldr_why: "Seven controls on the first version were configured, green and doing nothing, found by checking, not by alerts. One reboot daemon reported nothing to do, hourly for weeks, while 16,002 patched-but-not-running findings piled up."
 tldr_use: "The measurement traps as a checklist for your own controls, gates that each plant their own failure to prove they can fail, and an honest list of what admission, default-deny and signing do and do not cover."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What it is:** the chain from commit to running pod, and for each control what it actually *proves* rather than what it is marketed to prove. The cluster was rebuilt on 2026-11-10 (the platform's [history](history.html) goes back to 2025-12-21); this page is rewritten for it, and the old material is kept under a labelled V1.0 heading (§8)."
   - "**Gates (2026-11-11):** pre-commit with a secret scan over the whole history, check scripts that each plant their own failure, a local-cluster gate, and a pull-request objectives check that runs from the base commit. Contract fuzzing found eight faults in the reference app when it was added, since fixed."
@@ -19,7 +19,7 @@ summary:
 
 ![gates](https://img.shields.io/badge/pre--commit%20hook%20ids%20%282026--11--11%29-62-24A1C1?logo=github&logoColor=white)
 ![self-tests](https://img.shields.io/badge/check%20scripts%20with%20a%20self--test%20%282026--11--11%29-30-2E2E5F)
-![admission](https://img.shields.io/badge/admission%20policies%20%282026--11--11%29-2%20of%202%20Deny-326CE5?logo=kubernetes&logoColor=white)
+![admission](https://img.shields.io/badge/admission%20policies%20%282026--11--26%29-3%20Deny%2C%202%20Audit-326CE5?logo=kubernetes&logoColor=white)
 ![netpol](https://img.shields.io/badge/default--deny%20probe%20%282026--11--10%29-FAIL%3A%201%20to%203%20s%20gap-critical)
 ![encryption](https://img.shields.io/badge/encryption%20at%20rest-configured%2C%20not%20read%20back-orange)
 
@@ -31,17 +31,19 @@ rather than what it is marketed to prove.
 describe was torn down, and a new cluster was brought up that night and on 2026-11-11 (three
 control-plane servers and three laptop agents). Sections 1 to 5 and 7 describe the new
 platform. Every claim there carries a date and one of four words: **proven** (seen working on a live run, with a date), **built** (in place, not yet seen working),
-**planned**, or **open** (defined once on [how we work](how-we-work.html)). The cluster is about a day old, so nothing here says anything about
-how it behaves over weeks. Figures that are not measured yet say so; none is carried over from
+**planned**, or **open** (defined once on [how we work](how-we-work.html)). The cluster was about a day old when this page was rewritten;
+on 2026-11-26 it has run for about two weeks, and each part below says when it was read. Figures that are not measured yet say so; none is carried over from
 V1.0. V1.0's gates, scanning, exposure and host material is in §8, in
 full, dated, and labelled as history. Section 6, the measurement traps, is kept in place
 because its lessons did not depend on the platform.
 
-> **Built, not proven: monitoring.** The monitoring tenant was merged into the main
+> **Monitoring runs; nothing pages a person (2026-11-26).** The monitoring tenant was merged into the main
 > branch on 2026-11-11 once its two secret files were added. Its first live run failed on a
 > missing-namespace defect in the node exporter manifests, and a one-line fix landed the same day.
-> At 07:00 UTC all 18 Kustomizations were Ready and the monitoring pods were Running. It was read the same day (18 of 18 scrape targets up, 12 alert rules, no dashboards); no alert is
-> known to reach a person and there are no dashboards. Anything with nothing to count says "not measured yet".
+> At 07:00 UTC all 18 Kustomizations were Ready and the monitoring pods were Running. It was read the same day (18 of 18 scrape targets up, 12 alert rules, no dashboards).
+> Since 2026-11-16 alerts reach a chat channel, and one outside dead-man's switch watches the alert
+> heartbeat. Since 2026-11-19 the metrics store runs two replicas. Nothing pages a person
+> (2026-11-26). Anything with nothing to count says "not measured yet".
 
 ---
 
@@ -55,7 +57,7 @@ proves is stated per row; "proven" means seen to fail on purpose.
 | **Pre-commit** (62 hook ids, 2026-11-11) | on the author's machine | a secret in the working tree, and a **secret scan over the whole history**, plus the check scripts below | built; each hook's self-test is proven below |
 | **Check scripts** (30 scripts in the scripts folder define a `--self-test`, 2026-11-11; 20 of them are named `check-*`, the rest are build, lint and gate helpers) | pre-commit and the pull-request workflow | each one a rule of the repository (an objective is cited, a pin has a marker, a manifest has the right shape) | proven: each self-test plants the failure and must see it caught |
 | **The kind gate** | pull request | the warn gate on a throwaway local cluster: the site applied there, then the checks against it | built, passed once: green on 2026-11-10 after two red attempts, each a flake of the gate itself and fixed since; not shown to pass every time |
-| **The aggregate ci-gate** | pull request | one check that is green only when the others are | built; deliberately **not** a required check yet, fix open (see below) |
+| **The aggregate ci-gate** | pull request | one check that is green only when the others are | built; deliberately **not** a required check yet (still so on 2026-11-26), fix open (see below) |
 | **The objectives line** | pull request, by a workflow that runs from the base commit | a pull request that does not say which objectives it touches | proven: the workflow reads the base commit, so a pull request cannot change the script that judges it |
 | **Contract fuzzing against the OpenAPI** | against the reference app | responses that break the published schema | proven: when the fuzz was added (around 2026-11-07 and 11-08) it found eight faults, since fixed. A ninth, a repeated `radius` parameter accepted, was still open on 2026-11-11 |
 
@@ -72,13 +74,16 @@ the main branch by itself.
 **What is not in the new set.** The static code analysis of the old pipeline, the web-app
 baseline scan, the exposure contract and the rate-limit contract are not part of it. The last
 two asserted properties of a public edge, and the new platform has no public entrance on
-2026-11-11 (one LAN-only ingress for the reference app), so there is nothing for them to assert (§8.4). Image vulnerability scanning and
-SBOM generation in pull requests are **planned**, not built.
+2026-11-11 (one LAN-only ingress for the reference app), so there is nothing for them to assert (§8.4).
+On 2026-11-26 there is still no public name: an edge in front of the ingress is configured from
+git since 2026-11-25, and it publishes nothing. Image vulnerability scanning and
+SBOM generation in pull requests are **planned**, not built (2026-11-26).
 
 None of these gates check who, or what, authored the commit. **A change proposed by
 [the cloud model used as a development peer](index.md) walks through the identical gates**,
-and a human reviewer is still accountable for what it produced. AI-assisted is not a bypass
-lane.
+and the owner, the one human login that merges, is accountable for what it produced. Required
+approvals are 0 (2026-11-26); a review routed by risk, by the owner and a reviewer agent with its
+own identity, is proposed, not built. AI-assisted is not a bypass lane.
 
 ---
 
@@ -107,9 +112,10 @@ pod is created (§3). The verify step is the control; the signing step is its in
 **The signing key is reachable only from the main branch.** First-party images are signed with a
 CI key stored as a secret of a GitHub environment that only the main branch may use, so a
 pull request, including one from a stranger, cannot reach a signing key. The key was rotated on
-2026-11-08. The key's custody is an open item. Status:
+2026-11-08. The key's custody is an open item (2026-11-11). Status:
 **built; the rotation is recorded, and the main-only restriction is configuration I have read
-rather than attacked.** "How many running first-party images verify" is **not measured yet**.
+rather than attacked.** "How many running first-party images verify" is **not measured yet**
+(2026-11-11); the live engine has verified the reference app's running image (§3).
 
 **Tags carry the version and the commit, never a floating `latest`.** A floating tag lets a
 rollout pull a cached older layer and report success, so "what is running" stops being
@@ -120,24 +126,28 @@ from a closed list instead (§3).
 
 ## 3. Admission: the cluster refuses what the pipeline did not build
 
-Status: **proven** on 2026-11-11 (live and Ready when read). Two policies, both
-in Deny mode, both with failure policy Fail, so if the engine cannot decide, the pod is
-refused rather than let through.
+Status: **proven** on 2026-11-11 (live and Ready when read), when there were two policies,
+both in Deny mode. On 2026-11-26 (read in git) there are five. Three are in Deny mode with
+failure policy Fail, so if the engine cannot decide, the pod is refused rather than let
+through. Two more, one for resource limits and one for allowed registries, only report.
+The engine was upgraded live on 2026-11-20, and runs three replicas since 2026-11-25.
 
 | Policy | Refuses | Status |
 |---|---|---|
-| **Image signature** | a pod whose first-party image is not signed by the CI key | proven on a throwaway local cluster on 2026-11-07 for three cases: signed passes, signed by another key is refused, unsigned is refused |
-| **Closed vendor list** | a vendor image that is not on the list, or is listed but not pinned by digest | one off-list image was refused on the real site on 2026-11-10; that is a line in the history of the day, not a gate record |
+| **Image signature** | a pod whose first-party image is not signed by the CI key | proven on a throwaway local cluster on 2026-11-07 for three cases: signed passes, signed by another key is refused, unsigned is refused. On the real site on 2026-11-20, before, during and after the live upgrade: the signed image admitted, an unsigned one refused |
+| **Closed vendor list** | a vendor image that is not on the list, or is listed but not pinned by digest | one off-list image was refused on the real site on 2026-11-10 (a line in the history of the day). Recorded on the real site on 2026-11-20 and 2026-11-25: a listed image by tag only refused, an unlisted image refused |
+| **Baseline pod policy** | a privileged pod, host namespaces or host paths, added capabilities and the like | Deny on the real site since 2026-11-21; a probe saw the four planted pods refused and the two good ones admitted |
 
 How a namespace comes under the rules: **namespaces opt in by label**, which the tenant
 template sets. The admission engine's own namespace and the operators' namespaces never opt in,
 because a policy that refuses its own engine's pods can lock the cluster out of repairing
 itself.
 
-What I have not yet recorded: the refusal of a listed image that is *not* pinned, and the
-refusal of an image signed by *another key*, on the real site. Both are written as procedures and
-neither has been run and written down (**open**). The local-cluster proof is not the same
-claim as a proof on the site that matters.
+What I have not yet recorded (2026-11-26): the refusal of an image signed by *another key*
+on the real site. It is written as a procedure and has not been run and written down
+(**open**). The local-cluster proof is not the same claim as a proof on the site that
+matters. The refusal of a listed image that is not pinned, open on 2026-11-11, was seen on the
+real site on 2026-11-20.
 
 ---
 
@@ -149,14 +159,15 @@ K3s.
 
 > **The default-deny probe failed on 2026-11-10.** The probe starts a pod and tries to reach
 > what should be denied. For a window of one to three seconds at pod start the traffic got
-> through, before the policy took effect. Status: **FAIL, open.** Two further things are not
+> through, before the policy took effect. Status: **FAIL, open**, and not re-run (2026-11-26). Two further things are not
 > tested at all: ingress from outside the namespace, and limits on DNS egress.
 
 **Pod Security** (read 2026-11-11): a restricted level is set on 6 of the 13 namespaces. Four tenant
 namespaces *enforce* restricted. One namespace enforces baseline and audits restricted. The
 reconciler's namespace only warns. The rest, which hold the engines and operators, carry no
 label. Status: **proven** (2026-11-11) as a count, **open** as a boundary: I counted labels; I did not try to
-start a privileged pod in each.
+start a privileged pod in each. Since 2026-11-21 the admission engine also refuses a pod that
+breaks the baseline pod policy in the namespaces it covers (§3).
 
 **Quota** (read 2026-11-11): 5 quota objects. A quota refused the database replicas, first on CPU limits and then on memory requests, because the namespace's totals were set for the application alone. The first
 fix was a hand patch, and it did not hold: Flux reverted every hand patch within minutes, as it should. Only a change
@@ -172,12 +183,13 @@ unit deadlocked on first apply: the decryption key had to arrive before anything
 it. Values enter by files, never typed on a command line and never passed as an argument, so
 they stay out of shell history and process lists.
 
-- **Recovery of the encrypted values from the recovery key has not been tested. Open.** An off-machine copy
-  and a tested restore are planned.
+- **Recovery of the encrypted values from the recovery key has not been tested. Open (2026-11-26).**
+  A copy of the recovery key went into a password manager on 2026-11-26; a decrypt with the
+  workstation off is still owed.
 - **Rotation of the old values is open.** The values from V1.0 remain in the
   previous repository's history until rotated.
 - **Encryption at rest** is configured in the API server's configuration. It has not been
-  read back from the live API server, so the status is **built**.
+  read back from the live API server (no record of a read-back on 2026-11-26), so the status is **built**.
 
 **Supply chain, what the digest does and does not prove.** Vendor images are admitted by digest
 from a closed list. The digest was read from the registry on a pull request and reviewed. So the
@@ -190,12 +202,15 @@ themselves once every check is green; majors wait 14 days; the security tools an
 admission and signing engines also wait 14 days and carry `needs-owner`, so they never merge
 themselves; risky areas (workflows, check scripts, hooks, the
 contract) carry a `needs-owner` label and never merge themselves; Kubernetes moves one minor
-at a time; at most 3 pull requests are open. Status: **configured, not yet seen acting.** The
-app install it waits for is pending, so every pin is frozen on 2026-11-11.
+at a time; at most 3 pull requests are open. On 2026-11-11 it was configured but not yet
+seen acting, so every pin was frozen. Status on 2026-11-26: **built, and held.** It raises
+updates, and every one waits for the owner's approval (28 were waiting on 2026-11-22); whether
+they flow on their own is the owner's open decision.
 
-**Where CI runs** (2026-11-11). Jobs that hold a key run on GitHub-hosted runners again, inside a
-$20 budget. Heavy jobs that need no secret run on a virtual machine per job on a machine at
-home.
+**Where CI runs** (2026-11-26). Every pull-request job runs at home since 2026-11-12, on one
+throwaway virtual machine per job, with no secret in that machine. Jobs that hold a key, such as
+publishing an image from the main branch, run on GitHub-hosted runners (workflows read
+2026-11-26). The included hosted minutes and a $20 spending limit have run out.
 
 ---
 
@@ -259,21 +274,23 @@ application dependencies only, without weakening what it guards against.
 
 ## 7. What this does not do
 
-Stated plainly, because a control you misunderstand is worse than one you lack. All as of
-2026-11-11.
+Stated plainly, because a control you misunderstand is worse than one you lack. Written
+2026-11-11, re-read and updated 2026-11-26.
 
 - **A scanner match is a hypothesis, not a vulnerability.** And there is no scanner in pull
-  requests yet (planned).
+  requests yet (planned, 2026-11-26).
 - **The pull-request gate is narrower than a green check suggests.** It checks the repository's
   rules, the site on a local cluster, and who is accountable for a change. It does not scan
   images or dependencies for known vulnerabilities, it has no static code analysis, and the
   aggregate check is deliberately not required. A change that introduces a vulnerable
   dependency merges clean. That is a gap, not coverage.
-- **No host scan and no reboot coordination exist on the new platform. Open.** The host layer
+- **No host scan and no reboot coordination exist on the new platform. Open (2026-11-26).** The host layer
   applies, by playbook, a firewall profile, key-only SSH and a timer for disk wear. It does not
-  patch kernels, scan them or schedule reboots. §8.5 describes what V1.0 did.
-- **No SBOM job runs.** A weekly scan from the live pods is **planned**.
-- **Runtime behaviour is not monitored for exploitation**, and monitoring is not running (see the note at the top).
+  patch kernels, scan them or schedule reboots; the host baseline writes those rules down, and
+  on 2026-11-26 the plays it names for them are still V1.0's. §8.5 describes what V1.0 did.
+- **No SBOM job runs (2026-11-26).** A weekly scan of the images that run is **built** on a branch, not live.
+- **Runtime behaviour is not monitored for exploitation (2026-11-26).** Monitoring runs, but it
+  watches health, not attacks, and nothing pages a person (see the note at the top).
 - **The default-deny gap, the unsigned Flux artifact, the vendor-digest trust and the
   unread encryption at rest** are open, each described above.
 - **Closing a tracked finding does not verify a fix.** There is no tracker on the new platform.
@@ -387,7 +404,8 @@ outbound webhook calls. Meanwhile the storage sidecars are unreachable and all-p
 ### 8.4 Exposure was asserted, not assumed (public edge, until 2026-11-10)
 
 **On the new platform there is no public entrance (2026-11-11), and the public-path contract is
-empty.** What follows is the old edge, kept for its lessons.
+empty.** On 2026-11-26 that still holds: an edge is configured from git since 2026-11-25 and
+publishes nothing. What follows is the old edge, kept for its lessons.
 
 The old public edge was **default-deny**: a short allowlist of application path prefixes, and
 everything else returned 404. Internal surfaces (health and metrics endpoints, API schema
@@ -433,7 +451,7 @@ did not have, silently, in the reassuring direction.
 
 ### 8.5 Below the application: hosts, kernels, and what "patched" means (as of 2026-10-09)
 
-**On the new platform no host scan and no reboot coordination exist (open, §7).** This is what
+**On the new platform no host scan and no reboot coordination exist (open on 2026-11-26, §7).** This is what
 V1.0 did, measured on 2026-10-09.
 
 Every node's root filesystem is inventoried and tracked continuously, alongside the
@@ -550,7 +568,9 @@ On V1.0, a scheduled agent, the one described on [its own page](aiops.md), was
 configured to poll both vulnerability trackers every 30 minutes and keep a matching set of
 tickets open in the work tracker: a new Critical or High finding opened one, a finding that
 disappeared closed it automatically. I could not find that agent running in the cluster on
-2026-10-09, so I cannot say it was polling. **None of this exists on the new platform.**
+2026-10-09, so I cannot say it was polling. **None of this exists on the new platform
+(2026-11-26).** A read-only operations agent runs since 2026-11-25, outside the cluster with a
+read-only token; it answers questions and opens no tickets.
 
 **The interesting decision was how the two systems talk, not that they do.** The
 straightforward design has the tracker push a webhook when a ticket closes, and the house
@@ -580,7 +600,10 @@ The controller was itself the source of the best lesson on that platform: it had
 deployed to the machine whose only job was to hold it. Arming it would have been a no-op
 that reported success. **"Armed" and "has fired" are different claims**: the field that
 distinguishes them is *when did this last run*, and it was on no dashboard. No chaos
-injection runs on the new platform on 2026-11-11.
+injection runs on the new platform on 2026-11-11. On 2026-11-26 there is still no scheduled
+injection; failures are drilled by hand instead (17 software drills on 2026-11-16 and 17, and
+power-off drills of worker machines since 2026-11-19), and since 2026-11-20 each scenario is
+rehearsed on a simulated cluster before it runs live. They are on the [reliability page](reliability.md).
 
 ---
 

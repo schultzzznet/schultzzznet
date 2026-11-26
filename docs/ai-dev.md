@@ -4,7 +4,7 @@ tldr_what: "How a frontier AI model is used as an engineering peer on every repo
 tldr_why: "It gets no exemption from the rules: its changes walk through the same checks as anyone's, and it merges only when the owner asks. On the first version an AI review called required had in fact run on none of 41 pull requests, and the page says so."
 tldr_use: "Ground rules you can adopt for working with an AI coding agent: what it may and may never touch, why a second AI identity is not independent review, and where the effect on quality is still not measured."
 reread: 2026-11-26
-body_read: 2026-11-11
+body_read: 2026-11-26
 summary:
   - "**What it is:** a cloud model used as an engineering peer on every repository, including the words on this site. It gets one exemption from the rules: none. Its changes walk through the same checks as anyone's."
   - "**Who reviews, honestly (2026-11-26):** one human login authors and merges in the new platform repository, and the AI co-author trailer is on its commits. Required approvals are 0. A proposal routes review by risk, the owner on rules, secrets and anything live and a reviewer agent with its own identity on the rest; it is Proposed, and the reviewer identity does not exist."
@@ -20,11 +20,13 @@ summary:
 
 {% include in-short.html %}
 
-![review](https://img.shields.io/badge/PR%20review-no%20independent%20reviewer%20yet%20(2026--11--11)-orange?logo=github&logoColor=white)
-![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured%20(as%20of%202026--11--11)-orange)
+![review](https://img.shields.io/badge/PR%20review-no%20independent%20reviewer%20yet%20(2026--11--26)-orange?logo=github&logoColor=white)
+![measured](https://img.shields.io/badge/effect%20on%20output-not%20yet%20measured%20(as%20of%202026--11--26)-orange)
 
 [The run-time half of this story](aiops.md) — the **run-time edge** — is a small local
-model with a narrow write path to the live cluster, whose posts a cloud model grades once a day. This is the other half, the
+model. On V1.0 it had a narrow write path to the live cluster and a cloud model graded its posts once a day.
+On the new platform it runs read-only since 2026-11-25: it answers questions and executes nothing, and the
+grading is not built (2026-11-26). This is the other half, the
 **development edge**: the cloud model used to *build* the estate in the first place — which
 repository, which line, which architecture call. It gets exactly one exemption from the
 rules below: none.
@@ -42,18 +44,19 @@ flowchart LR
   B["backlog item"] --> PR["pull request"]
   PR --> GATE["checks: tests, secret scan, signing"]
   GATE --> MERGE["merge"]
-  MERGE --> ART["signed artifact"]
+  MERGE --> ART["signed images, unsigned artifact"]
   ART --> FLUX["Flux pulls the published artifact built from Git"]
   FLUX --> ADM["admission checks the signature"]
-  ADM --> HEALTH["health check"]
+  ADM --> HEALTH["health check, alerts to a chat channel"]
   HEALTH -.->|"by hand today"| B
 ```
 
 The last arrow is dashed because it is not wired. Nothing turns a recurring anomaly into a
-backlog item automatically; the author notices it and writes the item. No Jira link is
-recorded in this loop on the new platform (2026-11-11): delivery is a pull request, the checks,
-a signed artifact, and Flux applying the published artifact built from Git. Monitoring is not live on the new
-cluster (no monitoring namespace on 2026-11-11; its rollout is merged but not finished), so there is no "live signal" step to draw. *V1.0 (retired 2026-11-10):*
+backlog item automatically; the author notices it and writes the item (2026-11-26). No Jira link is
+recorded in this loop on the new platform, and the old Jira backlog was retired by the owner on 2026-11-22:
+delivery is a pull request, the checks, signed images, and Flux applying the published artifact built from Git.
+The artifact Flux pulls is itself unsigned (2026-11-26). Monitoring is built: it was merged on 2026-11-11, and alerts reach a
+chat channel since 2026-11-16. Nothing pages a person, and nothing files an alert as a backlog item. *V1.0 (retired 2026-11-10):*
 the loop also had a Jira item, a code-quality server and auto-deploy for three apps.
 
 **The rulebook the model reads first.** The platform repository (a new private repository
@@ -74,17 +77,19 @@ other: static analysis, secret scan, tests, signing. Nothing merges on the model
 It cannot be a shortcut past review, because it has no review powers to shortcut with.
 
 "Same gates" is not "all green". On the new platform, first-party images are signed in CI and
-signature enforcement is configured and Ready on the live cluster (checked 2026-11-11), and the running Warn image passes it. A refusal of an unsigned image was shown on a local test cluster on 2026-11-07, not yet on the home site. How many running images verify:
-not measured yet. [The status page](status.md) shows what else is measurable. The rule is that
+signature enforcement is configured and Ready on the live cluster (checked 2026-11-11), and the running Warn image passes it. A refusal of an unsigned image was shown on a local test cluster on 2026-11-07, and on the home site on 2026-11-20: during a live upgrade of the admission engine an unsigned image of ours was sent 72 times and refused every time. The admission check reads new pods only; it does not judge running ones again (read 2026-11-22). How many running images verify:
+not measured (2026-11-26). [The status page](status.md) shows what else is measurable. The rule is that
 nothing is exempt, not that nothing is red.
 
 ### Who reviews, honestly
 
-**New platform repository, measured 2026-11-11.**
+**New platform repository, measured 2026-11-11, with a recount on 2026-11-26.**
 
 - **101 of 101 commits on the main branch carry the AI co-author trailer**, counted at the time of writing, 2026-11-11. The repository is six days old.
 - **100 of those 101 commits carry a pull request number.** The one
   exception is the first commit, the charter. Whether branch protection is on was not checked for this page.
+- **Recount, 2026-11-26:** 318 of 318 commits on the main branch carry the AI co-author trailer, all under the
+  same human login, and 317 of them carry a pull request number.
 - **Every commit is under one human login**, so git alone does not show whether the owner
   approved an important change. A bot or an agent committing under that login looks the same as the person.
 - **The merge-approval scheme is a decision record that is still Proposed** (owner approves important
@@ -94,7 +99,8 @@ nothing is exempt, not that nothing is red.
 - **The agent working rules are stricter than that record.** An agent merges only when the owner has
   asked, never with the admin override, and never changes branch protection, rulesets, environments or
   secrets. Review by an agent would be a second identity, not independent judgement.
-- **Dependency updates:** Renovate is configured; I have not yet seen it act.
+- **Dependency updates:** Renovate runs, but every update it finds is held until the owner approves it
+  (2026-11-26). Whether updates may flow on their own is the owner's decision, still open.
 
 *V1.0 repository (retired 2026-11-10), kept as history.* This was a one-person repository, so the gate was CI, not a second human. One person read and
 pushed every change and was accountable for it. **That changed on 2026-10-18, in form but not in
@@ -121,7 +127,7 @@ named point for CI to gate on, a diff that is read before it merges, and a numbe
 
 So the real review process on the previous repository was one accountable human, the CI gates,
 and the model in the session where it wrote the change, which is not independent of the change.
-On the new repository (2026-11-11) it is the same in substance: CI gates, one human login, and no
+On the new repository (2026-11-26) it is the same in substance: CI gates, one human login, and no
 independent reviewer yet.
 
 > *Pure vibe coding remains an aspirational dream for professional work for me, for now.
@@ -154,9 +160,9 @@ commits over 309 days, 1,897 of them by one person; the other 46 were bots. One 
 post-mortems named its AI assistant in the byline (a draft, not the post-mortem published on [the incident
 page](incident.html)). 123 of its commits carried the trailer.
 
-**What it has not been made to prove.** As of 2026-11-11 there is no acceptance-rate metric,
+**What it has not been made to prove.** As of 2026-11-26 there is no acceptance-rate metric,
 no measured defect-escape delta, no before/after quality comparison. The trailers do not fill
-the gap: 101 of 101 says the AI took part in every commit, not whether the result is better.
+the gap: 101 of 101 (318 of 318 on 2026-11-26) says the AI took part in every commit, not whether the result is better.
 On the old repository 123 of 1,943 undercounted early use. The cheapest measurement to try
 first is the share of commits co-authored by AI against the revert and fix-up rate. Until then the honest claim is *"this
 clearly helps"*, not *"this improves output by a stated percentage."*
@@ -178,7 +184,7 @@ expect and check for.
 > applies to chaos controllers and reboot daemons applies to the model that helps write about
 > them: read the value back off the live system before you believe the report, including the
 > report the model just gave you. The page you are reading was itself corrected on
-> 2026-10-09, and again on 2026-11-11, by a fact audit against the live system and the repositories.
+> 2026-10-09, again on 2026-11-11, and again on 2026-11-26, by a fact audit against the live system and the repositories.
 
 ---
 
@@ -186,20 +192,23 @@ expect and check for.
 
 - **Nothing it proposes reaches production without a human accountable for it.** The human is
   the owner who asks for the merge, not a review click; the repository itself cannot yet show
-  who approved what (2026-11-11).
-- **It has no path to the cluster that skips the gates.** [The pipeline](platform.md) does not
-  know or care who authored a diff.
+  who approved what (2026-11-26).
+- **Its changes reach the cluster through the same gates.** [The pipeline](platform.md) does not
+  know or care who authored a diff. Host changes go only through playbooks run from a merged commit.
+  The development agent does run plays, upgrades and drills against the live site, but only on the
+  owner's go, and each run leaves a dated run record (agent rules and records, read 2026-11-26).
 - **It is a different model, in a different place, for a different reason** than
-  [the one that watches the cluster](aiops.md). Development-time judgement and a live write
-  path to the cluster are not the same risk, and they are not given to the same system. Using both,
+  [the one that watches the cluster](aiops.md). Development-time judgement and run-time watching
+  are not the same risk, and they are not given to the same system. On the new platform the run-time
+  agent has no write path at all: it reads with a read-only token (2026-11-25). Using both,
   a frontier cloud model and a small local one, is also on purpose: the aim is to learn AI at both ends.
 
 ---
 
 ## Read next
 
-- **[The operations agent](aiops.md)** — the run-time half: a local model with a
-  narrow, audited write path to the cluster.
+- **[The operations agent](aiops.md)** — the run-time half: a local model, read-only on the
+  new platform since 2026-11-25 (on V1.0 it had a narrow, audited write path).
 - **[DevSecOps, end to end](devsecops.md)** — the gate table every change walks through,
   regardless of who or what proposed it.
 - **[Testing, quality gates, and grading our own maturity](quality.md)** — the same

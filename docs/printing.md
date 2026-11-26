@@ -4,7 +4,7 @@ tldr_what: "The mechanical side of the platform: every printed part is source co
 tldr_why: "Buy the interfaces and print everything between them: motors, boards and batteries come off a shelf, and brackets, decks and docks are a parameter change and a few hours away. Each part is published here by one command through the same leak guard as every page."
 tldr_use: "Parametric parts and a parts-as-code workflow you can adapt for your own robots and mounts, from a parameter to a spinning preview."
 reread: 2026-11-26
-body_read: 2026-10-09
+body_read: 2026-11-26
 summary:
   - "**What it is:** the mechanical layer of the estate. Every part is source (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters; the mesh, G-code and previews are build output, rebuilt from it."
   - "**The idea:** buy the interfaces and print everything between them. Motors, boards and batteries come off a shelf; the brackets, decks and docks are a parameter change and a few hours away."
@@ -34,7 +34,8 @@ committed to this public site repository. The source repository, {{ site.data.st
 renders the previews on the workstation, not on a cluster. Until 2026-11-10 an internal gallery
 also rendered them in a pod on V1.0; **no gallery pod runs on the new cluster**
 (checked 2026-11-11), and none is planned in the platform repository (checked 2026-11-11).
-Rendering on the workstation is the path now.
+On 2026-11-22 the owner decided that the gallery stays with the printing repository and is
+not hosted on the cluster (read 2026-11-26). Rendering on the workstation is the path now.
 
 The design idea is the one in the first decision record: **buy the interfaces, print
 everything between them**. Motors, boards and batteries come off a shelf; the brackets,
@@ -45,7 +46,7 @@ mechanics into the same fast-iteration loop as the software.
 
 *V1.0 (retired 2026-11-10), as last read 2026-10-27: the gallery pod, the print-job
 CronJob and the ingress in the diagram below and the first two bullets after it. The workstation
-path in the diagram is the one in use now (2026-11-11). Everything about the pod is kept as dated
+path in the diagram is the one in use now (2026-11-11, still so on 2026-11-26). Everything about the pod is kept as dated
 history; the lessons below are why.*
 
 ```mermaid
@@ -152,7 +153,7 @@ test's expected count wrong: it counts every `.stl` under `models`, which is 28 
 ## The parts
 
 Every part in the repository, rendered from the committed source. The list below was generated on
-2026-10-27 from `aa1c78e`: 29 parts in 14 models. **Parts list regenerated 2026-10-27; newer frame, plate and marker-holder work in the printing repository is not yet listed (2026-11-11).** A model that exists only on the workstation, such as a
+2026-10-27 from `aa1c78e`: 29 parts in 14 models. **Parts list regenerated 2026-10-27; newer work in the printing repository (Technic-style frames and plates, a marker holder, a lamp mount, a wheel yoke and others) is not yet listed (2026-11-26).** A model that exists only on the workstation, such as a
 third-party download, is never published; the generator now skips anything git does not track. The camera
 tilt mount is modelled but not yet printed, and its horn and shaft dimensions are assumed. The drone frame and its
 floats are **finished work, not roadmap**: a later decision narrowed the scope to ground
