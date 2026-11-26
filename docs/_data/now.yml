@@ -7,7 +7,7 @@
 # when a headline figure disagrees with a newer progress.yml or stats.yml, or when the README block is out of step.
 # Each item is one plain sentence; a link names a site page. Nothing here may name a machine, an address, an exact
 # software version, a place where a secret is kept, or how a weakness could be used.
-as_of: "2026-11-26 09:42 UTC"
+as_of: "2026-11-26 16:41 UTC"
 headline:
   - label: "Build-order steps done"
     figure: "steps_done"
@@ -29,6 +29,10 @@ headline:
     also: "14 open"
 done_recently:
   - date: "2026-11-26"
+    text: "This board went live on the site and the profile page, with a private twin on the home portal that is kept from the same file."
+  - date: "2026-11-26"
+    text: "A pipeline test that picked up leftovers of the test before it was fixed and passed on the home build hosts, and new tests for a network safety check were merged."
+  - date: "2026-11-26"
     text: "Leftovers from the old cluster's time, a local DNS helper and stale network-share entries, were removed from both laptop nodes, and the node check is green on all six machines."
   - date: "2026-11-26"
     text: "An overnight control run on the simulated cluster measured what losing a node costs today: about half of new requests fail until the node is declared down, 40 to 70 seconds, and writes stop for 80 to 92 seconds when the database primary goes, with nothing lost."
@@ -39,13 +43,12 @@ done_recently:
   - date: "2026-11-25"
     text: "The power-off drills started again after the cluster DNS fix: the first passed and the second passed in part ([Progress](progress.html))."
 running:
-  - text: "A cleanup change that removes the old cluster's remains from all six machines is in its second round of review fixes."
-  - text: "Corrections to an architecture decision record and new tests for a safety check, both approved, are having their review findings fixed before they merge."
-  - text: "A fix for a pipeline test that picked up leftovers of the test before it waits for its own run on the home build hosts as proof."
-  - text: "Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) are being repaired and run again, so they can judge a failover fix."
+  - text: "A cleanup change that removes the old cluster's remains from all six machines has passed review and waits for approval."
+  - text: "Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) were repaired, and the change waits for approval."
 waiting_on_owner:
-  - text: "A key custody proof, about ten minutes."
+  - text: "A key custody proof, about ten minutes; the workstation is free for it now."
   - text: "Approval of the cleanup change, and of moving two database primaries while it applies."
+  - text: "Approval of the repaired simulated-cluster scenarios."
   - text: "The second power-off drill again, at the machines."
   - text: "A decision on a trial that passed its first proof: take the next step, reject it, or try another option."
   - text: "A decision on whether dependency updates held for approval may flow on their own."

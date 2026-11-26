@@ -73,21 +73,20 @@ What is moving this week, from the same data file as [the Now page](https://schu
 <!-- now:start -->
 <!-- Written by scripts/build-now.py from docs/_data/now.yml; edit the data file and run it with --write. -->
 
-*As of 2026-11-26 09:42 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
+*As of 2026-11-26 16:41 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
 
 **2 of 12** build-order steps done; **3 of 110** objective rules built (20 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
 
 **Running now:**
 
-- A cleanup change that removes the old cluster's remains from all six machines is in its second round of review fixes.
-- Corrections to an architecture decision record and new tests for a safety check, both approved, are having their review findings fixed before they merge.
-- A fix for a pipeline test that picked up leftovers of the test before it waits for its own run on the home build hosts as proof.
-- Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) are being repaired and run again, so they can judge a failover fix.
+- A cleanup change that removes the old cluster's remains from all six machines has passed review and waits for approval.
+- Three weak scenarios of the simulated cluster (losing the connection pooler, a network split and a cluster restart) were repaired, and the change waits for approval.
 
 **Waiting on the owner:**
 
-- A key custody proof, about ten minutes.
+- A key custody proof, about ten minutes; the workstation is free for it now.
 - Approval of the cleanup change, and of moving two database primaries while it applies.
+- Approval of the repaired simulated-cluster scenarios.
 - The second power-off drill again, at the machines.
 - A decision on a trial that passed its first proof: take the next step, reject it, or try another option.
 - A decision on whether dependency updates held for approval may flow on their own.
