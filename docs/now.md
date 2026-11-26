@@ -1,5 +1,8 @@
 ---
 title: Now
+tldr_what: "A live board of what is moving on the platform this week: four headline figures, what was done in the last few days, what is running now, what waits on the owner, and what comes next. It carries its own time, to the minute."
+tldr_why: "It is updated on every change of state, a merge, an apply, a drill or a decision, from one data file that also writes the Now block on the GitHub profile, so the two cannot disagree. A guard fails the build when the board is more than 7 days old."
+tldr_use: "The quickest way to see what is happening on the platform right now, and a pattern you can copy: one data file drawn in two places, with a guard that refuses a stale board."
 description: What is moving this week on the new platform. Done in the last few days, running now, waiting on the owner, and next, kept current on every change of state.
 reread: 2026-11-26
 summary:
@@ -11,6 +14,8 @@ summary:
 {% assign n = site.data.now %}
 
 # Now
+
+{% include tldr.html %}
 
 {% include in-short.html %}
 
