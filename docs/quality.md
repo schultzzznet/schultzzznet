@@ -3,13 +3,13 @@ title: Testing, quality gates, and grading our own maturity
 tldr_what: "What actually stops a change from merging on the platform, read from the code host's own settings, and how the platform scores its maturity: against written objectives, with a generated count of rules built, partly built and not built."
 tldr_why: "The protection on main was tested on a throwaway branch, not on main itself, and the page says so. The old self-grades (a 3.47 radar, a 2.72 portfolio) are kept, dated, and explicitly not counted as current."
 tldr_use: "A way to measure platform maturity that a script can recount, and a reminder to read your merge rules back from the API rather than trusting the settings screen."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
-  - "**What stops a merge (read from the hosting API, 2026-11-08):** the main branch is protected: a pull request, two named checks, linear history, administrators bound. Proven on 2026-11-08 on a throwaway branch; main's own was not tested. Only those two checks are required. The aggregate gate is deliberately not required yet, with the fix open; the local-cluster gate and app tests are advisory."
-  - "**Maturity is now scored against objectives, not a ladder:** the new platform's objectives page is still a draft with no start date. Its generated register (the 2026-11-10 status file) counts 12 steps (2 done, 2 done on a local cluster, 5 partly, 2 not started, 1 gated) and 109 rules (3 built, 19 partly, 87 not built)."
+  - "**What stops a merge (read from the hosting API, 2026-11-08):** the main branch is protected: a pull request, two named checks, linear history, administrators bound. Proven on 2026-11-08 on a throwaway branch; main's own was not tested. Only those two checks are required; the aggregate gate, the local-cluster gate and app tests are advisory."
+  - "**Maturity is scored against objectives, not a ladder:** the generated status of 2026-11-26 counts 12 build-order steps (2 done, 2 done on a local cluster, 5 partly, 2 not started, 1 gated) and 110 rules (3 built, 20 partly, 87 not built). See [Progress](progress.html)."
   - "**Old grades are dated, not current:** the 3.47 radar, the 2.72 portfolio, the ladder and the 3-of-5 second opinion belong to V1.0 (2026-08-06 to 2026-10-18)."
-  - "**Not built yet:** mutation testing, the nightly dependency sweep, a load generator, blue/green and canary. Tracing is deployed but no trace has been read. The cluster is about a day old, so nothing here is an uptime claim."
+  - "**Not built yet:** mutation testing, a load generator, blue/green and canary. There is no record that a trace has been read. The cluster was built on 2026-11-10, so nothing here is an uptime claim."
 ---
 
 {% assign s = site.data.stats -%}

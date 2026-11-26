@@ -3,15 +3,14 @@ title: Alerting and monitoring — two models, one human
 tldr_what: "The first version's AI operations agent (retired 2026-11-10 with it): a small local model that answered questions and proposed fixes, a cloud model that graded its posts daily, and a person who approved every action."
 tldr_why: "A review of its first 96 summaries found critical in 79, with no critical alert firing in 69, and a model-supplied name passed into a command run as root. Both were fixed with argument validation, an approver list and an audit trail."
 tldr_use: "A design to borrow if you want an AI near production: proposals only, a narrow allowlisted write path, a person on every action, and a monthly graded sample with a guard that goes red when nobody grades."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
-  - "**V1.0 (retired 2026-11-10):** this page describes the operations agent and alerting loop as measured up to 2026-10-30. No alert is known to reach a person today (open). The new cluster's monitoring was merged on 2026-11-11 and its pods were Running at 07:00 UTC, but nothing from it has been read (open)."
-  - "**What it is:** alerts go straight to chat; a small local model on a separate machine answers questions, writes a morning digest and *proposes* fixes; a large cloud model reads the local one's posts once a day and grades them. Nothing either says is executed: a fixed, allowlisted guardrail layer disposes, and almost every action waits for a named person's click."
-  - "**Where the people are:** a click on every action, a monthly graded sample of eight posts, and a guard that goes red after 35 days without one. The cloud model's grades are drafts and cannot satisfy that guard. The first graded sample cannot be produced without alerts to read (2026-11-11)."
-  - "**What it may do alone:** two rules, both on-demand database backups, and only if auto-apply is switched on. It is not. Everything else is a proposal."
-  - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments are now validated, only approvers count, every executed action is audited, and a quality loop measures what it says."
-  - "**Open (2026-11-11):** no alert is known to reach a person (see the banner). Weak when last measured: log-based proposals (five graded, none good), a small model that is not an engineer, one instance."
+  - "**Mostly V1.0 (retired 2026-11-10):** the page describes the operations agent and alerting loop as measured up to 2026-10-30. **On the new platform (2026-11-26):** alerts reach a chat channel since 2026-11-16, and nothing pages a person. An operations agent is back since 2026-11-25, read-only: deployed from a merged commit on a machine outside the cluster, with a read-only token."
+  - "**What V1.0's agent was:** alerts went straight to chat; a small local model answered questions, wrote a morning digest and *proposed* fixes; a cloud model graded its posts daily. Nothing either said was executed: an allowlisted guardrail layer disposed, and almost every action waited for a named person's click."
+  - "**Where the people were:** a click on every action, a monthly graded sample of eight posts, and a guard that went red after 35 days without one. The cloud model's grades were drafts and could not satisfy that guard."
+  - "**What changed on 26 October:** a review of its first 96 summaries found inflated severity and a blind data source it never mentioned, and a model-supplied name placed into a command run as root. Arguments were then validated, only approvers counted, every executed action was audited, and a quality loop measured what it said."
+  - "**Open (2026-11-26):** the new agent can read and answer, and do nothing else; whether it may ever propose actions, and how its posts are graded, is not decided. No graded sample of its posts exists yet."
 ---
 
 # An AI ops agent with a narrow, audited write path

@@ -4,12 +4,12 @@ tldr_what: "The products the platform is meant to carry, one section each: embed
 tldr_why: "It is honest about the gap between a production platform and products in production: one workload is proven on the new platform so far, and the killer app does not exist yet. What does exist is what is held ready for it: an app standard, a template and launch gates."
 tldr_use: "A view of what one product production platform can carry, from a cloud app to firmware on a board to a printed bracket, and a checklist of what must be true before an app is trusted to it."
 description: Which real workloads the platform serves or is meant to serve - embedded Linux, a mower, a rover, 3D printing, the reference apps and the killer app - each with a dated status word and what the platform still lacks for it.
-reread: 2026-11-12
+reread: 2026-11-26
 body_read: 2026-11-12
 summary:
   - "**What it is:** the workloads the platform is meant to carry, one section each: embedded Linux (two boards), the mower, the rover, 3D printing, the reference apps and the killer app. Each has dated rows marked proven, built, planned or open, and a list of what the platform still lacks for it."
-  - "**Proven on the new platform, 2026-11-12: one workload.** The Warn backend is up on the home site (2026-11-10/11), with one backup restored into a scratch cluster. The other applications are real work, but they ran on V1.0 (gone 2026-11-10), run on a bench or a workstation, or are not started."
-  - "**The killer app does not exist.** There is no name, user, market or date. What exists is what the platform holds ready for the day: a written app standard (3 of 109 rules built), a template, 16 launch gates (0 done) and one green rehearsal."
+  - "**Proven on the new platform, 2026-11-26: one workload.** The Warn backend runs on the home site with its login service on two replicas, has been through 17 software failure drills and the first power-off drills, and its database restores from backup. The location app is next. The other applications run on a bench or a workstation, or are not started."
+  - "**The killer app does not exist.** There is no name, user, market or date. What exists is what the platform holds ready for the day: a written app standard (3 of 110 rules built), a template, launch gates (none done) and a [product practice](product.html) for deciding what to build."
   - "**The aim is to prove real, live applications of the platform.** Today this page is mostly the list of what still stands between the aim and the proof; it will get shorter in the right way when rows move to proven."
 ---
 

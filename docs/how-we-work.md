@@ -3,13 +3,13 @@ title: How we work
 tldr_what: "The working practice behind the platform: how changes are made, checked, approved, broken on purpose and recovered. Each practice carries a date and one of four words: proven, built, planned or open."
 tldr_why: "Practices are shown working, not just described: a hand patch reverted by Flux, restores from the backup store alone, 17 live failover drills. A simulation reproduced in minutes a DNS flaw that a review on paper had missed, so every scenario is now rehearsed before it runs live."
 tldr_use: "A checklist of habits to hold your own team to: git as the only way in, secrets encrypted in git, decision and run records, restore drills, and a failure-drill ladder from a CI gate to pulling the plug. Also a clear way to tell GitOps from merely declarative."
-reread: 2026-11-20
+reread: 2026-11-26
 body_read: 2026-11-20
 summary:
   - "**What it is:** how changes are made, checked, approved, broken on purpose and recovered on the new platform. Each way of working has a date and one of four words: proven, built, planned, open. The cluster was brought up on 2026-11-10/11, so nothing here claims uptime; most of these ways of working were learned on V1.0 ([History](history.html))."
   - "**Seen working (dated):** a hand patch reverted by Flux (2026-11-10); restores from the backup store alone, of the reference app's database (2026-11-10) and the login service's (2026-11-15); 17 live software failover drills on 2026-11-16/17, 15 pass and 2 fail, neither losing an acknowledged write."
   - "**Failure scenarios** ([section 10](#10-failure-scenarios-simulate-then-pull-the-plug), 2026-11-20): five rungs, from one-node CI gates to the owner pulling the plug. The second power-off drill (2026-11-19) found a timing flaw in cluster DNS that a review on paper missed; a simulation reproduced it within minutes. So no live drill runs before its simulation has passed (**planned**)."
-  - "**Not shown:** no single point is proven fixed (only a power-off drill can do that: 2 of 7 run, 1 failed); main's own branch protection was never tested; alerts reach a chat channel, but nothing pages a person, waits for an acknowledgement or escalates."
+  - "**Not shown (2026-11-26):** 1 of 30 single points is proven fixed, cluster DNS by a power-off on 2026-11-25; the rest are not, because only a power-off drill can prove one. Main's own branch protection was never tested. Alerts reach a chat channel, but nothing pages a person, waits for an acknowledgement or escalates."
   - "**Two axes** ([below](#two-axes-what-you-write-and-who-applies-it)): what you write (declarative or scripted) and who applies it (pull or push) are independent. V2.0 is declarative and pull in the cluster, still scripted and push at the edges, so not fully GitOps yet."
   - "**The failures that taught me** are below, with dates, including a change-over step merged before its referee was read (2026-11-20)."
 ---

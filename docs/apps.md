@@ -3,12 +3,12 @@ title: The apps
 tldr_what: "The three reference apps: Flutter clients for location sharing in invite-only groups, road-hazard warnings and messaging, with Spring Boot backends. They are the realistic load the platform proves itself against, not a product."
 tldr_why: "They exercise every layer, sign-in included, and their bugs are published: a failed token refresh was treated as a rejected token and signed people out for the wrong reason. Only the hazard-warning backend runs on the new platform so far."
 tldr_use: "A realistic small app set to test a platform with, a sign-in pattern (Authorization Code with PKCE, so the app never sees the password), and a list of the gaps a reference app is allowed to keep."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 description: Three Flutter apps - location sharing, hazard warnings, messaging - what they do, how they sign in, what the screenshots show, and what is not finished.
 summary:
   - "**What they are:** three Flutter clients (Loc8 for location in invite-only groups, Warn for road hazards, Talk for messaging) and three Spring Boot services. They are the realistic load the platform proves itself against; the platform is the point."
-  - "**On the new platform (2026-11-11):** only the Warn backend is deployed; Loc8 and Talk are not on the cluster, and a sign-in by an app through the new identity provider has not been shown."
+  - "**On the new platform (2026-11-26):** only the Warn backend is deployed, with its login service on two replicas since 2026-11-15. Loc8 is next, phone first and reachable only from the owner's devices at first; Talk follows. A sign-in by an app through the new identity provider was not shown as of 2026-11-11."
   - "**What they are not:** a product. None is in an app store, the Android builds are debug-signed, registration is closed, and the people in the screenshots are demo accounts."
   - "**How they sign in:** the identity provider's own page with Authorization Code and PKCE, so the app never sees the password. One real bug here is worth reading: a failed token refresh was treated as a rejected token and signed people out for the wrong reason."
   - "**Known gaps:** Loc8's geofence alerts are detected on the server and never shown; Warn's vote counting is naive; several settings rows do nothing; nothing tests the maps or real-time behaviour."

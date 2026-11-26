@@ -4,10 +4,10 @@ tldr_what: "The history behind a young cluster: the platform's first version ran
 tldr_why: "2,051 commits, 226 merged pull requests and 12,937 CI runs, with a commit in every calendar month. The receipts are checkable: this public repository has described the platform since April 2026 with push times recorded by GitHub."
 tldr_use: "Context for every other page, and an example of rebuilding a platform from what the old one measured or got wrong: each main change in V2.0 is traced back to a dated V1.0 lesson."
 description: V1.0 ran from 2025-12-21 to 2026-11-10, and V2.0 was built on the same machines from what it taught. Month by month, dated milestones, and receipts anyone can check.
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
-  - "**What it is:** the history behind a day-old cluster. V1.0, the platform in the old private repository, ran for 324 days, from 2025-12-21 to 2026-11-10: Docker Swarm first, k3s beside it from 2026-04-04, Swarm retired on 2026-06-09. V2.0 was built on the same six machines on 2026-11-10 and 11."
+  - "**What it is:** the history behind the new cluster. V1.0, the platform in the old private repository, ran for 324 days, from 2025-12-21 to 2026-11-10: Docker Swarm first, k3s beside it from 2026-04-04, Swarm retired on 2026-06-09. V2.0 was built on the same six machines on 2026-11-10 and 11."
   - "**V1.0 in numbers (frozen):** 2,051 commits on 198 days, with a commit in every calendar month from December 2025 to November 2026; 226 merged pull requests (the first gated merge was on 2026-08-06); 12,937 CI runs; 42 decision records."
   - "**Receipts you can check:** this public repository described V1.0 from 2026-04-18, with push times recorded by GitHub, and published V1.0's commit count rising from 1,749 to 1,943 in October 2026, before V2.0's repository existed."
   - "**Not claimed:** uptime. No single cluster ran 324 days: the last V1.0 cluster ran from 2026-09-04 to 2026-11-10. The monthly counts come from private repositories, so they are my report, with the method public."

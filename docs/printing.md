@@ -3,13 +3,13 @@ title: Printing — parts as code, previewed on the workstation
 tldr_what: "The mechanical side of the platform: every printed part is source code (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters, and the mesh, G-code and previews are build output."
 tldr_why: "Buy the interfaces and print everything between them: motors, boards and batteries come off a shelf, and brackets, decks and docks are a parameter change and a few hours away. Each part is published here by one command through the same leak guard as every page."
 tldr_use: "Parametric parts and a parts-as-code workflow you can adapt for your own robots and mounts, from a parameter to a spinning preview."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-10-09
 summary:
   - "**What it is:** the mechanical layer of the estate. Every part is source (OpenSCAD or a Python generator) with its bolt patterns and clearances as named parameters; the mesh, G-code and previews are build output, rebuilt from it."
   - "**The idea:** buy the interfaces and print everything between them. Motors, boards and batteries come off a shelf; the brackets, decks and docks are a parameter change and a few hours away."
   - "**The chain:** a part is rendered to a mesh, previewed as a spinning GIF on the workstation, and published to this page by one command that runs the same leak guard as every other page. The gallery pod that also rendered previews ran on V1.0 and is gone (2026-11-10)."
-  - "**The parts list is dated:** regenerated 2026-10-27, 29 parts in 14 models. Newer frame, plate and marker-holder work in the printing repository is not yet listed (2026-11-11)."
+  - "**The parts list is dated:** regenerated 2026-10-27, 29 parts in 14 models. Newer work in the printing repository (Technic-style frames and plates, a marker holder, a lamp mount, a wheel yoke) is not listed yet (2026-11-26)."
 ---
 
 # Parts as code: from a parameter to a spinning preview

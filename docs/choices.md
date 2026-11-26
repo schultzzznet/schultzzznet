@@ -3,13 +3,13 @@ title: Why these tools, and what got rejected
 tldr_what: "Why each tool on the platform was chosen over the obvious alternative, in three lists: deferred, rejected on principle and rejected on right-sizing, including the choices that turned out wrong and the ones that are debts."
 tldr_why: "Every rejection names the condition that would reopen it, and two such triggers have already fired and been acted on: GitOps with Flux and policy admission. Replicated storage was traded away openly, not quietly."
 tldr_use: "A worked set of tool decisions for a small Kubernetes platform where nothing may cost a licence, and a habit worth copying: write down what would change your mind before you reject something."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What it is:** for each tool, why it and not the obvious alternative, in three lists: *deferred*, *rejected on principle* (no cloud-only analysis services; the cloud AI models are a deliberate exception) and *rejected on right-sizing* (a named condition would change the answer). A rejection without a reopen-trigger is just an opinion."
-  - "**Two triggers fired and were acted on:** GitOps (Flux, installed 2026-11-10, decided early; reconciling since then; the live Ready count is on the [status page](status.html)) and policy admission (Deny rules live since 2026-11-10). Both are about a day old on the new platform: not yet seen working over time."
-  - "**Storage changed:** V1.0's replicated storage is gone; the new one has node-local storage only, and backups go to a small object store on one machine (one copy). A reviewed trade, not a hidden one."
-  - "**Still open:** tracing is deployed but no trace has been read, encryption of secrets inside the cluster is configured but not read back, a service mesh is deferred, and a probe on 2026-11-10 found a 1 to 3 second window at pod start with everything open (the record's result is fail)."
+  - "**Two triggers fired and were acted on:** GitOps (Flux, reconciling since 2026-11-10; it put back a hand patch the same day) and policy admission (Deny rules live since 2026-11-10, a baseline pod policy in Deny since 2026-11-21, three admission replicas since 2026-11-25, and a live upgrade on 2026-11-20). Both now have two weeks on the new platform."
+  - "**Storage changed:** V1.0's replicated storage is gone; the new one has node-local storage only. Database backups go to a small object store on one machine, with a second copy on the house NAS (2026-11-24); there is no off-site copy. A reviewed trade, not a hidden one; replicated storage is planned again."
+  - "**Still open (2026-11-26):** no record that a trace has been read, encryption of secrets inside the cluster configured but not read back (2026-11-11), a service mesh deferred, and the 1 to 3 second window at pod start with everything open, found by a probe on 2026-11-10 and not re-run since."
 ---
 
 

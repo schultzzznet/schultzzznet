@@ -3,13 +3,13 @@ title: How the platform builds and ships things
 tldr_what: "How a change gets from a pull request into the running cluster: required checks, an artifact built from main, Flux pulling it every two minutes, admission checking every image, and where CI runs. The delivery layer of the product production platform."
 tldr_why: "The cluster pulls; nothing pushes into it. The pipeline holds no cluster credential and there is no inbound path, yet a merge is live within minutes. The page also names the gaps: an unsigned delivery artifact, and a new pod open for 1 to 3 seconds before default-deny applies."
 tldr_use: "A worked pull-based delivery chain you can compare with your own, a contract an app must meet to be deployed, and a split between hosted runners for jobs that hold keys and a throwaway machine per job at home for the rest."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**How a change arrives (proven 2026-11-10/11):** pull request, required checks, squash merge, a publish step builds an artifact from main, and Flux on the cluster pulls it every 2 minutes. There is no inbound path and the pipeline holds no cluster credential."
-  - "**Where CI runs:** anything holding a key runs on hosted runners; heavy jobs with no secret run on a fresh VM per job at home. By day nine of November 2026 the included hosted minutes were about 90 percent used (89.5 percent by my own tally, 92 by the budget tool, measured 2026-11-09), which is why the home path exists."
-  - "**Admission (built 2026-11-10):** own images need a CI signature (one named image; Ready and enforcing on 2026-11-11, signature check itself not on record); vendor images pass a digest-pinned list. Default-deny fails for 1 to 3 s after a pod starts."
-  - "**Open:** further hardening of the delivery artifact is a known gap being worked on; operators and ingress are installed by a bootstrap script, not reconciled; a new pod is outside default-deny for about 1 to 3 seconds. The cluster is about a day old, so nothing here claims uptime."
+  - "**Where CI runs:** every pull request job runs at home since 2026-11-12, on a fresh virtual machine per job that holds no secret, after the included hosted minutes and a $20 spending limit ran out. How it works: [Academy: CI at home](academy-ci.html)."
+  - "**Admission:** own images need a CI signature and vendor images pass a digest-pinned list (built 2026-11-10); a baseline pod policy is enforced since 2026-11-21, and the engine runs three replicas since 2026-11-25. Default-deny fails for 1 to 3 s after a pod starts (probe of 2026-11-10)."
+  - "**Open:** the delivery artifact is unsigned; operators and ingress were installed by a bootstrap script, not reconciled (2026-11-11); a new pod is outside default-deny for about 1 to 3 seconds. The cluster was built on 2026-11-10, so nothing here claims uptime."
 ---
 
 # The delivery chain

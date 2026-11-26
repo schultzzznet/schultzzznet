@@ -3,14 +3,13 @@ title: Legal, licensing, and the regulatory posture nobody publishes for a home 
 tldr_what: "The less flattering questions asked of a home-built platform: the EU Cyber Resilience Act, GDPR, app-store rules and licences, graded against a stated target in public, including where it falls short."
 tldr_why: "Most platform write-ups skip this part. This one says plainly that the clause-by-clause CRA mapping is not written, that there is no automatic OS patching yet, and what a licence actually obligates you to do."
 tldr_use: "A starting list of the regulatory questions any product platform will meet before it ships, and an example of grading yourself against them in public before anyone else asks."
-reread: 2026-11-11
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What it is:** the less flattering questions asked of a home-built platform, graded against a stated target in public, including where it falls short. The platform was wiped on 2026-11-10 and rebuilt; every old measurement below is labelled V1.0."
-  - "**The EU Cyber Resilience Act:** the clause-by-clause mapping is still not written. On the new platform (2026-11-11) signature enforcement is configured on first-party images (a refusal is shown only on a test cluster, not yet on the home site), but no automatic OS patching exists and no vulnerability tracker runs. **GDPR:** erasure was verified on 2026-07-02 on databases that are now wiped."
+  - "**The EU Cyber Resilience Act:** the clause-by-clause mapping is still not written (2026-11-26). Signature enforcement on first-party images is configured; no automatic OS patching was found on 2026-11-11, and a weekly scan of what runs is built on a branch, not live. **GDPR:** deleting an account in the login service is live since 2026-11-16; erasure was last verified on V1.0 (2026-07-02)."
   - "**Licensing:** MIT for code and CC BY 4.0 for writing on this site. The licence table was written for the old stack; the new stack has not been checked against it yet."
   - "**Open items:** the clause mapping, terms of service and a hosted privacy policy, a hardware licence decision, an OS patching mechanism, and a fix for the 1 to 3 second start gap in default-deny."
-
 ---
 
 # CRA, GDPR, app-store rules, and what a licence actually obligates

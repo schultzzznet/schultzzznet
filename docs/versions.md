@@ -4,12 +4,12 @@ tldr_what: "A row-by-row diff of the platform's first version (V1.0, retired 202
 tldr_why: "Rebuilds are usually written up as progress. This one lists 30 rows where the old version was better, among them replicated storage, a public entrance, rehearsed upgrades and read alerts, and 17 things not rebuilt yet."
 tldr_use: "A template for planning or reviewing your own platform rebuild: which capabilities to carry over, change, drop or defer, and an honest way to report the step backwards that every rebuild takes."
 description: A dated diff list between the retired cluster (V1.0) and the K3s home site (V2.0), area by area, with a status word on every V2.0 row.
-reread: 2026-11-20
+reread: 2026-11-26
 body_read: 2026-11-11
 summary:
   - "**What it is:** a diff list of V1.0 (the cluster retired on 2026-11-10) against V2.0 (the K3s home site, built on 2026-11-10 and 11), 70 rows in 16 areas, each row dated and given one of four status words."
   - "**Counts, 2026-11-11:** 14 kept, 32 changed, 6 new, 1 dropped, 17 not rebuilt yet. Of the V2.0 sides, 19 are proven, 17 built, 8 planned, 24 open; 2 are unchanged and outside the cluster."
-  - "**Moved since, 2026-11-20 (rows not yet redone):** 17 software failure drills (15 passed) and the first two power-off drills (1 passed, 1 failed on cluster DNS, the series restarts after the fix); cluster DNS moving to every node; the login service on its own replicated database; a second restore drill; alerts to a chat channel. Read 2026-11-26, the single-points register: 30 rows, 15 accepted, 1 fixed and 14 open."
+  - "**Moved since, 2026-11-26 (rows not yet redone):** 17 software failure drills (15 passed); power-off drills, where cluster DNS failed on 2026-11-19 and, moved to every node, passed on 2026-11-25; the login service on its own replicated database; three restore drills passed and one partial; alerts to a chat channel. The single-points register: 30 rows, 15 accepted, 1 fixed and 14 open."
   - "**Where V1.0 was better:** 30 rows, among them a live reference to compare against, replicated storage, one database cluster per app, names on the LAN, an in-cluster registry that needed no internet, read monitoring and alerts, rehearsed upgrades, rollback and restore drills, a public entrance, scans and an audit log. Most of that is not rebuilt yet."
   - "**The first four delivery rows name their cell** of the two axes (what is written: declarative or scripted; who applies it: pull or push), explained in [How we work](how-we-work.html#two-axes-what-you-write-and-who-applies-it)."
   - "**V1.0 is kept as a diffed reference.** It ran from 2025-12-21 to 2026-11-10 ([History](history.html)). Nothing about it is deleted and every V1.0 fact keeps its date. It is not running; it is never evidence about V2.0."

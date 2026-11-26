@@ -3,13 +3,13 @@ title: High availability — what has it, what does not, and how we know
 tldr_what: "The platform's failure tolerance, measured: which pieces survive losing a machine, which do not, and what happened when they were tested by killing pods and powering machines off. Part one is the current platform, part two the first version."
 tldr_why: "Highly available on paper failed in practice: two DNS replicas stalled lookups for 51 s under a real power-off. A connection pooler that cached a failed login slowed a database failover to 48.6 s, then 27.9 s after the fix. The first version lost synchronous commit for 23 days unnoticed."
 tldr_use: "Failure scenarios and timings to hold against your own cluster, a single-points register where only a power-off can mark a row fixed, and a set of stories about controls that looked correct and were not."
-reread: 2026-11-20
+reread: 2026-11-26
 body_read: 2026-11-20
 summary:
-  - "**Where it stands, 2026-11-20:** the request path has a written design, hop by hop, and 17 live software drills ran against its pieces (15 pass, 2 fail, no acknowledged write lost). There are **0 power-off proofs**: of 7 planned power-off drills, 2 ran on 2026-11-19, 1 passed and 1 failed, and the series starts again from the first. Nothing here is an uptime claim."
+  - "**Where it stands, 2026-11-26:** the request path has a written design, hop by hop, and 17 live software drills ran against its pieces (15 pass, 2 fail, no acknowledged write lost). Power-off drills: on 2026-11-19 1 passed and 1 failed on cluster DNS; after the fix, on 2026-11-25, 1 passed and 2 passed in part. Nothing here is an uptime claim."
   - "**Single points register (read 2026-11-26):** 30 rows, 15 accepted, 1 fixed and 14 open. 7 of the 14 open rows are on an app's path, 4 on the shared path and 3 supporting. The fixed row is cluster DNS, by a power-off on 2026-11-25. A point on an app's path is never accepted, and only a power-off record makes a row fixed."
   - "**The biggest finding:** two cluster DNS replicas looked highly available and failed on timing under a real power-off: lookups stalled 51 s and two of the probe's test inserts failed. The fix, DNS on every node, each node using its own, is live since 2026-11-20. In the morning power-off of 2026-11-25 no lookup on another node failed or took over 1 s; in the evening run one outside name took over 1 s."
-  - "**Also found:** a connection pooler that cached a failed login (fixed: a primary failover went from 48.6 s to 27.9 s), extra seconds when both backup plugin pods are down (open), and a sign-in probe that cannot see a login database outage (open). Restores: 3 drills, all pass."
+  - "**Also found:** a connection pooler that cached a failed login (fixed: a primary failover went from 48.6 s to 27.9 s), extra seconds when both backup plugin pods are down (open), and a sign-in probe that cannot see a login database outage (open). Restores: 3 drills pass; a fourth (2026-11-24) was partial, an older backup stopping silently at a segment the store listed and could not serve."
   - "**Kept as record:** V1.0's stories (patching loop that never rebooted, a replica out of the stream for 14 days, an alert that could not fire) sit below under a dated heading."
 ---
 
