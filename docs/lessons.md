@@ -601,32 +601,36 @@ gate, however good the check is.
 
 ## 17. The same fault twice, three months apart
 
-*Added 2026-11-26. Dated 2026-08-18 and 2026-11-25.*
+*Added 2026-11-26. Dated 2026-08-18, 2026-11-25 and 2026-11-26.*
 
 **The first time (2026-08-18).** The workstation's wired network was "horrible" for a whole day:
 pages half-loading, messages not sent. Four suspects were cleared first: an outage at the code
 host (real that week, and a fine red herring), the router, the ISP, and the cable and switch port.
 The cause was Energy-Efficient Ethernet (802.3az), the power saving that lets a quiet link sleep:
-the link went down about 180 times an hour, 1,614 times in 24 hours, with 70% of packets lost.
-Turning it off took the loss to zero. Two operating-system updates in three days had turned it
-back on, and the interface's own status showed nothing: only the system log saw the drops.
+the link went down about 180 times an hour, 1,614 times in 24 hours, and a 90-second test lost 70%
+of its packets. Turning it off took the loss to zero. Two operating-system updates in three days
+had turned it back on, and the interface's own counters showed no drop: only the system log saw
+them.
 
-**The second time (2026-11-25).** On the new cluster, two laptop nodes lost up to about 10% of
-pings sent 20 ms apart, and none sent 2 ms apart, so the loss came when the link was quiet. That is
-the same feature's signature, but the lesson had not been carried into the new platform's records,
-so it was the last suspect, not the first, and slow connections seen that evening were at first
-blamed on the power-off drill. With power saving off on both nodes, 0 of 72,000 pings were lost;
-after a reboot the setting was still off and 0 of 15,000 were lost. That it was the cause this
-time is not proven: the loss had also come and gone by itself before the change.
+**The second time (2026-11-25).** On the new cluster, two laptop nodes lost up to 11% of pings sent
+20 ms apart, and none sent 2 ms apart, so the loss came when the link was quiet. That points at
+the same feature, but the new platform had carried the first lesson only as one sentence in the
+workstations' host notes and an open task, not as a check and not for the nodes, so it was the
+last suspect, not the first. With power saving off on both nodes, 0 of 72,000 pings were lost;
+after a reboot of one of them the setting was still off and 0 of 15,000 were lost. That it was the
+cause this time is not proven: the loss had also come and gone by itself before the change, and
+some of it fits power saving poorly.
 
-**What I'd do differently:** carry a lesson as a check, not as a story. The first time ended with
-a sentence ("re-check after every update") in a diary; the rebuild carried the records it was
-told to carry and left the diary behind. The new nodes now have a check that fails when a link
-reads power saving on, and the post-update check for the workstations is still open.
+**What I'd do differently:** carry a lesson as a check, not as a sentence. The first time ended
+with "re-check after every update", and that is how it was carried: a sentence, which nothing
+runs. The two laptop nodes now have a check, run by hand, that fails when their link reads power
+saving on; the other nodes are not checked, and the post-update check for the workstations is
+still open.
 
-> **The transferable version:** packet loss that depends on how far apart the packets are is the
-> link going to sleep. Ping at two spacings before suspecting anything else, and make every fix an
-> operating-system update can undo into a check that runs after the update.
+> **The transferable version:** packet loss that depends on how far apart the packets are points
+> first at the link going to sleep. Ping at two spacings and read the power-saving state before
+> suspecting anything else, and make every fix an operating-system update can undo into a check
+> that runs after the update.
 
 ---
 
