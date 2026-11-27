@@ -26,7 +26,10 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A complete SDLC platform to make and sustain my apps, to show what has just become possible: made and sustained with AI, aiming for best-in-class production software, on six retired machines pushed to the edge, to prove it holds
+# A complete SDLC platform, so good that the work is delighting customers, not fighting the platform
+
+**Develop, improve and sustain my apps with agentic AI and agile practice, on open-source software, aiming for best in
+class: six retired machines pushed to the edge, through real failures, to prove it holds.**
 
 {% include tldr.html %}
 
@@ -101,6 +104,38 @@ operator, 2026-11-25), and dependency updates wait on a click. Alerts reach a ch
 passes the same gates as a person's ([AI in development](ai-dev.html)). In production a small local model answers
 questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
 A frontier model at run time is not built.
+
+## What we hold ourselves to
+
+{% assign p = site.data.progress %}
+Four aims and fourteen objectives, set in the platform's charter and sharpened on 2026-11-27 around the purpose above.
+Each objective is a promise with a page of rules, and every rule names the check that would prove it. A rule counts as
+built only when its check runs and passes, so most of them are aims today, and they are shown as aims. Counts on
+{{ p.as_of }}: {{ p.counts.rules_built }} of {{ p.counts.rules_total }} rules built, {{ p.counts.rules_partly }} partly built,
+{{ p.counts.rules_not_built }} not built ([Progress](progress.html)).
+
+| Aim | Objective | In plain words | Rules: built, partly, of |
+| --- | --- | --- | --- |
+{% assign o = p.objectives | where: "name", "Product first" | first %}| Product and Flow | **Product first** | We decide what is worth building with the people it is for, before we build it, and say "no customers" until there are some. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Flow" | first %}| Product and Flow | **Flow** | A change reaches a user fast and safely: small slices, test first, and DORA's four keys against the best published band. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Contracts" | first %}| Production Ready | **Contracts** | Every app states in a written contract what it offers and who may call it, before the code. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Production-ready apps" | first %}| Production Ready | **Production-ready apps** | An app is ready for a stranger to install, trust and get help with, and every new app starts from the same base. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Recover" | first %}| Production Ready | **Recover** | Backups count when restored and failover counts when someone pulled the plug. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Portable" | first %}| Production Ready | **Portable** | The same git repository runs on a cloud cluster or in someone else's hosting, with a way out of every service. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Many hands" | first %}| Production Ready | **Many hands** | A new developer, a person or an AI with no memory, joins and ships from the docs alone. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Git is the only way" | first %}| State of the Art | **Git is the only way** | Every change is in git first and the machines pull it; a hand fix is found and reverted. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Secure by default" | first %}| State of the Art | **Secure by default** | Security is in the first version and graded by outside tools, not by us. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Observe and operate" | first %}| State of the Art | **Observe and operate** | We know something is wrong before a user does, and every alert is tested by making it fire. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "AI in development" | first %}| Learning Platform | **AI in development** | The AI that writes code is a developer with its own login, least access and its work reviewed. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "AI in production" | first %}| Learning Platform | **AI in production** | AI watches and advises, a person decides, and its answers are graded. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Learning" | first %}| Learning Platform | **Learning** | We try what teaches most, and the tests decide what stays. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Shown in the open" | first %}| Learning Platform | **Shown in the open** | Plain words, dated claims, misses next to wins, tested on readers from outside. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+
+The key results score the work each quarter from 0 to 1: about 0.7 is a good score and 1.0 is the stretch, on purpose.
+Three stretch rungs were added on 2026-11-27: all four of DORA's keys at the top band of the DORA report current at
+scoring; every app change carrying a test, enforced; and five readers from outside who, given only this site for ten
+minutes, say correctly what it is and why it is interesting. The key results are still a draft, and none has been scored
+yet.
 
 ## Why it is worth your time
 
