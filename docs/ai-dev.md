@@ -92,7 +92,7 @@ nothing is exempt, not that nothing is red.
   same human login, and 317 of them carry a pull request number.
 - **Every commit is under one human login**, so git alone does not show whether the owner
   approved an important change. A bot or an agent committing under that login looks the same as the person.
-- **The merge-approval scheme is a decision record that is still Proposed** (owner approves important
+- **The merge-approval scheme is a decision record, accepted on 2026-11-23** (owner approves important
   changes, a separate reviewer agent handles the rest). The reviewer identity does not exist, and
   required approvals are 0 per the decision record. Until that exists, the owner reads the important pull requests by hand;
   that is a practice, not something the repository enforces.

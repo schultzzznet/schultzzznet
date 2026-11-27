@@ -36,20 +36,24 @@ real customers who pay (none yet), and a platform is judged by the work built on
 
 The platform is private; the write-up at **<https://schultzzznet.github.io/schultzzznet/>** is public.
 
-**Why it is interesting.** It is pushed to the edge, to prove it holds, and the misses are published with dates. If it runs on this
-hardware, it runs anywhere.
+**Why it is interesting.** It is pushed to the edge, to prove it holds, and every miss is published with a date, what was
+done about it, and whether that is proven. If it runs on this hardware, it runs anywhere.
 
 - **Two replicas is a count, not a property.** Two cluster DNS replicas passed a pod-kill drill, then a power-off stalled
-  lookups for 51 seconds. DNS on every node fixed it, proven by a power-off on 2026-11-25.
+  lookups for 51 seconds. **Done:** DNS on every node, **proven** by a power-off on 2026-11-25.
   [Lesson 15](https://schultzzznet.github.io/schultzzznet/lessons.html#15-highly-available-on-paper-is-not-highly-available)
 - **An upgrade that kept the uptime and lost the guarantee.** A PostgreSQL major-version cutover silently dropped
   synchronous commit; for 23 days the site promised no lost writes and it was not true. An audit found it, not an alert.
+  **Done:** restored and read back on every primary the same morning, and a guard now fails a new cluster that lacks a
+  setting its predecessor had.
   [Reliability](https://schultzzznet.github.io/schultzzznet/reliability.html#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)
 - **Seven controls, deployed, green and doing nothing.** One reboot daemon reported "nothing to do" hourly for weeks while
-  16,002 patched-but-not-running findings piled up. [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
+  16,002 patched-but-not-running findings piled up. **Done:** each fixed; the lasting rule, every control reporting when it
+  last acted, is written and **not built yet**. [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
 - **Failover timings, fails included.** A database primary kill took 48.6 s against a 30 s target, because the pooler cached
-  a failed login. After the fix: 27.9 s. [The table](https://schultzzznet.github.io/schultzzznet/reliability.html#the-scenarios-and-how-each-piece-fared)
+  a failed login. **Done:** the pooler no longer holds a failed login; the re-run took 27.9 s. [The table](https://schultzzznet.github.io/schultzzznet/reliability.html#the-scenarios-and-how-each-piece-fared)
 - **What the AI got wrong, counted.** An AI review the site called required had run on none of 41 pull requests.
+  **Done:** the site stopped claiming it; an independent reviewer is still owed.
   [AI in development](https://schultzzznet.github.io/schultzzznet/ai-dev.html#who-reviews-honestly)
 
 **What it can be used for.** The platform is kept ready to make the killer app and sustain it, so that on that day the
