@@ -2,9 +2,11 @@
 
 **Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
 
-**What this is.** A product production platform: the whole path from an idea to a running app, built from current
+**What this is.** A platform to make an app and sustain it: the killer app, when it comes. It started with wanting to
+build one app, and building it meant building everything around it. That infrastructure is now most of the work: a
+product production platform, the whole path from an idea to a running app and the years after, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
-In the order the work meets it:
+It is also a training system, on purpose. In the order the work meets it:
 
 1. **Make the app.** Thin slices, the first on a real phone; the API contract first, with a breaking-change gate, a
    contract fuzzer and a client generated from it; small pull requests through the same checks. *An app in a day* is the
@@ -35,9 +37,9 @@ hardware, it runs anywhere.
 - **What the AI got wrong, counted.** An AI review the site called required had run on none of 41 pull requests.
   [AI in development](https://schultzzznet.github.io/schultzzznet/ai-dev.html#who-reviews-honestly)
 
-**What it can be used for.** The platform is kept ready to take any app from idea to production, the killer app
-included, so that on that day the app is the only thing that needs attention; the product layer (deciding what to build)
-is the youngest part. Until then it is a training system, on purpose. From the site you can take:
+**What it can be used for.** The platform is kept ready to make the killer app and sustain it, so that on that day the
+app is the only new work; the product layer (deciding what to build) is the youngest part. Until then the reference apps
+stand in for it. From the site you can take:
 [four runnable examples](examples/), failover checks to run against your own cluster, a
 [drill method](https://schultzzznet.github.io/schultzzznet/how-we-work.html#10-failure-scenarios-simulate-then-pull-the-plug), laptop exercises in the
 [Academy](https://schultzzznet.github.io/schultzzznet/academy.html), and a way of reporting where every claim has a date and *not measured yet* replaces a zero.
