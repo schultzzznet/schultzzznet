@@ -1,6 +1,6 @@
 ---
 title: The estate
-tldr_what: "A product production platform: one person, with a frontier AI model as a reviewed peer, runs the whole path from an idea to a running app, built from current open-source practice on six retired laptops and small desktops. DevSecOps is one layer of it: code in git, signed images, encrypted secrets, drilled databases, CI at home."
+tldr_what: "A product production platform on six retired machines, run by one person with a frontier AI model, in this order: making the app (thin slices, contracts first, tests), running it (K3s, GitOps, reliability drills), shipping it (CI/CD), watching and keeping it (telemetry, upgrades), and AI agents in both building and running."
 tldr_why: "It is pushed to the edge, to prove it holds, and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it runs on this hardware, it runs anywhere."
 tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
@@ -29,6 +29,45 @@ summary:
 # A product production platform on six retired machines, built with AI, pushed to the edge, to prove it holds
 
 {% include tldr.html %}
+
+## The path, layer by layer
+
+One app's way from an idea to production, in five layers and in the order the work meets them. Each line says what is
+built and what is only the aim, with a date. Read 2026-11-27.
+
+**1. Make the app: fast, test-backed, contract first.**
+- **Contracts first** (built for the warning app): its API is a written OpenAPI contract. A pull request that breaks it
+  fails a breaking-change gate; the test-cluster gate fuzzes the live app against it (eight faults when added,
+  2026-11-07 and 08, and a real bug on 2026-11-11); the phone client is generated from it, and a check fails if the two
+  drift. Of the 12 contract rules in the plan, 3 are partly built. Consumer-driven contracts are later.
+  [Quality](quality.html#the-contract-testing-story-and-the-trap-inside-it)
+- **Rapid, in thin slices** (a practice since 2026-11-17): every feature gets a four-risk box, and its first slice runs end
+  to end on a real phone before the rest is built. [Product practice](product.html)
+- **An app in a day** is the aim, not a result: an app lands by one tenant entry, without touching platform code. The
+  warning app did it once, by its author; the location app is next and is the first timed run.
+  [Applications](applications.html)
+- **Extreme programming habits**: small pull requests, each through the same checks, with the AI as the pair that writes
+  and the checks as the referee. Tests sit in each app, but test first (TDD) is not a rule yet and is not measured.
+
+**2. Run it in production: K3s, GitOps, reliability.** {{ c.nodes_ready | default: "6" }} machines in one K3s cluster;
+Flux pulls everything in the cluster from git; databases run three copies with restore drills; 17 software failure drills
+and five power-offs so far. Reliability is the aim, not yet a claim. [Reliability](reliability.html),
+[How we work](how-we-work.html)
+
+**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job; images are
+signed and admission refuses anything off the list; the cluster pulls a merged change within minutes.
+[The delivery chain](platform.html), [DevSecOps](devsecops.html)
+
+**4. Watch it and keep it: telemetry and maintenance.** {{ s.observability.scrape_targets }} scrape targets,
+{{ s.observability.alert_rules }} alert rules and {{ s.observability.dashboards }} dashboards, about
+{{ s.observability.metric_history_days }} days of history. Upgrades run as reviewed plays (K3s, 2026-11-18; the database
+operator, 2026-11-25), and dependency updates wait on a click. Alerts reach a chat channel, not yet a person.
+[Status](status.html), [Progress](progress.html)
+
+**5. AI agents, in building and in running.** In development a frontier cloud model writes the changes, and every one
+passes the same gates as a person's ([AI in development](ai-dev.html)). In production a small local model answers
+questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
+A frontier model at run time is not built.
 
 ## Why it is worth your time
 

@@ -4,9 +4,20 @@
 
 **What this is.** A product production platform: the whole path from an idea to a running app, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
-DevSecOps is one layer of it: everything in git and pulled in by Flux on K3s, signed images and admission control,
-encrypted secrets, PostgreSQL with restore drills, monitoring, CI on home machines. The platform is private; the write-up
-at **<https://schultzzznet.github.io/schultzzznet/>** is public.
+In the order the work meets it:
+
+1. **Make the app.** Thin slices, the first on a real phone; the API contract first, with a breaking-change gate, a
+   contract fuzzer and a client generated from it; small pull requests through the same checks. *An app in a day* is the
+   aim, not yet measured, and test first (TDD) is not a rule yet.
+2. **Run it in production.** K3s on six machines, everything pulled from git by Flux, PostgreSQL with three copies and
+   restore drills, failure drills up to pulling the plug.
+3. **Ship it.** CI on home machines, one throwaway virtual machine per job, signed images and admission control.
+4. **Watch it and keep it.** Metrics, logs, alerts and dashboards; upgrades as reviewed plays; dependency updates held
+   for a click.
+5. **AI agents in both.** A frontier model builds through the same gates as a person; a small local model watches the
+   running cluster, read-only.
+
+The platform is private; the write-up at **<https://schultzzznet.github.io/schultzzznet/>** is public.
 
 **Why it is interesting.** It is pushed to the edge, to prove it holds, and the misses are published with dates. If it runs on this
 hardware, it runs anywhere.
