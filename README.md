@@ -1,6 +1,7 @@
 # Christian Schultz
 
-**Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
+**Software product developer and development manager, backed by real hands-on work: product, development, production,
+security and hosting, with AI at both ends, scaled for teamwork and happy customers.**
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
 
@@ -9,13 +10,15 @@ most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
 It is also a training system, on purpose. Not a pivot: it stays platform first, but in the end it is all about delighting
-real customers who pay (none yet). In the order the work meets it:
+real customers who pay (none yet), and a platform is judged by the work built on it
+([DORA](https://dora.dev/capabilities/platform-engineering/)). In the order the work meets it:
 
 1. **Decide and make the app.** Product first: Marty Cagan's four big risks
    ([SVPG](https://www.svpg.com/four-big-risks/)) answered before a feature is built, then Henrik Kniberg's thin slices
    (Crisp), each testable, usable or lovable, the first on a real phone. The API contract first, with a breaking-change gate, a
-   contract fuzzer and a client generated from it; small pull requests through the same checks. *An app in a day* is the
-   aim, not yet measured, and test first (TDD) is not a rule yet.
+   contract fuzzer and a client generated from it. Extreme programming: small pull requests and continuous integration
+   are real; test first (TDD) is the aim, not a rule yet. Rapid application development: *an app in a day* is the aim,
+   not yet timed. Both are plan items since 2026-11-27.
 2. **Run it in production.** K3s on six machines, everything pulled from git by Flux, PostgreSQL with three copies and
    restore drills, failure drills up to pulling the plug.
 3. **Ship it.** CI on home machines, one throwaway virtual machine per job, signed images and admission control.

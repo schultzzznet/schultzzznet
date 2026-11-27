@@ -26,7 +26,7 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A platform to make and sustain an app, on six retired machines, built with AI, pushed to the edge, to prove it holds
+# A complete SDLC platform to make and sustain my apps, to show what has just become possible: made and sustained with AI, aiming for best-in-class production software, on six retired machines pushed to the edge, to prove it holds
 
 {% include tldr.html %}
 
@@ -50,12 +50,18 @@ for the business ([SVPG](https://www.svpg.com/four-big-risks/)). It is then buil
 testable, usable or lovable, the first on a real phone (*Making sense of MVP*, Crisp). There are no paying customers yet,
 and the product layer is the youngest part. [Product practice](product.html)
 
+The platform will be judged the same way. DORA's research on
+[platform engineering](https://dora.dev/capabilities/platform-engineering/) measures a platform by the success of the work
+built on it, not by its features. DORA's four keys (how often a change ships, how long a change takes to reach production,
+how many changes fail, how fast service comes back after a failure) are planned as the platform's own figures, read
+from git, the pull requests, the cluster's pull loop and the drill records. None is published yet (2026-11-27).
+
 ## The path, layer by layer
 
 One app's way from an idea to production and through the years after, in five layers and in the order the work meets
 them. Each line says what is built and what is only the aim, with a date. Read 2026-11-27.
 
-**1. Decide and make the app: product first, fast, test-backed, contract first.**
+**1. Decide and make the app: product first, rapid (RAD), test first (XP, TDD), contract first.**
 - **Product first, in thin slices** (a practice since 2026-11-17): every feature gets a four-risk box (value, usability,
   feasibility, viability: who judges, the cheapest test, the result), after Marty Cagan. It is built in slices after
   Henrik Kniberg, the riskiest first, and the first slice runs end to end on a real phone before the rest is built.
@@ -65,11 +71,16 @@ them. Each line says what is built and what is only the aim, with a date. Read 2
   2026-11-07 and 08, and a real bug on 2026-11-11); the phone client is generated from it, and a check fails if the two
   drift. Of the 12 contract rules in the plan, 3 are partly built. Consumer-driven contracts are later.
   [Quality](quality.html#the-contract-testing-story-and-the-trap-inside-it)
-- **An app in a day** is the aim, not a result: an app lands by one tenant entry, without touching platform code. The
-  warning app did it once, by its author; the location app is next and is the first timed run.
-  [Applications](applications.html)
-- **Extreme programming habits**: small pull requests, each through the same checks, with the AI as the pair that writes
-  and the checks as the referee. Tests sit in each app, but test first (TDD) is not a rule yet and is not measured.
+- **Rapid application development: an app in a day** (an aim, a plan item since 2026-11-27). After James Martin's
+  *Rapid Application Development* (1991): working software early, in short timeboxes, with the user. An app lands by one
+  tenant entry, without touching platform code. Today: the warning app did it once, by its author, untimed. Next: the
+  location app's first slice is the first timed run, from an empty repository made from the template to a real phone,
+  with every hold-up published. [Applications](applications.html)
+- **Extreme programming, test first included** (partly real, the rest an aim and a plan item since 2026-11-27). After
+  Kent Beck's *Extreme Programming Explained* and *Test-Driven Development: By Example*. Real today: small pull requests,
+  continuous integration on every change, the AI as the pair that writes and the checks as the referee. The aim: test
+  first (TDD) as a rule for app work, starting with the location app, and a published share of app changes that add or
+  change a test with the code. Today tests exist in the warning app, but test first is not a rule and is not measured.
 
 **2. Run it in production: K3s, GitOps, reliability.** {{ c.nodes_ready | default: "6" }} machines in one K3s cluster;
 Flux pulls everything in the cluster from git; databases run three copies with restore drills; 17 software failure drills
