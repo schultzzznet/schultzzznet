@@ -1,7 +1,7 @@
 ---
 title: The estate
 tldr_what: "A platform to make an app and keep it running for years: the killer app. It began with wanting to build one app. Six retired machines, one person, a frontier AI model. In order: make the app (product first, slices, contracts, tests), run it (K3s, GitOps, drills), ship it (CI/CD), watch and keep it, and AI agents in both."
-tldr_why: "It is pushed to the edge, to prove it holds, and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it runs on this hardware, it runs anywhere."
+tldr_why: "Pushed to the edge, and every miss gets a fix, a test and a date. Cluster DNS stalled 51 s in a power-off: now on every node, proven by the next power-off. An upgrade silently dropped synchronous commit for 23 days: restored and guarded. Controls sat green doing nothing: the rule against it is written, not built."
 tldr_use: "It is kept ready to make the killer app and sustain it; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
 body_read: 2026-11-26
@@ -26,13 +26,26 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A complete SDLC platform to make and sustain my apps, to show what has just become possible: made and sustained with AI, aiming for best-in-class production software, on six retired machines pushed to the edge, to prove it holds
+# A complete SDLC platform, so good that the work is delighting customers, not fighting the platform
+
+**Develop, improve and sustain my apps with agentic AI and agile practice, on open-source software, aiming for best in
+class: six retired machines and CI on two iMacs from 2013, pushed to the edge, through real failures, to prove it
+holds.**
 
 {% include tldr.html %}
 
 ## Why it exists
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
+
+> **Discovery just became cheap. Delivery still has to be solid.** Proper product discovery means testing an idea with
+> real people before building it, and Marty Cagan's case for it rests on prototypes being cheap. In September 2025 he wrote
+> that AI tools have brought the cost of live-data prototypes, a thin working slice in front of real users, "way down",
+> calling it "truly game changing for serious product creators", and that such prototypes are not the product
+> ([The purpose of prototypes](https://www.svpg.com/the-purpose-of-prototypes/)). This platform is the other half: when a
+> slice earns its place, it is built properly on the same platform, signed, traced, backed up and drilled. Together that
+> makes proper discovery and proper delivery affordable for one person or a small team. Today the slices and the four-risk box are
+> practised; no live-data prototype has met a real outside user yet. [Product practice](product.html#dual-track-discovery-and-delivery)
 
 It started with an app. Running it for real meant building everything around it: somewhere to run it, a way to ship
 every change safely, eyes on it once it runs, and a way to keep it up to date for years. That infrastructure became the
@@ -87,8 +100,9 @@ Flux pulls everything in the cluster from git; databases run three copies with r
 and five power-offs so far. Reliability is the aim, not yet a claim. [Reliability](reliability.html),
 [How we work](how-we-work.html)
 
-**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job; images are
-signed and admission refuses anything off the list; the cluster pulls a merged change within minutes.
+**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job, on two iMacs
+from 2013 and a spare laptop; hosted runners take only the few jobs that hold a key or a write token. Images are signed and
+admission refuses anything off the list; the cluster pulls a merged change within minutes.
 [The delivery chain](platform.html), [DevSecOps](devsecops.html)
 
 **4. Watch it and keep it: telemetry and maintenance.** {{ s.observability.scrape_targets }} scrape targets,
@@ -102,35 +116,90 @@ passes the same gates as a person's ([AI in development](ai-dev.html)). In produ
 questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
 A frontier model at run time is not built.
 
+## Hybrid, on purpose: the best of both
+
+Many teams want exactly this mix: the cloud's frontier features, and local control of data, compute and cost. Here
+each part runs where it does best.
+
+- **In the cloud, for its frontier features:** the frontier AI model that builds with us, the code host, this public
+  site, and the few CI jobs that hold a key or a write token.
+- **At home, under local control:** the cluster and its data, everyday CI, the small local model that watches the
+  cluster, and the backups.
+- **Why it pays:** cost and compute stay in our hands. When the hosted CI minutes and a $20 limit ran out, every pull
+  request job moved home (2026-11-12), and a job that waits on no other started after a median of 1.2 minutes (read
+  2026-11-20). [Academy: CI at home](academy-ci.html)
+- **Not there yet:** running a copy on a cloud cluster is a planned test, never run; there is no off-site backup copy; and the code itself lives with the code host, while the frontier
+  model sees what it is given.
+
+## What we hold ourselves to
+
+{% assign p = site.data.progress %}
+Four aims and fourteen objectives, set in the platform's charter and sharpened on 2026-11-27 around the purpose above.
+Each objective is a promise with a page of rules, and every rule names the check that would prove it. A rule counts as
+built only when its check runs and passes, so most of them are aims today, and they are shown as aims. Counts on
+{{ p.as_of }}: {{ p.counts.rules_built }} of {{ p.counts.rules_total }} rules built, {{ p.counts.rules_partly }} partly built,
+{{ p.counts.rules_not_built }} not built ([Progress](progress.html)).
+
+| Aim | Objective | In plain words | Rules: built, partly, of |
+| --- | --- | --- | --- |
+{% assign o = p.objectives | where: "name", "Product first" | first %}| Product and Flow | **Product first** | We decide what is worth building with the people it is for, before we build it, and say "no customers" until there are some. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Flow" | first %}| Product and Flow | **Flow** | A change reaches a user fast and safely: small slices, test first, and DORA's four keys against the best published band. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Contracts" | first %}| Production Ready | **Contracts** | Every app states in a written contract what it offers and who may call it, before the code. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Production-ready apps" | first %}| Production Ready | **Production-ready apps** | An app is ready for a stranger to install, trust and get help with, and every new app starts from the same base. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Recover" | first %}| Production Ready | **Recover** | Backups count when restored and failover counts when someone pulled the plug. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Portable" | first %}| Production Ready | **Portable** | The same git repository runs on a cloud cluster or in someone else's hosting, with a way out of every service. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Many hands" | first %}| Production Ready | **Many hands** | A new developer, a person or an AI with no memory, joins and ships from the docs alone. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Git is the only way" | first %}| State of the Art | **Git is the only way** | Every change is in git first and the machines pull it; a hand fix is found and reverted. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Secure by default" | first %}| State of the Art | **Secure by default** | Security is in the first version and graded by outside tools, not by us. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Observe and operate" | first %}| State of the Art | **Observe and operate** | We know something is wrong before a user does, and every alert is tested by making it fire. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "AI in development" | first %}| Learning Platform | **AI in development** | The AI that writes code is a developer with its own login, least access and its work reviewed. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "AI in production" | first %}| Learning Platform | **AI in production** | AI watches and advises, a person decides, and its answers are graded. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Learning" | first %}| Learning Platform | **Learning** | We try what teaches most, and the tests decide what stays. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+{% assign o = p.objectives | where: "name", "Shown in the open" | first %}| Learning Platform | **Shown in the open** | Plain words, dated claims, misses next to wins, tested on readers from outside. | {{ o.built }}, {{ o.partly }}, of {{ o.rules }} |
+
+The key results score the work each quarter from 0 to 1: about 0.7 is a good score and 1.0 is the stretch, on purpose.
+Three stretch rungs were added on 2026-11-27: all four of DORA's keys at the top band of the DORA report current at
+scoring; every app change carrying a test, enforced; and five readers from outside who, given only this site for ten
+minutes, say correctly what it is and why it is interesting. The key results are still a draft, and none has been scored
+yet.
+
 ## Why it is worth your time
 
-Seven findings, each with a number and a link to the full account.
+Seven findings, each with a number, **what was done about it**, whether that is proven, and a link to the full account.
 
 - **Two replicas is a count, not a property.** Two cluster DNS replicas on two machines passed a pod-kill drill, then
   failed a real power-off: lookups on the other nodes stalled for 51.1 s. A throwaway cluster reproduced it in six runs of
-  six. The fix, DNS on every node, was proven by a power-off on 2026-11-25.
+  six. **Done:** DNS on every node, live on 2026-11-20, **proven** by a power-off on 2026-11-25 in which no lookup on another
+  node failed.
   [Lesson 15](lessons.html#15-highly-available-on-paper-is-not-highly-available)
 - **Failover timings, fails included.** A database primary kill under a write probe took 48.6 s against a 30 s target,
-  because the connection pooler cached a failed login for 15 s. After the fix: 27.9 s. No acknowledged write was lost in
-  the software drills. [The table, piece by piece](reliability.html#the-scenarios-and-how-each-piece-fared)
+  because the connection pooler cached a failed login for 15 s. **Done:** the pooler no longer holds on to a failed login;
+  the re-run took 27.9 s, a pass with a thin margin. No acknowledged write was lost in the software drills. [The table, piece by piece](reliability.html#the-scenarios-and-how-each-piece-fared)
 - **An upgrade that kept the uptime and lost the guarantee.** On V1.0 a PostgreSQL major-version cutover with no
   maintenance window silently dropped synchronous commit. For 23 days the databases were asynchronous while this site said
-  no committed write could be lost. An audit found it, not an alert.
+  no committed write could be lost. An audit found it, not an alert. **Done:** the same morning (2026-10-09) synchronous
+  commit and the other lost settings were restored and read back on every primary, and a guard now fails a new cluster
+  that lacks a setting its predecessor had. On the new platform it was seen working once, in a power-off (2026-11-19).
   [The account](reliability.html#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)
 - **Seven controls that were deployed, green and doing nothing.** One of them: a reboot daemon checked a path inside its
   own container and reported hourly, for weeks, that no reboot was needed, while 16,002 patched-but-not-running findings
-  piled up. [Lesson 5](lessons.html#5-believing-status-output-repeatedly) and
+  piled up. **Done:** each was fixed on V1.0. The lasting fix, every control reporting when it last acted and an alert
+  when it goes quiet, is a written rule on the new platform and **not built yet**.
+  [Lesson 5](lessons.html#5-believing-status-output-repeatedly) and
   [the measurement traps](devsecops.html#6-measurement-traps-found-by-checking)
 - **A quorum loss that nothing detected.** A mains drop of under a minute crashed two of three control-plane machines. For
   9 minutes 12 seconds the survivor was one vote short of a quorum, and nothing monitored the state store. A person felt
-  the lights go out. [The post-mortem, in full](incident.html)
+  the lights go out. **Done:** state-store alerts on V1.0 (2026-09-03). **Not yet done on the new platform:** the state
+  store is not watched; carrying the alerts over is an open plan item. [The post-mortem, in full](incident.html)
 - **CI on old desktops, one throwaway virtual machine per job.** Every pull request job runs at home since the hosted
   minutes and the $20 limit ran out. A job's machine takes one job, holds no secret and has no route out except an
-  allow-list proxy and DNS. 470 jobs in five days; a job that waits on no other started after a median of 1.2 minutes.
+  allow-list proxy and DNS. **Done:** this is itself the fix for running out of hosted minutes. 470 jobs in five days; a job that waits on no other started after a median of 1.2 minutes.
   [Academy: CI at home](academy-ci.html)
 - **What the AI got wrong, counted.** On V1.0 a request for an AI review was rejected by the code host while the job
   stayed green: none of 41 pull requests had the review this site said was required. An operations agent wrote "critical"
-  in 79 of 96 summaries, with no critical alert firing in 69.
+  in 79 of 96 summaries, with no critical alert firing in 69. **Done:** the agent's commands got argument validation, an
+  approver list and an audit trail, and on the new platform it is read-only. This site stopped claiming a review that did
+  not run; an independent reviewer is still owed.
   [AI in development](ai-dev.html#who-reviews-honestly), [the agent](aiops.html#the-agent-since-2026-10-26)
 
 ## What you can use it for

@@ -7,7 +7,7 @@
 # when a headline figure disagrees with a newer progress.yml or stats.yml, or when the README block is out of step.
 # Each item is one plain sentence; a link names a site page. Nothing here may name a machine, an address, an exact
 # software version, a place where a secret is kept, or how a weakness could be used.
-as_of: "2026-11-26 23:16 UTC"
+as_of: "2026-11-27 09:32 UTC"
 headline:
   - label: "Build-order steps done"
     figure: "steps_done"
@@ -15,9 +15,9 @@ headline:
     of: 12
   - label: "Objective rules built"
     figure: "rules_built"
-    value: 3
-    of: 110
-    also: "20 partly"
+    value: 4
+    of: 125
+    also: "23 partly"
   - label: "Drills on the home site passed"
     figure: "drills_home_passed"
     value: 19
@@ -28,6 +28,8 @@ headline:
     of: 30
     also: "14 open"
 done_recently:
+  - date: "2026-11-27"
+    text: "The purpose was sharpened to making and sustaining apps that delight paying customers: a fourth aim, three new objectives (product first, flow, shown in the open) and stretch key results, accepted by the owner ([What we hold ourselves to](index.html#what-we-hold-ourselves-to))."
   - date: "2026-11-26"
     text: "The old cluster's remains were removed from all six machines by a guarded change, one machine at a time, with the two database primaries moved first; a check is green on every machine."
   - date: "2026-11-26"
@@ -42,8 +44,6 @@ done_recently:
     text: "An overnight control run on the simulated cluster measured what losing a node costs today: about half of new requests fail until the node is declared down, 40 to 70 seconds, and writes stop for 80 to 92 seconds when the database primary goes, with nothing lost."
   - date: "2026-11-26"
     text: "A new lesson was published, [the same fault twice](lessons.html#17-the-same-fault-twice-three-months-apart): network power saving dropped packets on two laptop nodes, three months after it had dropped a link on the workstation."
-  - date: "2026-11-25"
-    text: "Network power saving was switched off on both laptop nodes, it held across a reboot, and 0 of 15,000 pings were lost afterwards."
 running:
   - text: "The failover fixes, one at a time on the simulated cluster against the measured baseline, now that its three weak scenarios are repaired."
 waiting_on_owner:

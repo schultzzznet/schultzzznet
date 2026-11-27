@@ -5,6 +5,13 @@ security and hosting, with AI at both ends, scaled for teamwork and happy custom
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
 
+**Discovery just became cheap. Delivery still has to be solid.** AI has brought the cost of a live-data prototype, a thin
+working slice in front of real users, "way down" (Marty Cagan,
+[The purpose of prototypes](https://www.svpg.com/the-purpose-of-prototypes/), 2025), and a prototype is not the product.
+This platform is the other half: a slice that earns its place is built properly, signed, traced, backed up and drilled.
+That makes proper discovery and proper delivery affordable for one person or a small team. No live-data prototype has met a real outside
+user yet.
+
 **What this is.** A platform to make an app and sustain it: the killer app, when it comes. That production environment is now
 most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
@@ -29,20 +36,24 @@ real customers who pay (none yet), and a platform is judged by the work built on
 
 The platform is private; the write-up at **<https://schultzzznet.github.io/schultzzznet/>** is public.
 
-**Why it is interesting.** It is pushed to the edge, to prove it holds, and the misses are published with dates. If it runs on this
-hardware, it runs anywhere.
+**Why it is interesting.** It is pushed to the edge, to prove it holds, and every miss is published with a date, what was
+done about it, and whether that is proven. If it runs on this hardware, it runs anywhere.
 
 - **Two replicas is a count, not a property.** Two cluster DNS replicas passed a pod-kill drill, then a power-off stalled
-  lookups for 51 seconds. DNS on every node fixed it, proven by a power-off on 2026-11-25.
+  lookups for 51 seconds. **Done:** DNS on every node, **proven** by a power-off on 2026-11-25.
   [Lesson 15](https://schultzzznet.github.io/schultzzznet/lessons.html#15-highly-available-on-paper-is-not-highly-available)
 - **An upgrade that kept the uptime and lost the guarantee.** A PostgreSQL major-version cutover silently dropped
   synchronous commit; for 23 days the site promised no lost writes and it was not true. An audit found it, not an alert.
+  **Done:** restored and read back on every primary the same morning, and a guard now fails a new cluster that lacks a
+  setting its predecessor had.
   [Reliability](https://schultzzznet.github.io/schultzzznet/reliability.html#the-upgrade-that-kept-the-uptime-and-lost-the-guarantee)
 - **Seven controls, deployed, green and doing nothing.** One reboot daemon reported "nothing to do" hourly for weeks while
-  16,002 patched-but-not-running findings piled up. [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
+  16,002 patched-but-not-running findings piled up. **Done:** each fixed; the lasting rule, every control reporting when it
+  last acted, is written and **not built yet**. [Measurement traps](https://schultzzznet.github.io/schultzzznet/devsecops.html#6-measurement-traps-found-by-checking)
 - **Failover timings, fails included.** A database primary kill took 48.6 s against a 30 s target, because the pooler cached
-  a failed login. After the fix: 27.9 s. [The table](https://schultzzznet.github.io/schultzzznet/reliability.html#the-scenarios-and-how-each-piece-fared)
+  a failed login. **Done:** the pooler no longer holds a failed login; the re-run took 27.9 s. [The table](https://schultzzznet.github.io/schultzzznet/reliability.html#the-scenarios-and-how-each-piece-fared)
 - **What the AI got wrong, counted.** An AI review the site called required had run on none of 41 pull requests.
+  **Done:** the site stopped claiming it; an independent reviewer is still owed.
   [AI in development](https://schultzzznet.github.io/schultzzznet/ai-dev.html#who-reviews-honestly)
 
 **What it can be used for.** The platform is kept ready to make the killer app and sustain it, so that on that day the
@@ -94,9 +105,9 @@ What is moving this week, from the same data file as [the Now page](https://schu
 <!-- now:start -->
 <!-- Written by scripts/build-now.py from docs/_data/now.yml; edit the data file and run it with --write. -->
 
-*As of 2026-11-26 23:16 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
+*As of 2026-11-27 09:32 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
 
-**2 of 12** build-order steps done; **3 of 110** objective rules built (20 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
+**2 of 12** build-order steps done; **4 of 125** objective rules built (23 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
 
 **Running now:**
 
@@ -175,12 +186,12 @@ cluster. What each figure counts, and the command behind it, is on the
 | Latest restore drill on the home site | 2026-11-15, pass |
 | Single points accepted, fixed, open | 15, 1, 14 |
 | Alert rules | 91 |
-| Decision records | 19 |
-| Run records (pass of total) | 98 of 133 |
+| Decision records | 20 |
+| Run records (pass of total) | 100 of 137 |
 | Test definitions (counted, not run) | 89 |
 | CI workflows | 14 |
 
-*Measured 2026-11-26T03:54:00Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-27T09:35:20Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 V1.0, frozen and measured by `scripts/gather-history.py`: 2,051 commits from 2025-12-21 to 2026-11-05, 226 merged pull

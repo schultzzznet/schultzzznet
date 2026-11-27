@@ -5,7 +5,7 @@
 # After a change: python3 scripts/build-progress.py && make -C docs/assets/diagrams progress.png
 # The guard fails when the sums do not add up, when the picture was drawn from other data, when this file is older than
 # 21 days, or when a newer docs/_data/stats.yml disagrees with a figure both files hold.
-as_of: "2026-11-26"
+as_of: "2026-11-27"
 counts:
   steps_total: 12
   steps_done: 2
@@ -13,16 +13,16 @@ counts:
   steps_partly: 5
   steps_not_started: 2
   steps_gated: 1
-  rules_total: 110
-  rules_built: 3
-  rules_partly: 20
-  rules_not_built: 87
-  records: 133
-  records_pass: 98
+  rules_total: 125
+  rules_built: 4
+  rules_partly: 23
+  rules_not_built: 98
+  records: 137
+  records_pass: 100
   records_fail: 23
-  records_partial: 10
+  records_partial: 12
   records_note: 2
-  records_latest: "2026-11-25"
+  records_latest: "2026-11-26"
   single_points: 30
   single_points_accepted: 15
   single_points_fixed: 1
@@ -169,6 +169,18 @@ objectives:
   - name: "Production-ready apps"
     rules: 12
     built: 0
+    partly: 2
+  - name: "Product first"
+    rules: 5
+    built: 0
+    partly: 0
+  - name: "Flow"
+    rules: 6
+    built: 0
+    partly: 1
+  - name: "Shown in the open"
+    rules: 4
+    built: 1
     partly: 2
 next:
   - text: "The owner weighs the second drill's one slow outside lookup. Then the third drill: close the known gap its rehearsal found, or decide on its targets, rehearse it again, and only then run it live."

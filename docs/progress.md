@@ -3,12 +3,12 @@ title: Progress
 tldr_what: "Where the work on the platform stands, in one picture drawn from data and a few tables: the build order, the drills, the run records and the single points of failure, copied from the platform's own generated status."
 tldr_why: "The order is fixed: build, then break, then upgrade. A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a machine. Of 30 single points, one is proven fixed so far, by a power-off."
 tldr_use: "A way to show progress on a platform without a feature list: counts that a script regenerates, a phase order that stops you upgrading what has never been broken, and a register that only a real failure can move."
-description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-26.
-reread: 2026-11-26
+description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-27.
+reread: 2026-11-27
 summary:
-  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-26 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
-  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-26 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
-  - "**Counts on 2026-11-26:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 3 of 110 objective rules are built. 19 of 24 drills on the home site passed. 98 of 133 run records pass. 1 of 30 single points of failure is proven fixed: cluster DNS, by a power-off on 2026-11-25."
+  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-27 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
+  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-27 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
+  - "**Counts on 2026-11-27:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 4 of 125 objective rules are built, under fourteen objectives since 2026-11-27. 19 of 24 drills on the home site passed. 100 of 137 run records pass. 1 of 30 single points of failure is proven fixed: cluster DNS, by a power-off on 2026-11-25."
   - "**Next:** the rest of the power-off drills, each rehearsed on a simulated cluster before it runs live. The second passed in part on 2026-11-25 and waits for the owner's word; the third waits for a known gap of its rehearsal. Then the upgrade phase."
 ---
 {% assign p = site.data.progress %}
@@ -58,7 +58,7 @@ the owner's go; the phase table says so.
 | What | Count on {{ p.as_of }} | What it counts |
 | --- | --- | --- |
 | Steps of the build order | {{ c.steps_done }} of {{ c.steps_total }} done | {{ c.steps_done_on_kind }} more are done on a test cluster only, {{ c.steps_partly }} partly, {{ c.steps_not_started }} not started and {{ c.steps_gated }} waits on its gate. Each step has a written done-when test, and a step is done only when that test passes. |
-| Objective rules | {{ c.rules_built }} of {{ c.rules_total }} built | {{ c.rules_partly }} partly built, {{ c.rules_not_built }} not built. The rules sit under eleven objectives, and each names the check that would show it is met. Built means a check enforces the rule, not that it has held for long. |
+| Objective rules | {{ c.rules_built }} of {{ c.rules_total }} built | {{ c.rules_partly }} partly built, {{ c.rules_not_built }} not built. The rules sit under fourteen objectives, and each names the check that would show it is met. Built means a check enforces the rule, not that it has held for long. |
 | Run records | {{ c.records_pass }} of {{ c.records }} pass | {{ c.records_fail }} fail, {{ c.records_partial }} pass in part and {{ c.records_note }} are notes (a reading, no test). A record is written each time a test or drill runs and its result matters. A failure is kept when it taught something, and a record is never edited to change its result. The latest is dated {{ c.records_latest }}. |
 | Single points of failure | {{ c.single_points_fixed }} of {{ c.single_points }} fixed | {{ c.single_points_accepted }} accepted and {{ c.single_points_open }} open. A point counts as fixed only after a drill has powered off the machine that held it and the service went on. |
 

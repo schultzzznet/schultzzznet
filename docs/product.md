@@ -3,7 +3,7 @@ title: Product practice
 tldr_what: "How the platform decides what is worth building before it builds it: every app feature gets a four-risk box (value, usability, feasibility, viability) and is built in thin slices, the first of which runs end to end on a real phone. The product layer of the product production platform."
 tldr_why: "Most homelab platforms stop at delivery, which is the easy half. Here a check fails the build if a design page has an empty risk cell, and from the second slice on, the value and usability cells must say what a real person's use showed. The first design is at slice 0, and the page says so."
 tldr_use: "A lightweight way to put product discovery into a repository: a four-row table you can copy into any design doc, a slice rule that tests the riskiest part first, and a check that stops the table being filled in once and forgotten."
-reread: 2026-11-26
+reread: 2026-11-27
 summary:
   - "**What it is:** two rules adopted on 2026-11-17. Every app design page carries a four-risk box (value, usability, feasibility, viability: who judges, the cheapest test, the result). Every feature is built in thin slices, and the first one runs end to end on a real device before anything is built behind it."
   - "**What enforces it (built):** a check that fails a design page with an empty or placeholder risk cell, and from slice 2 on refuses \"not tested\" for value and usability. It checks the form, not that a result is true. The rule that a record of each slice's use comes before the next slice merges has no check yet (open)."
@@ -27,6 +27,35 @@ Delivery answers "can we ship it safely?". It does not answer "should we?". A pl
 uptime can get very good at shipping things nobody uses. Platform engineering guidance warns against exactly this
 ("build it and they will come") and judges a platform by whether the work on it succeeds. So the platform's rules reach one
 step further back than the pull request: into the design page, before any code exists.
+
+## Dual track: discovery and delivery
+
+**Discovery just became cheap. Delivery still has to be solid.** Cagan's case for discovery rests on prototypes being
+cheap, and in September 2025 he wrote that AI tools have brought the cost of live-data prototypes "way down", "truly game
+changing for serious product creators", while such prototypes are "not for building actual products"
+([The purpose of prototypes](https://www.svpg.com/the-purpose-of-prototypes/)). A platform where a proven slice becomes a
+real product, signed, traced, backed up and drilled, is the other half, and together they make proper discovery and
+delivery affordable for one person or a small team.
+
+**The surgical team, again.** In *The Mythical Man-Month* (1975), Fred Brooks described the surgical team, after Harlan
+Mills: one chief programmer does the core work, with a small crew in support. AI agents now fill much of that crew, so a
+product team can shrink toward that size and spend more of its time on the problem to solve, and less on how to solve it,
+which the AI does more of, through the same checks as anyone. Here it is one person with AI agents. Whether it holds for a
+small team, and how much it adds, is not measured.
+
+Two tracks, not two teams ([Dual-Track Agile](https://www.svpg.com/dual-track-agile/)): discovery quickly finds what is
+worth building, and delivery builds it so it can be released and kept. What is practised and what is only the aim, read
+2026-11-27:
+
+| Idea | After | Here | Status |
+| --- | --- | --- | --- |
+| Four big risks answered before building | Cagan | the four-risk box on every design page, checked by a script | practised since 2026-11-17 |
+| Thin slices: earliest testable, usable, lovable | Kniberg; Kniberg and Cockburn | slice labels, the riskiest part first, on a real phone | practised; one design, at slice 0 |
+| Feasibility prototype | Cagan | a throwaway trial app proved the live-update path on throwaway clusters | practised (2026-11-17 and 19) |
+| User and live-data prototypes | Cagan | a thin slice in front of outside users, with usage and variant events measured | aim; the usage and variant events are not built, and no outside user has seen a slice |
+| Outcomes over output | Cagan, *Empowered* | every app names, before building, the measure that will say it worked | aim; a rule since 2026-11-27, nothing built |
+| Build to learn, then build to earn | Cagan | a training system now, the killer app later | the stance of the whole platform |
+| AI as a colleague, not a tool | Kniberg, *Generative AI in a Nutshell* | a frontier model writes, the checks referee, every change through the same gates | practised; its effect on output not measured |
 
 ## The four-risk box
 
@@ -118,5 +147,9 @@ including that three of its four results are still "not tested".
   and [Build to learn vs build to earn](https://www.svpg.com/build-to-learn-vs-build-to-earn/).
 - Henrik Kniberg, *Making sense of MVP* (2016), and Henrik Kniberg and Alistair Cockburn, *Elephant carpaccio* (2013): thin
   slices, and earliest testable, usable and lovable product.
+- Marty Cagan, [Dual-Track Agile](https://www.svpg.com/dual-track-agile/) and
+  [Empowered](https://www.svpg.com/books/empowered-ordinary-people-extraordinary-products/).
+- Fred Brooks, *The Mythical Man-Month* (1975), the chapter "The Surgical Team".
+- Henrik Kniberg, [Generative AI in a Nutshell](https://leanpub.com/ainutshell) (a video, then a book).
 - DORA, [Platform engineering](https://dora.dev/capabilities/platform-engineering/): judging a platform by the success of the
   work on it, not by its features.
