@@ -1,12 +1,12 @@
 ---
 title: The estate
-tldr_what: "A product production platform: one person, with a frontier AI model as a reviewed peer, runs the whole path from an idea to a running app, built from current open-source practice on six retired laptops and small desktops. DevSecOps is one layer of it: code in git, signed images, encrypted secrets, drilled databases, CI at home."
+tldr_what: "A platform to make an app and keep it running for years: the killer app. It began with wanting to build one app. Six retired machines, one person, a frontier AI model. In order: make the app (product first, slices, contracts, tests), run it (K3s, GitOps, drills), ship it (CI/CD), watch and keep it, and AI agents in both."
 tldr_why: "It is pushed to the edge, to prove it holds, and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it runs on this hardware, it runs anywhere."
-tldr_use: "It is kept ready to take an app from idea to production, the killer app included; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
+tldr_use: "It is kept ready to make the killer app and sustain it; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
 body_read: 2026-11-26
 summary:
-  - "**What it is:** a product production platform: the path from an idea to a running app, with DevSecOps as one layer, built from the current state of the art on retired hardware, to prove that is possible and to be ready for any app, the killer app included. Reliability is the aim, not yet a claim. A training system, on purpose."
+  - "**What it is:** a platform to make an app and sustain it, the killer app; it began with wanting to build one app. It is also a training system on retired hardware, built from the current state of the art, with DevSecOps as one layer. Reliability is the aim, not yet a claim."
   - "**Proven, with limits (dated):** admission refused an off-list image (2026-11-10); restore drills of two databases passed (2026-11-10 and 2026-11-15, megabytes), and one on 2026-11-24 was partial (an older backup stopped at a segment the store could not serve). 17 software failure drills (2026-11-16 and 17): 15 passed, none lost an acknowledged write. The default-deny probe failed (a 1-3 s gap at pod start)."
   - "**Power-off drills:** on 2026-11-19 the second found cluster DNS stalling for about 51 s; the fix, DNS on every node, went live on 2026-11-20, and in the power-off of 2026-11-25 no lookup on another node failed. Cluster DNS is the first single point proven fixed, 1 of 30 ([Progress](progress.html)). Every failure scenario is now rehearsed in a simulated cluster shaped like home before it runs live."
   - "**Not live (2026-11-26):** alerts that page a person (they reach a chat channel), replicated storage, an off-site backup copy (a second copy sits on the house NAS), a public name, two of the three reference apps."
@@ -26,9 +26,70 @@ summary:
 {% assign hv = site.data.history.v1 %}
 {% assign gen_date = s.generated_at | date: "%Y-%m-%d" %}
 
-# A product production platform on six retired machines, built with AI, pushed to the edge, to prove it holds
+# A platform to make and sustain an app, on six retired machines, built with AI, pushed to the edge, to prove it holds
 
 {% include tldr.html %}
+
+## Why it exists
+
+> I built an app. Then what? It needed a production environment to support it. So I built one.
+
+It started with an app. Running it for real meant building everything around it: somewhere to run it, a way to ship
+every change safely, eyes on it once it runs, and a way to keep it up to date for years. That infrastructure became the
+bigger part of the work, and the larger part of this site.
+
+The real purpose is still the app: to **make an app and sustain it**, the killer app, when it comes. The platform is kept
+ready so that on that day the app is the only new work. The other aims still hold: learn on hardware nobody would choose,
+use the current state of the art, and be production ready, proven by drills rather than claimed. No killer app is named
+yet; the reference apps stand in for it.
+
+This is not a pivot: the work stays platform first. But a platform is judged by what gets built on it, and in the end
+that means **delighting real customers who pay**. So product practice comes first on the path. Before a feature is
+built, Marty Cagan's four big risks are answered: will people value it, can they use it, can it be built, does it work
+for the business ([SVPG](https://www.svpg.com/four-big-risks/)). It is then built in Henrik Kniberg's thin slices, each one
+testable, usable or lovable, the first on a real phone (*Making sense of MVP*, Crisp). There are no paying customers yet,
+and the product layer is the youngest part. [Product practice](product.html)
+
+## The path, layer by layer
+
+One app's way from an idea to production and through the years after, in five layers and in the order the work meets
+them. Each line says what is built and what is only the aim, with a date. Read 2026-11-27.
+
+**1. Decide and make the app: product first, fast, test-backed, contract first.**
+- **Product first, in thin slices** (a practice since 2026-11-17): every feature gets a four-risk box (value, usability,
+  feasibility, viability: who judges, the cheapest test, the result), after Marty Cagan. It is built in slices after
+  Henrik Kniberg, the riskiest first, and the first slice runs end to end on a real phone before the rest is built.
+  [Product practice](product.html)
+- **Contracts first** (built for the warning app): its API is a written OpenAPI contract. A pull request that breaks it
+  fails a breaking-change gate; the test-cluster gate fuzzes the live app against it (eight faults when added,
+  2026-11-07 and 08, and a real bug on 2026-11-11); the phone client is generated from it, and a check fails if the two
+  drift. Of the 12 contract rules in the plan, 3 are partly built. Consumer-driven contracts are later.
+  [Quality](quality.html#the-contract-testing-story-and-the-trap-inside-it)
+- **An app in a day** is the aim, not a result: an app lands by one tenant entry, without touching platform code. The
+  warning app did it once, by its author; the location app is next and is the first timed run.
+  [Applications](applications.html)
+- **Extreme programming habits**: small pull requests, each through the same checks, with the AI as the pair that writes
+  and the checks as the referee. Tests sit in each app, but test first (TDD) is not a rule yet and is not measured.
+
+**2. Run it in production: K3s, GitOps, reliability.** {{ c.nodes_ready | default: "6" }} machines in one K3s cluster;
+Flux pulls everything in the cluster from git; databases run three copies with restore drills; 17 software failure drills
+and five power-offs so far. Reliability is the aim, not yet a claim. [Reliability](reliability.html),
+[How we work](how-we-work.html)
+
+**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job; images are
+signed and admission refuses anything off the list; the cluster pulls a merged change within minutes.
+[The delivery chain](platform.html), [DevSecOps](devsecops.html)
+
+**4. Watch it and keep it: telemetry and maintenance.** {{ s.observability.scrape_targets }} scrape targets,
+{{ s.observability.alert_rules }} alert rules and {{ s.observability.dashboards }} dashboards, about
+{{ s.observability.metric_history_days }} days of history. Upgrades run as reviewed plays (K3s, 2026-11-18; the database
+operator, 2026-11-25), and dependency updates wait on a click. Alerts reach a chat channel, not yet a person.
+[Status](status.html), [Progress](progress.html)
+
+**5. AI agents, in building and in running.** In development a frontier cloud model writes the changes, and every one
+passes the same gates as a person's ([AI in development](ai-dev.html)). In production a small local model answers
+questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
+A frontier model at run time is not built.
 
 ## Why it is worth your time
 
