@@ -29,7 +29,8 @@ summary:
 # A complete SDLC platform, so good that the work is delighting customers, not fighting the platform
 
 **Develop, improve and sustain my apps with agentic AI and agile practice, on open-source software, aiming for best in
-class: six retired machines pushed to the edge, through real failures, to prove it holds.**
+class: hybrid cloud and home, six retired machines and CI on two iMacs from 2013, pushed to the edge, through real
+failures, to prove it holds.**
 
 {% include tldr.html %}
 
@@ -90,8 +91,9 @@ Flux pulls everything in the cluster from git; databases run three copies with r
 and five power-offs so far. Reliability is the aim, not yet a claim. [Reliability](reliability.html),
 [How we work](how-we-work.html)
 
-**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job; images are
-signed and admission refuses anything off the list; the cluster pulls a merged change within minutes.
+**3. Ship it: CI and CD.** Every pull request runs on home machines, one throwaway virtual machine per job, on two iMacs
+from 2013 and a spare laptop; hosted runners take only the few jobs that hold a key or a write token. Images are signed and
+admission refuses anything off the list; the cluster pulls a merged change within minutes.
 [The delivery chain](platform.html), [DevSecOps](devsecops.html)
 
 **4. Watch it and keep it: telemetry and maintenance.** {{ s.observability.scrape_targets }} scrape targets,
@@ -104,6 +106,11 @@ operator, 2026-11-25), and dependency updates wait on a click. Alerts reach a ch
 passes the same gates as a person's ([AI in development](ai-dev.html)). In production a small local model answers
 questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
 A frontier model at run time is not built.
+
+**Hybrid, on purpose.** Each part runs where it does best. In the cloud: the code host, the few CI jobs that need a key,
+and the frontier model that builds with us. At home: the cluster, everyday CI, the small local model that watches it, and
+the backups (there is no off-site copy yet). Home is cheap and teaches the most; the cloud buys what home cannot do well.
+[Academy: CI at home](academy-ci.html)
 
 ## What we hold ourselves to
 
