@@ -38,6 +38,15 @@ holds.**
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
 
+> **Discovery just became cheap. Delivery still has to be solid.** Proper product discovery means testing an idea with
+> real people before building it, and Marty Cagan's case for it rests on prototypes being cheap. In September 2025 he wrote
+> that AI tools have brought the cost of live-data prototypes, a thin working slice in front of real users, "way down",
+> calling it "truly game changing for serious product creators", and that such prototypes are not the product
+> ([The purpose of prototypes](https://www.svpg.com/the-purpose-of-prototypes/)). This platform is the other half: when a
+> slice earns its place, it is built properly on the same platform, signed, traced, backed up and drilled. Together that
+> makes proper discovery and proper delivery affordable for one person or a small team. Today the slices and the four-risk box are
+> practised; no live-data prototype has met a real outside user yet. [Product practice](product.html#dual-track-discovery-and-delivery)
+
 It started with an app. Running it for real meant building everything around it: somewhere to run it, a way to ship
 every change safely, eyes on it once it runs, and a way to keep it up to date for years. That infrastructure became the
 bigger part of the work, and the larger part of this site.

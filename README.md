@@ -5,6 +5,13 @@ security and hosting, with AI at both ends, scaled for teamwork and happy custom
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
 
+**Discovery just became cheap. Delivery still has to be solid.** AI has brought the cost of a live-data prototype, a thin
+working slice in front of real users, "way down" (Marty Cagan,
+[The purpose of prototypes](https://www.svpg.com/the-purpose-of-prototypes/), 2025), and a prototype is not the product.
+This platform is the other half: a slice that earns its place is built properly, signed, traced, backed up and drilled.
+That makes proper discovery and proper delivery affordable for one person or a small team. No live-data prototype has met a real outside
+user yet.
+
 **What this is.** A platform to make an app and sustain it: the killer app, when it comes. That production environment is now
 most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
