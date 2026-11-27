@@ -109,18 +109,17 @@ A frontier model at run time is not built.
 
 ## Hybrid, on purpose: the best of both
 
-Many teams want exactly this mix: the cloud for what only it does well, and local control of data, compute and cost. Here
+Many teams want exactly this mix: the cloud's frontier features, and local control of data, compute and cost. Here
 each part runs where it does best.
 
-- **In the cloud:** the code host, this public site, the few CI jobs that hold a key or a write token, and the frontier
-  model that builds with us.
+- **In the cloud, for its frontier features:** the frontier AI model that builds with us, the code host, this public
+  site, and the few CI jobs that hold a key or a write token.
 - **At home, under local control:** the cluster and its data, everyday CI, the small local model that watches the
   cluster, and the backups.
 - **Why it pays:** cost and compute stay in our hands. When the hosted CI minutes and a $20 limit ran out, every pull
   request job moved home (2026-11-12), and a job that waits on no other started after a median of 1.2 minutes (read
   2026-11-20). [Academy: CI at home](academy-ci.html)
-- **Not there yet:** the public edge is at home and there is no cloud edge; running a copy on a cloud cluster is a planned
-  test, never run; there is no off-site backup copy; and the code itself lives with the code host, while the frontier
+- **Not there yet:** running a copy on a cloud cluster is a planned test, never run; there is no off-site backup copy; and the code itself lives with the code host, while the frontier
   model sees what it is given.
 
 ## What we hold ourselves to
