@@ -8,9 +8,12 @@
 most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
-It is also a training system, on purpose. In the order the work meets it:
+It is also a training system, on purpose. Not a pivot: it stays platform first, but in the end it is all about delighting
+real customers who pay (none yet). In the order the work meets it:
 
-1. **Make the app.** Thin slices, the first on a real phone; the API contract first, with a breaking-change gate, a
+1. **Decide and make the app.** Product first: Marty Cagan's four big risks
+   ([SVPG](https://www.svpg.com/four-big-risks/)) answered before a feature is built, then Henrik Kniberg's thin slices
+   (Crisp), each testable, usable or lovable, the first on a real phone. The API contract first, with a breaking-change gate, a
    contract fuzzer and a client generated from it; small pull requests through the same checks. *An app in a day* is the
    aim, not yet measured, and test first (TDD) is not a rule yet.
 2. **Run it in production.** K3s on six machines, everything pulled from git by Flux, PostgreSQL with three copies and

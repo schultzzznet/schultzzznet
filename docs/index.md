@@ -1,6 +1,6 @@
 ---
 title: The estate
-tldr_what: "A platform to make an app and keep it running for years: the killer app. It began with wanting to build one app. Six retired machines, one person, a frontier AI model. In order: make the app (slices, contracts, tests), run it (K3s, GitOps, drills), ship it (CI/CD), watch and keep it, and AI agents in both."
+tldr_what: "A platform to make an app and keep it running for years: the killer app. It began with wanting to build one app. Six retired machines, one person, a frontier AI model. In order: make the app (product first, slices, contracts, tests), run it (K3s, GitOps, drills), ship it (CI/CD), watch and keep it, and AI agents in both."
 tldr_why: "It is pushed to the edge, to prove it holds, and the misses are published with dates. A power-off showed cluster DNS stalling for 51 seconds; on V1.0 a database upgrade silently dropped synchronous commit for 23 days; seven controls sat green and did nothing. If it runs on this hardware, it runs anywhere."
 tldr_use: "It is kept ready to make the killer app and sustain it; the product half (deciding what to build) is the youngest part. You can take failover timings to hold against your own cluster, a drill method, exercises and four runnable files in [examples](https://github.com/schultzzznet/schultzzznet/tree/main/examples)."
 reread: 2026-11-26
@@ -43,19 +43,28 @@ ready so that on that day the app is the only new work. The other aims still hol
 use the current state of the art, and be production ready, proven by drills rather than claimed. No killer app is named
 yet; the reference apps stand in for it.
 
+This is not a pivot: the work stays platform first. But a platform is judged by what gets built on it, and in the end
+that means **delighting real customers who pay**. So product practice comes first on the path. Before a feature is
+built, Marty Cagan's four big risks are answered: will people value it, can they use it, can it be built, does it work
+for the business ([SVPG](https://www.svpg.com/four-big-risks/)). It is then built in Henrik Kniberg's thin slices, each one
+testable, usable or lovable, the first on a real phone (*Making sense of MVP*, Crisp). There are no paying customers yet,
+and the product layer is the youngest part. [Product practice](product.html)
+
 ## The path, layer by layer
 
 One app's way from an idea to production and through the years after, in five layers and in the order the work meets
 them. Each line says what is built and what is only the aim, with a date. Read 2026-11-27.
 
-**1. Make the app: fast, test-backed, contract first.**
+**1. Decide and make the app: product first, fast, test-backed, contract first.**
+- **Product first, in thin slices** (a practice since 2026-11-17): every feature gets a four-risk box (value, usability,
+  feasibility, viability: who judges, the cheapest test, the result), after Marty Cagan. It is built in slices after
+  Henrik Kniberg, the riskiest first, and the first slice runs end to end on a real phone before the rest is built.
+  [Product practice](product.html)
 - **Contracts first** (built for the warning app): its API is a written OpenAPI contract. A pull request that breaks it
   fails a breaking-change gate; the test-cluster gate fuzzes the live app against it (eight faults when added,
   2026-11-07 and 08, and a real bug on 2026-11-11); the phone client is generated from it, and a check fails if the two
   drift. Of the 12 contract rules in the plan, 3 are partly built. Consumer-driven contracts are later.
   [Quality](quality.html#the-contract-testing-story-and-the-trap-inside-it)
-- **Rapid, in thin slices** (a practice since 2026-11-17): every feature gets a four-risk box, and its first slice runs end
-  to end on a real phone before the rest is built. [Product practice](product.html)
 - **An app in a day** is the aim, not a result: an app lands by one tenant entry, without touching platform code. The
   warning app did it once, by its author; the location app is next and is the first timed run.
   [Applications](applications.html)
