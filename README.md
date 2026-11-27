@@ -2,8 +2,10 @@
 
 **Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
 
-**What this is.** A platform to make an app and sustain it: the killer app, when it comes. It started with wanting to
-build one app, and building it meant building everything around it. That infrastructure is now most of the work: a
+> I built an app. Then what? It needed a production environment to support it. So I built one.
+
+**What this is.** A platform to make an app and sustain it: the killer app, when it comes. That production environment is now
+most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
 It is also a training system, on purpose. In the order the work meets it:

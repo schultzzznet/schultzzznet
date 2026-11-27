@@ -32,7 +32,9 @@ summary:
 
 ## Why it exists
 
-It started with an app. Wanting to build one meant building everything around it: somewhere to run it, a way to ship
+> I built an app. Then what? It needed a production environment to support it. So I built one.
+
+It started with an app. Running it for real meant building everything around it: somewhere to run it, a way to ship
 every change safely, eyes on it once it runs, and a way to keep it up to date for years. That infrastructure became the
 bigger part of the work, and the larger part of this site.
 
