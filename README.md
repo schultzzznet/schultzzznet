@@ -1,6 +1,7 @@
 # Christian Schultz
 
-**Platform engineer. Full-stack. Working with AI on both ends of the pipeline.**
+**Software product developer and development manager, backed by real hands-on work: product, development, production,
+security and hosting, with AI at both ends, scaled for teamwork and happy customers.**
 
 > I built an app. Then what? It needed a production environment to support it. So I built one.
 
@@ -9,7 +10,8 @@ most of the work: a
 product production platform, the whole path from an idea to a running app and the years after, built from current
 open-source practice on six retired laptops and small desktops, by one person with a frontier AI model as a reviewed peer.
 It is also a training system, on purpose. Not a pivot: it stays platform first, but in the end it is all about delighting
-real customers who pay (none yet). In the order the work meets it:
+real customers who pay (none yet), and a platform is judged by the work built on it
+([DORA](https://dora.dev/capabilities/platform-engineering/)). In the order the work meets it:
 
 1. **Decide and make the app.** Product first: Marty Cagan's four big risks
    ([SVPG](https://www.svpg.com/four-big-risks/)) answered before a feature is built, then Henrik Kniberg's thin slices

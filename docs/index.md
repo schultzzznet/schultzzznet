@@ -50,6 +50,12 @@ for the business ([SVPG](https://www.svpg.com/four-big-risks/)). It is then buil
 testable, usable or lovable, the first on a real phone (*Making sense of MVP*, Crisp). There are no paying customers yet,
 and the product layer is the youngest part. [Product practice](product.html)
 
+The platform will be judged the same way. DORA's research on
+[platform engineering](https://dora.dev/capabilities/platform-engineering/) measures a platform by the success of the work
+built on it, not by its features. DORA's four keys (how often a change ships, how long a change takes to reach production,
+how many changes fail, how fast service comes back after a failure) are planned as the platform's own figures, read
+from git, the pull requests, the cluster's pull loop and the drill records. None is published yet (2026-11-27).
+
 ## The path, layer by layer
 
 One app's way from an idea to production and through the years after, in five layers and in the order the work meets
