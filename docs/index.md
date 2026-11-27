@@ -29,8 +29,8 @@ summary:
 # A complete SDLC platform, so good that the work is delighting customers, not fighting the platform
 
 **Develop, improve and sustain my apps with agentic AI and agile practice, on open-source software, aiming for best in
-class: hybrid cloud and home, six retired machines and CI on two iMacs from 2013, pushed to the edge, through real
-failures, to prove it holds.**
+class: six retired machines and CI on two iMacs from 2013, pushed to the edge, through real failures, to prove it
+holds.**
 
 {% include tldr.html %}
 
@@ -107,10 +107,21 @@ passes the same gates as a person's ([AI in development](ai-dev.html)). In produ
 questions about the cluster, read-only since 2026-11-25, and executes nothing ([the operations agent](aiops.html)).
 A frontier model at run time is not built.
 
-**Hybrid, on purpose.** Each part runs where it does best. In the cloud: the code host, the few CI jobs that need a key,
-and the frontier model that builds with us. At home: the cluster, everyday CI, the small local model that watches it, and
-the backups (there is no off-site copy yet). Home is cheap and teaches the most; the cloud buys what home cannot do well.
-[Academy: CI at home](academy-ci.html)
+## Hybrid, on purpose: the best of both
+
+Many teams want exactly this mix: the cloud for what only it does well, and local control of data, compute and cost. Here
+each part runs where it does best.
+
+- **In the cloud:** the code host, this public site, the few CI jobs that hold a key or a write token, and the frontier
+  model that builds with us.
+- **At home, under local control:** the cluster and its data, everyday CI, the small local model that watches the
+  cluster, and the backups.
+- **Why it pays:** cost and compute stay in our hands. When the hosted CI minutes and a $20 limit ran out, every pull
+  request job moved home (2026-11-12), and a job that waits on no other started after a median of 1.2 minutes (read
+  2026-11-20). [Academy: CI at home](academy-ci.html)
+- **Not there yet:** the public edge is at home and there is no cloud edge; running a copy on a cloud cluster is a planned
+  test, never run; there is no off-site backup copy; and the code itself lives with the code host, while the frontier
+  model sees what it is given.
 
 ## What we hold ourselves to
 
