@@ -101,9 +101,9 @@ What is moving this week, from the same data file as [the Now page](https://schu
 <!-- now:start -->
 <!-- Written by scripts/build-now.py from docs/_data/now.yml; edit the data file and run it with --write. -->
 
-*As of 2026-11-26 23:16 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
+*As of 2026-11-27 09:32 UTC. Updated on every change of state; the full board, with what was done recently, is on [Now](https://schultzzznet.github.io/schultzzznet/now.html).*
 
-**2 of 12** build-order steps done; **3 of 110** objective rules built (20 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
+**2 of 12** build-order steps done; **4 of 125** objective rules built (23 partly); **19 of 24** drills on the home site passed; **1 of 30** single points of failure fixed (14 open).
 
 **Running now:**
 
@@ -182,12 +182,12 @@ cluster. What each figure counts, and the command behind it, is on the
 | Latest restore drill on the home site | 2026-11-15, pass |
 | Single points accepted, fixed, open | 15, 1, 14 |
 | Alert rules | 91 |
-| Decision records | 19 |
-| Run records (pass of total) | 98 of 133 |
+| Decision records | 20 |
+| Run records (pass of total) | 100 of 137 |
 | Test definitions (counted, not run) | 89 |
 | CI workflows | 14 |
 
-*Measured 2026-11-26T03:54:00Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
+*Measured 2026-11-27T09:35:20Z by `make stats`. What each figure counts, and the command behind it: [the status page](https://schultzzznet.github.io/schultzzznet/status.html).*
 <!-- stats:end -->
 
 V1.0, frozen and measured by `scripts/gather-history.py`: 2,051 commits from 2025-12-21 to 2026-11-05, 226 merged pull

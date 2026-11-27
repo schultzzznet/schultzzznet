@@ -3,12 +3,12 @@ title: Progress
 tldr_what: "Where the work on the platform stands, in one picture drawn from data and a few tables: the build order, the drills, the run records and the single points of failure, copied from the platform's own generated status."
 tldr_why: "The order is fixed: build, then break, then upgrade. A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a machine. Of 30 single points, one is proven fixed so far, by a power-off."
 tldr_use: "A way to show progress on a platform without a feature list: counts that a script regenerates, a phase order that stops you upgrading what has never been broken, and a register that only a real failure can move."
-description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-26.
-reread: 2026-11-26
+description: Where the work on the new platform stands. Build, then break, then upgrade, with measured counts as of 2026-11-27.
+reread: 2026-11-27
 summary:
-  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-26 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
-  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-26 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
-  - "**Counts on 2026-11-26:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 3 of 110 objective rules are built. 19 of 24 drills on the home site passed. 98 of 133 run records pass. 1 of 30 single points of failure is proven fixed: cluster DNS, by a power-off on 2026-11-25."
+  - "**What it is:** where the work on the new platform stands, in one picture and a few tables. The counts were copied on 2026-11-27 from the platform's own generated status page, its plan and its run records, and a script draws the picture from them. There is no list of plan items here, and an open weakness is named only as a known gap."
+  - "**The rule is build, then break, then upgrade.** A failure test runs only on something built to survive it, and an upgrade only on a cluster that has survived losing a node. On 2026-11-27 the work is in the break part, at phase 4 of the phases 0 to 5: the power-off drills."
+  - "**Counts on 2026-11-27:** 2 of 12 build-order steps are done, and 2 more on a test cluster only. 4 of 125 objective rules are built, under fourteen objectives since 2026-11-27. 19 of 24 drills on the home site passed. 100 of 137 run records pass. 1 of 30 single points of failure is proven fixed: cluster DNS, by a power-off on 2026-11-25."
   - "**Next:** the rest of the power-off drills, each rehearsed on a simulated cluster before it runs live. The second passed in part on 2026-11-25 and waits for the owner's word; the third waits for a known gap of its rehearsal. Then the upgrade phase."
 ---
 {% assign p = site.data.progress %}
