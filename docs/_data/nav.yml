@@ -33,6 +33,7 @@
 - section: Hardware
   pages:
     - { title: Embedded (Yocto), url: /yocto.html }
+    - { title: Remote subnet router, url: /subnet-router.html }
     - { title: 3D printing, url: /printing.html }
 - section: Judgement
   pages:
